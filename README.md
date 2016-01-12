@@ -50,6 +50,8 @@ then make sure you create a new branch to work in.
 1. git checkout -b branchName # creates a new branch with <branchName>
 1. git branch # tell you your current branch is now branchName
 
+Now you can start coding!
+
 ### When you're done coding
 These procedures will show you how to submit code to the repository
 
@@ -70,8 +72,22 @@ This request is approved, you changes will be merged into the
 master branch.
 
 1. Go to the project repository web page
-1. Click create pull request button
+1. Click **new pull request** button
+1. Your code submission branch should be automatically configured and added
+1. Select group members for code review, then submit the pull request
 
 ### Fixing merge conflicts
 This activity is quite delicate and must be treated with care or
-risk losing code
+risk losing code. Below are commands I use when I see a conflict.
+
+1. git checkout master # make sure your master has the current code base
+1. git fetch main      # getting recent changes
+1. git rebase origin/master # making sure you master works
+1. git checkout <name of branch you were working on before> # now lets merge the changes in master into your branch
+1. git merge master # this is the key
+1. You may see some merge conflicts here, thats where you need to do some checking and deleting those arrows (in the conflicting files). Once you are done, continue below.
+1. git add —all # add new chanegs with merges fixed
+1. git commit -m “Fixed merge conflicts” # Give a message
+1. git push origin branchName # update your branch and create a pull request
+
+This step takes alot of care cause it can hurt the code base if accidental changes are overriden
