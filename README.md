@@ -24,7 +24,6 @@ pull - a automatic fetch & merge & rebase
 
 merge - merging code from between two similar files with changes
 
-
 ## Commands 
 I'm familiarized myself with using the command line alone. 
 I suggest downloading Source Tree as it provides a graphical GUI
