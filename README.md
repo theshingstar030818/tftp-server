@@ -27,7 +27,7 @@ merge - merging code from between two similar files with changes
 
 ## Commands 
 I'm familiarized myself with using the command line alone. 
-I suggest downloding Source Tree as it provides a graphical GUI
+I suggest downloading Source Tree as it provides a graphical GUI
 for everything the command line does:
 https://www.sourcetreeapp.com/ 
 
@@ -36,7 +36,7 @@ The hash symbol is a comment.
 These are a list of most frequently used commands.
 
 ### Before you start
-Get the latest codebase from the repository
+Get the latest code base from the repository
 
 1. git checkout master # bring you into your master branch
 1. git fetch origin/master # gets the latest code base
@@ -46,7 +46,7 @@ Get the latest codebase from the repository
 Check which branch you are on, and if you're on master branch,
 then make sure you create a new branch to work in.
 
-1. git branch # tells your the branch you're omn
+1. git branch # tells your the branch you're on
 1. git checkout -b branchName # creates a new branch with <branchName>
 1. git branch # tell you your current branch is now branchName
 
@@ -86,8 +86,8 @@ risk losing code. Below are commands I use when I see a conflict.
 1. git checkout <name of branch you were working on before> # now lets merge the changes in master into your branch
 1. git merge master # this is the key
 1. You may see some merge conflicts here, thats where you need to do some checking and deleting those arrows (in the conflicting files). Once you are done, continue below.
-1. git add —all # add new chanegs with merges fixed
+1. git add —all # add new changes with merges fixed
 1. git commit -m “Fixed merge conflicts” # Give a message
 1. git push origin branchName # update your branch and create a pull request
 
-This step takes alot of care cause it can hurt the code base if accidental changes are overriden
+This step takes a lot of care cause it can hurt the code base if accidental changes are overriden
