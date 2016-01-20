@@ -1,4 +1,4 @@
-package server;
+package helpers;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -16,13 +16,14 @@ import resource.*;
  */
 public class FileStorageService {
 	
-	private String mFilePath;
-	private String mFileName;
-	private long bytesProcessed;
+	private String mFilePath = "";
+	private String mFileName = "";
+	private long mBytesProcessed = 0;
+	private String mDefaultStorageFolder = "";
 	
 	// File utility classes
-	RandomAccessFile mFile;
-	FileChannel mFileChannel;
+	RandomAccessFile mFile = null;
+	FileChannel mFileChannel = null;
 
 	/**
 	 *  This file encapsulates all disk IO operations that is required to 
@@ -32,8 +33,24 @@ public class FileStorageService {
 	 * @param fileName - given to initialize this class for use on one file
 	 * @throws FileNotFoundException
 	 */
-	public FileStorageService(String fileName) throws FileNotFoundException {
-		initializeFileObjects(this.mFileName);
+	public FileStorageService(String fileNameOrFilePath) throws FileNotFoundException {
+		initializeFileServiceStorageLocation();
+		initializeNewFileChannel(fileNameOrFilePath);
+	}
+	
+	/**
+	 * This function checks if the default folder to save TFTP files exists, if 
+	 * not, creates one.
+	 */
+	private void initializeFileServiceStorageLocation() {
+		this.mDefaultStorageFolder = Paths.get(Configurations.ROOT_FILE_DIRECTORY).toString();
+		File storageDirectory = new File(this.mDefaultStorageFolder);
+		if(!storageDirectory.exists()) {
+			if(!storageDirectory.mkdir()) {
+				// Flag error for File IO
+				System.out.println(Strings.DIRECTORY_MAKE_ERROR);
+			}
+		}
 	}
 	
 	/**
@@ -42,23 +59,36 @@ public class FileStorageService {
 	 * context file. This function will support handling multiple files only if a previous file
 	 * operation has fully completed without error.
 	 * 
+	 * Two operation types:
+	 * 	+ Given Full Path
+	 * 		This class will overwrite or create the full valid file name. Client class uses this
+	 * 		option to open a channel to the file they want to READ. 
+	 * 		The client class should NOT give a full path if they want to WRITE because this 
+	 * 		operation should write to the default Configurations.ROOT_FILE_DIRECTORY
+	 * 	+ Given File Name
+	 * 		This class will only search for the file name inside the Configurations.ROOT_FILE_DIRECTORY
+	 * 		folder. If the file exists, it will read it, or overwrite it. 
+	 * 		The client classes using this service should only give file name if they want to 
+	 * 		operate on the default directory. 
+	 * 
 	 * @param fileName - passed in through the constructor
 	 * @throws FileNotFoundException
 	 */
-	public void initializeFileObjects(String fileName) throws FileNotFoundException {
-		this.mFileName = fileName;
-		this.bytesProcessed = 0;
-		String defaultFileStoragePath = Paths.get(Configurations.ROOT_FILE_DIRECTORY).toString();
-		File storageDirectory = new File(defaultFileStoragePath);
-		
-		if(!storageDirectory.exists()) {
-			if(!storageDirectory.mkdir()) {
-				// Flag error for File IO
-				System.out.println(Strings.DIRECTORY_MAKE_ERROR);
+	public void initializeNewFileChannel(String filePathOrFileName) throws FileNotFoundException {
+		if(checkFileNameExists(filePathOrFileName)) {
+			this.mFileName = Paths.get(filePathOrFileName).getFileName().toString();
+			if(this.mFileName == "") {
+				// No filename in the path!
+				throw new FileNotFoundException();
 			}
+			this.mFilePath = Paths.get(filePathOrFileName).toString();
+		} else {
+			// So its not a file path, maybe its a file name, so we try it out
+			this.mFileName = filePathOrFileName;
+			this.mFilePath = Paths.get(this.mDefaultStorageFolder, this.mFileName).toString();
 		}
+		this.mBytesProcessed = 0;
 		// Open or create a our file name path and create a channel for us to access the file on
-		this.mFilePath = Paths.get(defaultFileStoragePath, fileName).toString();
 		this.mFile = new RandomAccessFile(this.mFilePath, "rw");
 		this.mFileChannel = this.mFile.getChannel();
 	}
@@ -73,17 +103,20 @@ public class FileStorageService {
 	 * @return boolean - if the file has been fully saved or not
 	 */
 	public boolean saveFileByteBufferToDisk(byte[] fileBuffer) {
+		if(fileBuffer == null) {
+			return false;
+		}
 		int bytesWritten = 0;
 		// Try to write the bytes to disk by wrapping byte[] into a ByteBuffer
 		try {
-			bytesWritten = this.mFileChannel.write(ByteBuffer.wrap(fileBuffer), this.bytesProcessed);
+			bytesWritten = this.mFileChannel.write(ByteBuffer.wrap(fileBuffer), this.mBytesProcessed);
 		} catch (IOException e) {
 			System.out.println(Strings.FILE_WRITE_ERROR + " " + this.mFileName);
 			e.printStackTrace();
 			return false;
 		}
 		// Increment processed, next round, continue where we left off
-		this.bytesProcessed += bytesWritten;
+		this.mBytesProcessed += bytesWritten;
 		
 		// Check if we received a length zero
 		if(fileBuffer.length == 0 || bytesWritten < Configurations.MAX_BUFFER) {
@@ -110,10 +143,14 @@ public class FileStorageService {
 	 * @return boolean - if there is or is not any more file content to buffer 
 	 */
 	public boolean getFileByteBufferFromDisk(byte[] inByteBufferToFile) {
+		if(inByteBufferToFile == null) {
+			return false;
+		}
+		
 		ByteBuffer fileBuffer = ByteBuffer.allocate(Configurations.MAX_BUFFER);
 		int bytesRead = 0;
 		try {
-			bytesRead = this.mFileChannel.read(fileBuffer, this.bytesProcessed);
+			bytesRead = this.mFileChannel.read(fileBuffer, this.mBytesProcessed);
 		} catch (IOException e) {
 			System.out.println(Strings.FILE_READ_ERROR + " " + this.mFileName);
 			e.printStackTrace();
@@ -125,7 +162,7 @@ public class FileStorageService {
 			fileBuffer.compact();
 		}
 		// Increment the total number number of bytes processed
-		this.bytesProcessed += bytesRead;
+		this.mBytesProcessed += bytesRead;
 		// Fill the input parameter
 		inByteBufferToFile = fileBuffer.array();
 		
@@ -152,11 +189,30 @@ public class FileStorageService {
 	 * @param fileName 
 	 * @return boolean - if the file exists and is not a directory
 	 */
-	public static boolean checkFileNameExists(String fileName) {
-		String defaultFileStoragePath = Paths.get(Configurations.ROOT_FILE_DIRECTORY).toString();
-		String filePath = Paths.get(defaultFileStoragePath, fileName).toString();
+	public static boolean checkFileNameExists(String filePathName) {
+		String filePath = Paths.get(filePathName).toString();
 		File fileToCheck = new File(filePath);
 		return fileToCheck.exists() && !fileToCheck.isDirectory();
+	}
+	
+	/**
+	 * This function should be called if you want to use the same instance of this class in
+	 * the event that any error occurred during writing or reading of a file. 
+	 * This function will close the current broken channels and the client class must call
+	 * initializeNewFileChannel(String) to reset the file channels
+	 */
+	public void finishedTransferingFile() {
+		try {
+			if(this.mFileChannel.isOpen()) {
+				this.mFileChannel.close();
+			}
+			this.mFile.close();		
+			this.mFile = null;
+			this.mFileChannel = null;
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 }
 
