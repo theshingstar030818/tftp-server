@@ -80,7 +80,7 @@ This activity is quite delicate and must be treated with care or
 risk losing code. Below are commands I use when I see a conflict.
 
 1. git checkout master # make sure your master has the current code base
-1. git fetch main      # getting recent changes
+1. git fetch origin      # getting recent changes
 1. git rebase origin/master # making sure you master works
 1. git checkout <name of branch you were working on before> # now lets merge the changes in master into your branch
 1. git merge master # this is the key
