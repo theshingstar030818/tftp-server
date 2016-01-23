@@ -43,6 +43,6 @@ public enum RequestType {
 	 * 
 	 * @return packet header array
 	 */
-	abstract byte[] getHeaderByteArray();
+	public abstract byte[] getHeaderByteArray();
 	
 }
