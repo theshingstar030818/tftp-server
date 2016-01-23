@@ -11,7 +11,7 @@ import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.SocketException;
 import java.net.UnknownHostException;
-
+import java.util.Vector;
 
 class Console implements Runnable {
 	Console() {}
@@ -60,12 +60,12 @@ class Console implements Runnable {
  * @author Team 3
  *
  */
-public class TFTPServer {
+public class TFTPServer implements Callback {
 
-	/**
-	 * @param args
-	 */
+	static Vector<Thread> threads;
+	
 	public static void main(String[] args) {
+		threads = new Vector<Thread>();
 		
 		InetAddress addr = null;
 		try {
@@ -109,6 +109,16 @@ public class TFTPServer {
 		
 		serverSock.close();
 
+	}
+
+	public void callback(long id) {
+		for (Thread t : threads) {
+			if (t.getId() == id) {
+				threads.remove(t);
+				break;
+			}
+		}
+		
 	}
 
 }
