@@ -6,6 +6,13 @@ import java.net.InetAddress;
 import types.*;
 import resource.Configurations;
 
+/**
+ * @author Team 3
+ *
+ * This class represents the structure of a WRQ and RRQ. It is inherited by
+ * their specific respective classes. Using this class will require user 
+ * definition of which specific class to initialize. 
+ */
 public class ReadWritePacketPacketBuilder extends PacketBuilder {
 
 	protected String mFilename;
