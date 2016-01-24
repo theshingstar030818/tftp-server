@@ -11,24 +11,59 @@ public class ReadWritePacketPacketBuilder extends PacketBuilder {
 	protected String mFilename;
 	protected ModeType mMode;
 	
+	/**
+	 * Used to create a packet from scratch by inputing the required parameters of the
+	 * DatagramPacket class.
+	 * This constructor will use the default encoding mode defined in the Configurations
+	 * 
+	 * @param addressOfHost - InetAddress of the host
+	 * @param destPort 		- Destination port number
+	 * @param requestType	- The request type either RRQ or WRQ
+	 */
 	public ReadWritePacketPacketBuilder(InetAddress addressOfHost, int destPort, RequestType requestType) {
 		super(addressOfHost, destPort, requestType);
 		this.mFilename = Configurations.DEFAULT_FILENAME;
 		this.mMode = Configurations.DEFAULT_RW_MODE;
 	}
 	
+	/**
+	 * Used to create a packet from scratch by inputing the required parameters of the
+	 * DatagramPacket class.
+	 * This constructor will use the default encoding mode defined in the Configurations
+	 * 
+	 * @param addressOfHost - InetAddress of the host
+	 * @param destPort 		- Destination port number
+	 * @param requestType	- The request type either RRQ or WRQ
+	 * @param fileName		- Filename to RRQ or WRQ
+	 */
 	public ReadWritePacketPacketBuilder(InetAddress addressOfHost, int destPort, RequestType requestType, String fileName) {
 		super(addressOfHost, destPort, requestType);
 		this.mFilename = fileName;
 		this.mMode = Configurations.DEFAULT_RW_MODE;
 	}
 	
+	/**
+	 * Used to create a packet from scratch by inputing the required parameters of the
+	 * DatagramPacket class.
+	 * This constructor will use the default encoding mode defined in the Configurations
+	 * 
+	 * @param addressOfHost - InetAddress of the host
+	 * @param destPort 		- Destination port number
+	 * @param requestType	- The request type either RRQ or WRQ
+	 * @param fileName		- Filename to RRQ or WRQ
+	 * @param mode			- The encoding mode of the data
+	 */
 	public ReadWritePacketPacketBuilder(InetAddress addressOfHost, int destPort, RequestType requestType, String fileName, ModeType mode) {
 		super(addressOfHost, destPort, requestType);
 		this.mFilename = fileName;
 		this.mMode = mode;
 	}
 
+	/**
+	 * Used primary for de-construction of received packets
+	 * 
+	 * @param inDatagramPacket
+	 */
 	public ReadWritePacketPacketBuilder(DatagramPacket inDatagramPacket) {
 		super(inDatagramPacket);
 		decontructPacket(inDatagramPacket);
@@ -72,6 +107,9 @@ public class ReadWritePacketPacketBuilder extends PacketBuilder {
 		return this.mDatagramPacket;
 	}
 
+	/* (non-Javadoc)
+	 * @see packet.PacketBuilder#decontructPacket(java.net.DatagramPacket)
+	 */
 	@Override
 	public void decontructPacket(DatagramPacket inDatagramPacket) {
 		// Get the mode and filename from the buffer
@@ -79,6 +117,10 @@ public class ReadWritePacketPacketBuilder extends PacketBuilder {
 		setRequestTypeFromBuffer(this.mBuffer);
 	} 
 	
+	/**
+	 * This method is used to extract the filename and mode from the packet.
+	 * These attributes can be get grabbed through getter functions
+	 */
 	private void deconstructBuffer() {
 		StringBuilder fileName = new StringBuilder();
 		StringBuilder modeName = new StringBuilder();
@@ -114,12 +156,40 @@ public class ReadWritePacketPacketBuilder extends PacketBuilder {
 		return new byte[] {0,0};
 	};
 	
+	/**
+	 * Manually sets the file name for the packet
+	 * 
+	 * @param fileName - String
+	 */
 	public void setFilename(String fileName) {
 		this.mFilename = fileName;
 	}
 	
+	/**
+	 * Manually set the mode for the packet
+	 * 
+	 * @param mode - ModeType
+	 */
 	public void setMode(ModeType mode) {
 		this.mMode = mode;
+	}
+	
+	/**
+	 * Gets the current state of the mode from the packet
+	 * 
+	 * @return ModeType
+	 */
+	public ModeType getMode() {
+		return this.mMode;
+	}
+	
+	/**
+	 * Gets the current state of the filename of the packet
+	 * 
+	 * @return String
+	 */
+	public String getFilename() {
+		return this.mFilename;
 	}
 
 }
