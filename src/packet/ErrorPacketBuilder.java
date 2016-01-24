@@ -4,7 +4,6 @@ import java.net.DatagramPacket;
 import java.net.InetAddress;
 
 import types.RequestType;
-import types.RequestType;
 
 /**
  * @author Team 3

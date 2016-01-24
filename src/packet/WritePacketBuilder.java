@@ -26,6 +26,7 @@ public class WritePacketBuilder extends ReadWritePacketPacketBuilder {
 	public WritePacketBuilder(InetAddress addressOfHost, int destPort, String fileName) {
 		super(addressOfHost, destPort, RequestType.WRQ, fileName);
 	}
+	
 	/**
 	 * Used to create a packet from scratch by inputing the required parameters of the
 	 * DatagramPacket class.

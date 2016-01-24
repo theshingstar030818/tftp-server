@@ -22,7 +22,7 @@ public abstract class PacketBuilder {
 	protected byte[] mBuffer;
 
 	/**
-	 * Used to create a packet from scratch by inputing the required paramters of the
+	 * Used to create a packet from scratch by inputing the required parameters of the
 	 * DatagramPacket class
 	 * 
 	 * @param addressOfHost - InetAddress of the host

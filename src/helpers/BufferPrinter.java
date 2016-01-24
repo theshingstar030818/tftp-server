@@ -3,6 +3,11 @@ package helpers;
 import java.util.Arrays;
 import java.util.regex.Pattern;
 
+/**
+ * @author Team 3
+ *
+ * This is a printing class helper for the TFTP system
+ */
 public class BufferPrinter {
 	public static void printBuffer(byte[] buffer, String entity) {
 		System.out.print(entity + " prints contents of the UDP buffer:");

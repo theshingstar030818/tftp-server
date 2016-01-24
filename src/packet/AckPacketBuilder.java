@@ -19,7 +19,7 @@ public class AckPacketBuilder extends PacketBuilder {
 	
 	/**
 	 * Used to create a packet from scratch by inputing the required parameters of the
-	 * DatagramPacket class
+	 * DatagramPacket class.
 	 * 
 	 * @param addressOfHost - InetAddress of the host
 	 * @param destPort 		- Destination port number
@@ -30,9 +30,17 @@ public class AckPacketBuilder extends PacketBuilder {
 	}
 
 	/**
-	 * Used primary for de-construction of received packets
+	 * Used primary for de-construction of received packets. By passing in the 
+	 * DatagramPacket to this constructor, we can create a packet to reply back
+	 * the the sender.
 	 * 
-	 * @param inDatagramPacket
+	 * IMPORTANT: Any other packet type can be passed through here
+	 * but specifically, DATA packets are best passed through this constructor.
+	 * When managing a stream of packet transmission, you can recycle the same
+	 * instance of this class by loading new DATA packets through the 
+	 * deconstructPacket(DatagramPacket inDatagramPacket) method
+	 * 
+	 * @param inDatagramPacket - the packet to reply to (or load info from)
 	 */
 	public AckPacketBuilder(DatagramPacket inDatagramPacket) {
 		super(inDatagramPacket);
