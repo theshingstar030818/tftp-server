@@ -64,7 +64,7 @@ public abstract class PacketBuilder {
 	 * 
 	 * @param inDatagramPacket - packet to retrieve all information from
 	 */
-	public abstract void decontructPacket(DatagramPacket inDatagramPacket);
+	public abstract void deconstructPacket(DatagramPacket inDatagramPacket);
 	
 	/**
 	 * This function will return the corresponding 2 byte array that is 
@@ -112,6 +112,15 @@ public abstract class PacketBuilder {
 		}
 		msg.add((byte) 0);
 		return Conversion.toByteArray(msg);
+	}
+	
+	/**
+	 * Returns the current type of the request
+	 * 
+	 * @return RequestType enum
+	 */
+	public RequestType getRequestType() {
+		return this.mRequestType;
 	}
 
 	

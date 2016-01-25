@@ -29,7 +29,7 @@ public class ErrorPacketBuilder extends PacketBuilder {
 	}
 
 	@Override
-	public void decontructPacket(DatagramPacket inDatagramPacket) {
+	public void deconstructPacket(DatagramPacket inDatagramPacket) {
 		// TODO Auto-generated method stub
 
 	}
