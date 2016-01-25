@@ -48,7 +48,7 @@ public class WritePacketBuilder extends ReadWritePacketPacketBuilder {
 	 */
 	public WritePacketBuilder(DatagramPacket inDatagramPacket) {
 		super(inDatagramPacket);
-		decontructPacket(inDatagramPacket);
+		deconstructPacket(inDatagramPacket);
 	}
 	
 	/* (non-Javadoc)

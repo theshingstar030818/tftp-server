@@ -45,7 +45,7 @@ public class AckPacketBuilder extends PacketBuilder {
 	public AckPacketBuilder(DatagramPacket inDatagramPacket) {
 		super(inDatagramPacket);
 		mBlockNumber = 0;
-		decontructPacket(inDatagramPacket);
+		deconstructPacket(inDatagramPacket);
 	}
 
 	/* (non-Javadoc)
@@ -68,7 +68,7 @@ public class AckPacketBuilder extends PacketBuilder {
 	 * @see packet.PacketBuilder#decontructPacket(java.net.DatagramPacket)
 	 */
 	@Override
-	public void decontructPacket(DatagramPacket inDatagramPacket) {
+	public void deconstructPacket(DatagramPacket inDatagramPacket) {
 		setRequestTypeFromBuffer(this.mBuffer);
 		if(this.mRequestType == RequestType.DATA) {
 			byte[] byteBlockNumber = Arrays.copyOfRange(this.mBuffer, 2, 4);
