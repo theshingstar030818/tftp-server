@@ -15,6 +15,9 @@ import helpers.BufferPrinter;
 /**
  * @author Team 3
  *
+ * This class serves as the intermediate host between our client
+ * server. The primary object of this class is to simulate UDP errors
+ * in order to test the soundness of our TFTP system
  */
 public class ErrorSimulator {
 
