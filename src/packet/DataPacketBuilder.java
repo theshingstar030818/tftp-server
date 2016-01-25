@@ -44,7 +44,7 @@ public class DataPacketBuilder extends PacketBuilder {
 	 */
 	public DataPacketBuilder(DatagramPacket inDatagramPacket) {
 		super(inDatagramPacket);
-		decontructPacket(inDatagramPacket);
+		deconstructPacket(inDatagramPacket);
 	}
 
 	/* (non-Javadoc)
@@ -82,7 +82,7 @@ public class DataPacketBuilder extends PacketBuilder {
 	 * @see packet.PacketBuilder#decontructPacket(java.net.DatagramPacket)
 	 */
 	@Override
-	public void decontructPacket(DatagramPacket inDatagramPacket) {
+	public void deconstructPacket(DatagramPacket inDatagramPacket) {
 		setRequestTypeFromBuffer(this.mBuffer);
 		if(this.mRequestType == RequestType.ACK) {
 			byte[] byteBlockNumber = Arrays.copyOfRange(this.mBuffer, 2, 4);

@@ -73,7 +73,7 @@ public class ReadWritePacketPacketBuilder extends PacketBuilder {
 	 */
 	public ReadWritePacketPacketBuilder(DatagramPacket inDatagramPacket) {
 		super(inDatagramPacket);
-		decontructPacket(inDatagramPacket);
+		deconstructPacket(inDatagramPacket);
 	}
 
 	/**
@@ -118,7 +118,7 @@ public class ReadWritePacketPacketBuilder extends PacketBuilder {
 	 * @see packet.PacketBuilder#decontructPacket(java.net.DatagramPacket)
 	 */
 	@Override
-	public void decontructPacket(DatagramPacket inDatagramPacket) {
+	public void deconstructPacket(DatagramPacket inDatagramPacket) {
 		// Get the mode and filename from the buffer
 		deconstructBuffer();
 		setRequestTypeFromBuffer(this.mBuffer);
