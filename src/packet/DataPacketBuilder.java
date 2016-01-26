@@ -5,6 +5,7 @@ import java.net.InetAddress;
 import java.util.Arrays;
 
 import helpers.Conversion;
+import resource.Configurations;
 import types.RequestType;
 
 /**
@@ -16,6 +17,7 @@ import types.RequestType;
 public class DataPacketBuilder extends PacketBuilder {
 	
 	private short mBlockNumber;
+	private byte[] mDataBuffer;
 	
 	/**
 	 * Used to create a packet from scratch by inputing the required parameters of the
@@ -90,6 +92,12 @@ public class DataPacketBuilder extends PacketBuilder {
 		} else {
 			this.mBlockNumber = 0;
 		}
+		
+		if(this.mBuffer.length > Configurations.LEN_ACK_PACKET_BUFFET) {
+			this.mDataBuffer = Arrays.copyOfRange(this.mBuffer, 
+					Configurations.LEN_ACK_PACKET_BUFFET, this.mBuffer.length);
+		}
+		
 	}
 	
 	/* (non-Javadoc)
@@ -108,6 +116,16 @@ public class DataPacketBuilder extends PacketBuilder {
 	 */
 	public void setBlockNumber(short blockNumber) {
 		this.mBlockNumber = blockNumber;
+	}
+	
+	/**
+	 * Gets the file segment of the packet. This function will return the actual
+	 * file bytes, retrieved from the packet
+	 * 
+	 * @return byte[] buffer
+	 */
+	public byte[] getDataBuffer() {
+		return this.mDataBuffer;
 	}
 	
 	/**
