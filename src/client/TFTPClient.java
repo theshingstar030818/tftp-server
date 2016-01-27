@@ -170,7 +170,7 @@ public class TFTPClient {
 
 				// now store the data using file service and store the boolean
 				// if more packets are to be received
-				morePackets = readRequestFileStorageService.saveFileByteBufferToDisk(dataPacket.getDataPacketBuffer());
+				morePackets = readRequestFileStorageService.saveFileByteBufferToDisk(dataPacket.getDataBuffer());
 
 				// create the ACK packet from the data packet last received
 				ackPacket = new AckPacketBuilder(lastPacket);
