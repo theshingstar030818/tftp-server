@@ -13,7 +13,11 @@ import resource.*;
 /**
  * @author Team 3
  * 
+ *	This file encapsulates all disk IO operations that is required to 
+ *	read and write files. This classes should be created and destroyed 
+ *	each time the client class needs to operate on one file
  */
+
 public class FileStorageService {
 	
 	private String mFilePath = "";
