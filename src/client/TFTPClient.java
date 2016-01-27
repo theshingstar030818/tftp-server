@@ -199,5 +199,4 @@ public class TFTPClient {
 		System.out.println("\t 3. Exit File\n\n");
 		System.out.println("Select option : ");
 	}
-
 }
