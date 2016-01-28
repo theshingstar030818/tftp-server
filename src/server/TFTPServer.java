@@ -8,10 +8,8 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
-import java.net.InetAddress;
 import java.net.SocketException;
 import java.net.SocketTimeoutException;
-import java.net.UnknownHostException;
 import java.util.Vector;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.Condition;
@@ -100,6 +98,15 @@ public class TFTPServer implements Callback {
 				notEmpty.await();
 			} catch (InterruptedException e) {
 				e.printStackTrace();
+			}
+		}
+	}
+	public void callback(long id) {
+		for (Thread t : threads) {
+			if (t.getId() == id) {
+				threads.remove(t);
+				notEmpty.signal();
+				break;
 			}
 		}
 	}
