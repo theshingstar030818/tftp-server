@@ -13,11 +13,15 @@ import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
+/*
+ * The Console class will allow someone (presumably an admin) to manage the server
+ * from a local machine. Currently its only functionality is to close the server,
+ * but this can be expanded later.
+ */
 class Console implements Runnable {
-	Console() {}
+	//Console() {}
 
 	public void run() {
-
 		try {
 			 (new BufferedReader(new InputStreamReader(System.in))).readLine();
 		} catch (IOException e) {
@@ -30,26 +34,51 @@ class Console implements Runnable {
 }
 
 
-
-public class TFTPServer {
+/*
+ * 
+ */
+/**
+ * @author Kyle
+ *
+ */
+/**
+ * @author Kyle
+ *
+ */
+/**
+ * @author Kyle
+ *
+ */
+public class TFTPServer implements Callback {
 	
-	// main function that starts the server.
+	/**
+	 * Main function that starts the server.
+	 */
 	public static void main(String[] args) {
 		TFTPServer listener = new TFTPServer();
 		listener.start();
 	}
 	
+	// Some class attributes.
 	static AtomicBoolean active = new AtomicBoolean(true);
 	Vector<Thread> threads;
 	
 	final Lock lock = new ReentrantLock();
 	final Condition notEmpty = lock.newCondition();
 
+	
+	/**
+	 * Constructor for TFTPServer that initializes the thread container 'threads'.
+	 */
 	public TFTPServer() {
 		threads = new Vector<Thread>();
 	}
 	
-public void start() {
+	
+	/**
+	 * Handles operation of the server.
+	 */
+	public void start() {
 		
 		// Create the socket.
 		DatagramSocket serverSock = null;
@@ -62,13 +91,19 @@ public void start() {
 			System.exit(1);
 		}
 		
+		// Create and start a thread for the command console.
 		Thread console = new Thread(new Console(), "command console");
 		console.start();
 		
-		// Create the packet.
+		// Create the packet for receiving.
 		byte[] buffer = new byte[1024]; // Temporary. Will be replaced with exact value soon.
 		DatagramPacket receivePacket = new DatagramPacket(buffer, buffer.length);
 		
+		/*
+		 * - Receive packets until the admin console gives the shutdown signal.
+		 * - Since receiving a packet is a blocking operation, timeouts have been set to loop back
+		 *   and check if the signal to close has been given.
+		 */
 		while (active.get()) {
 			try {
 				serverSock.receive(receivePacket);
@@ -86,6 +121,9 @@ public void start() {
 		
 		serverSock.close();
 		
+		/*
+		 * Wait for all service threads to close before completely exiting.
+		 */
 		while (!threads.isEmpty()) {
 			try {
 				notEmpty.await();
@@ -96,14 +134,12 @@ public void start() {
 	}
 	
 	
-	
-	public void callback(long id) {
-		for (Thread t : threads) {
+	public synchronized void callback(long id) {
+		for (Thread t : threads)
 			if (t.getId() == id) {
 				threads.remove(t);
 				notEmpty.signal();
 				break;
 			}
-		}
 	}
 }
