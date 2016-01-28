@@ -34,21 +34,6 @@ class Console implements Runnable {
 }
 
 
-/*
- * 
- */
-/**
- * @author Kyle
- *
- */
-/**
- * @author Kyle
- *
- */
-/**
- * @author Kyle
- *
- */
 public class TFTPServer implements Callback {
 	
 	/**
