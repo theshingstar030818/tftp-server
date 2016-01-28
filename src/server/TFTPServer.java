@@ -13,19 +13,21 @@ import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
-/*
+import resource.Configurations;
+import resource.Strings;
+
+
+/**
  * The Console class will allow someone (presumably an admin) to manage the server
  * from a local machine. Currently its only functionality is to close the server,
  * but this can be expanded later.
  */
 class Console implements Runnable {
-	//Console() {}
 
 	public void run() {
 		try {
 			 (new BufferedReader(new InputStreamReader(System.in))).readLine();
 		} catch (IOException e) {
-			System.out.println("Failed to read line on command console.");
 			e.printStackTrace();
 		}
 		
@@ -68,10 +70,9 @@ public class TFTPServer implements Callback {
 		// Create the socket.
 		DatagramSocket serverSock = null;
 		try {
-			serverSock = new DatagramSocket(5000);
+			serverSock = new DatagramSocket(Configurations.SERVER_LISTEN_PORT);
 			serverSock.setSoTimeout(30);
 		} catch (SocketException e) {
-			System.out.println("Failed to make main socket.");
 			e.printStackTrace();
 			System.exit(1);
 		}
@@ -95,7 +96,7 @@ public class TFTPServer implements Callback {
 			} catch (SocketTimeoutException e) {
 				continue;
 			} catch (IOException e) {
-				System.out.println("Failed to receive packet on main thread.");
+				System.out.println(Strings.SERVER_RECEIVE_ERROR);
 				e.printStackTrace();
 			}
 			// You are calling this in main(), you can't pass public static void main into a class
