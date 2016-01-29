@@ -62,11 +62,13 @@ public class TFTPClient {
 					System.out.println("ERROR : Please select a valid option.");
 					break;
 				}
+				scan.close();
 			}
 
 		} catch (SocketException e) {
 			e.printStackTrace();
 		}
+		
 	}
 
 	/**
@@ -89,17 +91,21 @@ public class TFTPClient {
 
 		try {
 			writeRequestFileStorageService = new FileStorageService(writeFileNameOrFilePath,InstanceType.CLIENT);
+			
+			String actualFileName = writeRequestFileStorageService.getFileName();
 			wpb = new WritePacketBuilder(InetAddress.getLocalHost(), Configurations.ERROR_SIM_LISTEN_PORT,
-					writeFileNameOrFilePath, Configurations.DEFAULT_RW_MODE);
+					actualFileName, Configurations.DEFAULT_RW_MODE);
 			lastPacket = wpb.buildPacket();
 			sendReceiveSocket.send(lastPacket);
 			
-			lastPacket = new DatagramPacket(ackBuff, ackBuff.length);
-			
-			// This packet has the block number to start on!
-			sendReceiveSocket.receive(lastPacket);
-			
 			while (moreData) {
+				// This packet has the block number to start on!
+				lastPacket = new DatagramPacket(ackBuff, ackBuff.length);
+				
+				// receive a ACK packet
+				sendReceiveSocket.receive(lastPacket);
+				// Check if the receiving packet is an ACK
+				
 				fileData = new byte[Configurations.MAX_BUFFER];
 				// get the first block of file to transfer
 				moreData = writeRequestFileStorageService.getFileByteBufferFromDisk(fileData);
@@ -109,16 +115,8 @@ public class TFTPClient {
 				
 				// Overwrite last packet
 				lastPacket = dataPacket.buildPacket(fileData);
-
-				// receive a data packet
-				sendReceiveSocket.receive(lastPacket);
-
-				ackBuff = new byte[Configurations.LEN_ACK_PACKET_BUFFET];
-				lastPacket = new DatagramPacket(ackBuff,ackBuff.length);
-				
-				// Last packet now has the ACK block number, ready to be incremented
-				sendReceiveSocket.receive(lastPacket);
-				// Check if the receiving packet is an ACK
+				lastPacket.setPort(Configurations.ERROR_SIM_LISTEN_PORT);
+				sendReceiveSocket.send(lastPacket);
 			}
 
 		} catch (Exception e) {
@@ -137,8 +135,7 @@ public class TFTPClient {
 
 		AckPacketBuilder ackPacketBuilder;
 		DatagramPacket lastPacket;
-		DataPacketBuilder dataPacket;
-		AckPacketBuilder ackPacket;
+		DataPacketBuilder dataPacketBuilder;
 		boolean morePackets = true;
 		FileStorageService readRequestFileStorageService;
 
@@ -159,29 +156,22 @@ public class TFTPClient {
 
 			// loop until no more packets to receive
 			while (morePackets) {
-
-				// create a datagramPacket for receiving dataPacket
+				dataBuf = new byte[Configurations.MAX_BUFFER + 4];
 				lastPacket = new DatagramPacket(dataBuf, dataBuf.length);
-
+				
 				// receive a data packet
 				sendReceiveSocket.receive(lastPacket);
+				
+				// Use the packet builder class to manage and extract the data
+				dataPacketBuilder = new DataPacketBuilder(lastPacket);
+				
+				// Save the last packet file buffer
+				morePackets = readRequestFileStorageService.saveFileByteBufferToDisk(dataPacketBuilder.getDataBuffer());
 
-				// build the dataPacketBuilder
-				dataPacket = new DataPacketBuilder(lastPacket);
-
-				if (dataPacket.getRequestType() != RequestType.DATA) {
-					// handle error and quit here with exception
-				}
-
-				// now store the data using file service and store the boolean
-				// if more packets are to be received
-				morePackets = readRequestFileStorageService.saveFileByteBufferToDisk(dataPacket.getDataBuffer());
-
-				// create the ACK packet from the data packet last received
-				ackPacket = new AckPacketBuilder(lastPacket);
-
-				// send the ACK packet
-				sendReceiveSocket.send(ackPacket.buildPacket());
+				// Prepare to ACK the data packet
+				ackPacketBuilder = new AckPacketBuilder(lastPacket);
+				lastPacket = ackPacketBuilder.buildPacket();
+				sendReceiveSocket.send(lastPacket);
 			}
 		} catch (Exception e) {
 			e.printStackTrace();

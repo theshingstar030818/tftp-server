@@ -39,11 +39,13 @@ public abstract class PacketBuilder {
 	/**
 	 * Used primary for de-construction of received packets
 	 * 
-	 * @param inDatagramPacket - packet that was recieved by the system
+	 * @param inDatagramPacket - packet that was received by the system
 	 */
 	public PacketBuilder(DatagramPacket inDatagramPacket) {
 		this.mDatagramPacket = inDatagramPacket;
-		this.mBuffer = inDatagramPacket.getData();
+		byte[] tempBuffer = new byte[inDatagramPacket.getLength()];
+		tempBuffer = inDatagramPacket.getData();
+		this.mBuffer = tempBuffer;
 		this.mInetAddress = inDatagramPacket.getAddress();
 		this.mDestinationPort = inDatagramPacket.getPort();
 	}

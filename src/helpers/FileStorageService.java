@@ -178,7 +178,8 @@ public class FileStorageService {
 		// Increment the total number number of bytes processed
 		this.mBytesProcessed += bytesRead;
 		// Fill the input parameter
-		inByteBufferToFile = fileBuffer.array();
+		byte[] tempArray = fileBuffer.array();
+		System.arraycopy(tempArray, 0, inByteBufferToFile, 0, tempArray.length);
 		
 		// We determine if we reached the end of the file
 		if(bytesRead == 0 || bytesRead < Configurations.MAX_BUFFER) {
@@ -207,6 +208,15 @@ public class FileStorageService {
 		String filePath = Paths.get(filePathName).toString();
 		File fileToCheck = new File(filePath);
 		return fileToCheck.exists() && !fileToCheck.isDirectory();
+	}
+	
+	/**
+	 * Gets the current filename that the channel is opened to.
+	 * 
+	 * @return string - filename 
+	 */
+	public String getFileName() {
+		return this.mFileName;
 	}
 	
 	/**

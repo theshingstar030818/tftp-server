@@ -19,4 +19,5 @@ public class Strings {
 	
 	// Server messages.
 	public static final String SERVER_RECEIVE_ERROR = "Failed to receive packet on main thread.";
+	public static final String SERVER_ACCEPT_CONNECTION = "Server has accepted a connection!";
 }
