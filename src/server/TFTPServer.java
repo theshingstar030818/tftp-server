@@ -15,6 +15,7 @@ import java.util.concurrent.locks.ReentrantLock;
 
 import resource.Configurations;
 import resource.Strings;
+import helpers.BufferPrinter;
 
 
 /**
@@ -69,9 +70,11 @@ public class TFTPServer implements Callback {
 		
 		// Create the socket.
 		DatagramSocket serverSock = null;
+		DatagramPacket receivePacket = null;
 		try {
 			serverSock = new DatagramSocket(Configurations.SERVER_LISTEN_PORT);
-			serverSock.setSoTimeout(30);
+			System.out.println("Server initiated on port " + Configurations.SERVER_LISTEN_PORT);
+			serverSock.setSoTimeout(30000);
 		} catch (SocketException e) {
 			e.printStackTrace();
 			System.exit(1);
@@ -81,9 +84,7 @@ public class TFTPServer implements Callback {
 		Thread console = new Thread(new Console(), "command console");
 		console.start();
 		
-		// Create the packet for receiving.
-		byte[] buffer = new byte[Configurations.MAX_MESSAGE_SIZE]; // Temporary. Will be replaced with exact value soon.
-		DatagramPacket receivePacket = new DatagramPacket(buffer, buffer.length);
+		
 		
 		/*
 		 * - Receive packets until the admin console gives the shutdown signal.
@@ -92,6 +93,9 @@ public class TFTPServer implements Callback {
 		 */
 		while (active.get()) {
 			try {
+				// Create the packet for receiving.
+				byte[] buffer = new byte[Configurations.MAX_MESSAGE_SIZE]; // Temporary. Will be replaced with exact value soon.
+				receivePacket = new DatagramPacket(buffer, buffer.length);
 				serverSock.receive(receivePacket);
 			} catch (SocketTimeoutException e) {
 				continue;
@@ -99,7 +103,8 @@ public class TFTPServer implements Callback {
 				System.out.println(Strings.SERVER_RECEIVE_ERROR);
 				e.printStackTrace();
 			}
-			// You are calling this in main(), you can't pass public static void main into a class
+			System.out.println(BufferPrinter.acceptConnectionMessage(Strings.SERVER_ACCEPT_CONNECTION, 
+					receivePacket.getSocketAddress().toString()));
 			Thread service = new Thread(new TFTPService(receivePacket, this), "Service");
 			threads.addElement(service);
 			service.start();

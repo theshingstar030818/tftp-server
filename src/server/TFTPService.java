@@ -117,7 +117,7 @@ public class TFTPService implements Runnable {
 	 * @see java.lang.Runnable#run()
 	 */
 	public void run() {
-		
+
 		ReadWritePacketPacketBuilder vClientRequestPacket = new ReadWritePacketPacketBuilder(this.mLastPacket);
 		
 		RequestType reqType = vClientRequestPacket.getRequestType();
@@ -140,6 +140,9 @@ public class TFTPService implements Runnable {
 		}
 		
 		this.mSendReceiveSocket.close();
-		this.mClientFinishedCallback.callback(Thread.currentThread().getId());
+		synchronized(this.mClientFinishedCallback) {
+			this.mClientFinishedCallback.callback(Thread.currentThread().getId());
+		}
+		
 	}
 }

@@ -11,8 +11,9 @@ import types.ModeType;
  *	This class is used to define some static configurations of the TFTP system
  */
 public class Configurations {
-	
-	public static final String ROOT_FILE_DIRECTORY = System.getProperty("user.home") + "/TFTP-Storage-Folder";
+	public static final String USER_HOME =  System.getProperty("user.home");
+	public static final String CLIENT_ROOT_FILE_DIRECTORY = Configurations.USER_HOME + "/TFTP-Client-Storage-Folder";
+	public static final String SERVER_ROOT_FILE_DIRECTORY = Configurations.USER_HOME + "/TFTP-Server-Storage-Folder";
 	public static final int MAX_BUFFER = 512;
 	public static final int MAX_MESSAGE_SIZE = 516;
 	public static final int ERROR_SIM_LISTEN_PORT = 5001;   // Change this to something your Unix systems like

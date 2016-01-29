@@ -9,6 +9,7 @@ import java.nio.channels.FileChannel;
 import java.nio.file.Paths;
 
 import resource.*;
+import types.InstanceType;
 
 /**
  * @author Team 3
@@ -38,6 +39,16 @@ public class FileStorageService {
 	 * @throws FileNotFoundException
 	 */
 	public FileStorageService(String fileNameOrFilePath) throws FileNotFoundException {
+		this.mDefaultStorageFolder = Configurations.SERVER_ROOT_FILE_DIRECTORY;
+		initializeFileServiceStorageLocation();
+		initializeNewFileChannel(fileNameOrFilePath);
+	}
+	
+	public FileStorageService(String fileNameOrFilePath, InstanceType instanceType) throws FileNotFoundException {
+		
+		this.mDefaultStorageFolder = instanceType == InstanceType.CLIENT ? Configurations.CLIENT_ROOT_FILE_DIRECTORY : 
+			Configurations.SERVER_ROOT_FILE_DIRECTORY;
+		
 		initializeFileServiceStorageLocation();
 		initializeNewFileChannel(fileNameOrFilePath);
 	}
@@ -47,7 +58,6 @@ public class FileStorageService {
 	 * not, creates one.
 	 */
 	private void initializeFileServiceStorageLocation() {
-		this.mDefaultStorageFolder = Paths.get(Configurations.ROOT_FILE_DIRECTORY).toString();
 		File storageDirectory = new File(this.mDefaultStorageFolder);
 		if(!storageDirectory.exists()) {
 			if(!storageDirectory.mkdir()) {
@@ -168,7 +178,8 @@ public class FileStorageService {
 		// Increment the total number number of bytes processed
 		this.mBytesProcessed += bytesRead;
 		// Fill the input parameter
-		inByteBufferToFile = fileBuffer.array();
+		byte[] tempArray = fileBuffer.array();
+		System.arraycopy(tempArray, 0, inByteBufferToFile, 0, tempArray.length);
 		
 		// We determine if we reached the end of the file
 		if(bytesRead == 0 || bytesRead < Configurations.MAX_BUFFER) {
@@ -197,6 +208,15 @@ public class FileStorageService {
 		String filePath = Paths.get(filePathName).toString();
 		File fileToCheck = new File(filePath);
 		return fileToCheck.exists() && !fileToCheck.isDirectory();
+	}
+	
+	/**
+	 * Gets the current filename that the channel is opened to.
+	 * 
+	 * @return string - filename 
+	 */
+	public String getFileName() {
+		return this.mFileName;
 	}
 	
 	/**

@@ -33,4 +33,8 @@ public class BufferPrinter {
 		}
 		return strBuilder.toString();
 	}
+	
+	public static String acceptConnectionMessage(String message, String senderAddress) {
+		return message + " " + senderAddress + ".";
+	}
 }
