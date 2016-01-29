@@ -20,4 +20,11 @@ public class Strings {
 	// Server messages.
 	public static final String SERVER_RECEIVE_ERROR = "Failed to receive packet on main thread.";
 	public static final String SERVER_ACCEPT_CONNECTION = "Server has accepted a connection!";
+	public static final String EXITING = "Server listening port is closing, connected threads ending after transfer completes.";
+	
+	// Client messages.
+	public static final String PROMPT_ENTER_FILE_NAME = "Please enter file name:";
+	public static final String PROMPT_FILE_NAME_PATH = "Please enter file name or file path:";
+	public static final String ERROR_INPUT = "ERROR : Please select a valid option.";
+	public static final String EXIT_BYE = "Bye bye.";
 }

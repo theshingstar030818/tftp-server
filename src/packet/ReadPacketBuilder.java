@@ -52,15 +52,6 @@ public class ReadPacketBuilder extends ReadWritePacketPacketBuilder {
 	}
 	
 	/* (non-Javadoc)
-	 * @see packet.ReadWritePacketPacketBuilder#buildPacket()
-	 */
-	@Override
-	public DatagramPacket buildPacket() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-	
-	/* (non-Javadoc)
 	 * @see packet.ReadWritePacketPacketBuilder#getRequestTypeHeaderByteArray()
 	 */
 	@Override 

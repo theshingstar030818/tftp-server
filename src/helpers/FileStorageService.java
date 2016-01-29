@@ -123,7 +123,10 @@ public class FileStorageService {
 		int bytesWritten = 0;
 		// Try to write the bytes to disk by wrapping byte[] into a ByteBuffer
 		try {
-			bytesWritten = this.mFileChannel.write(ByteBuffer.wrap(fileBuffer), this.mBytesProcessed);
+			ByteBuffer wrappedBuffer = ByteBuffer.wrap(fileBuffer);
+			while(wrappedBuffer.hasRemaining()) {
+				bytesWritten += this.mFileChannel.write(wrappedBuffer, this.mBytesProcessed);
+			}
 		} catch (IOException e) {
 			System.out.println(Strings.FILE_WRITE_ERROR + " " + this.mFileName);
 			e.printStackTrace();
@@ -136,6 +139,9 @@ public class FileStorageService {
 		if(fileBuffer.length == 0 || bytesWritten < Configurations.MAX_BUFFER) {
 			System.out.println(Strings.FILE_WRITE_COMPLETE);
 			try {
+				// Force the changes into disk, without force(false) we would write 
+				// the last block with nulls.
+				this.mFileChannel.force(false);
 				this.mFileChannel.close();
 				this.mFile.close();
 			} catch (IOException e) {
@@ -160,7 +166,6 @@ public class FileStorageService {
 		if(inByteBufferToFile == null) {
 			return false;
 		}
-		
 		ByteBuffer fileBuffer = ByteBuffer.allocate(Configurations.MAX_BUFFER);
 		int bytesRead = 0;
 		try {
@@ -171,10 +176,7 @@ public class FileStorageService {
 			return false;
 		}
 		
-		if(fileBuffer.position() < fileBuffer.capacity()) {
-			// We know we reached end of file as buffer was not 512 bytes
-			fileBuffer.compact();
-		}
+		
 		// Increment the total number number of bytes processed
 		this.mBytesProcessed += bytesRead;
 		// Fill the input parameter
