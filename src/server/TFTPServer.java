@@ -1,17 +1,12 @@
 package server;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.SocketException;
 import java.net.SocketTimeoutException;
 import java.util.Vector;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.locks.Condition;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
 
 import resource.Configurations;
 import resource.Strings;
@@ -31,7 +26,6 @@ class Console implements Runnable {
 	}
 	public void run() {
 		
-		//(new BufferedReader(new InputStreamReader(System.in))).readLine();
 		String quitCommand = Keyboard.getString();
 		while(!quitCommand.equalsIgnoreCase("q")) {
 			quitCommand = Keyboard.getString();
@@ -97,7 +91,7 @@ public class TFTPServer implements Callback {
 		while (active.get()) {
 			try {
 				// Create the packet for receiving.
-				byte[] buffer = new byte[Configurations.MAX_MESSAGE_SIZE]; // Temporary. Will be replaced with exact value soon.
+				byte[] buffer = new byte[Configurations.MAX_MESSAGE_SIZE]; 
 				receivePacket = new DatagramPacket(buffer, buffer.length);
 				serverSock.receive(receivePacket);
 			} catch (SocketTimeoutException e) {
@@ -137,11 +131,13 @@ public class TFTPServer implements Callback {
 	 * - If it is, remove it from the vector of threads and break out of the loop.
 	 */
 	public synchronized void callback(long id) {
-		if (active.get())
-			for (Thread t : threads)
+		if (active.get()) {
+			for (Thread t : threads) {
 				if (t.getId() == id) {
 					threads.remove(t);
 					break;
 				}
+			}
+		}
 	}
 }

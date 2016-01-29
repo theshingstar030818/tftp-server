@@ -67,7 +67,8 @@ public class DataPacketBuilder extends PacketBuilder {
 	 * @return the DatagramPacket, ready to be sent
 	 */
 	public DatagramPacket buildPacket(byte[] payload) {
-		this.mBlockNumber++;
+		// Start the block number back at 1 if it over flows
+		this.mBlockNumber = (short)((this.mBlockNumber + 1) % Short.MAX_VALUE);
 		byte[] blockNumber = Conversion.shortToBytes(this.mBlockNumber);
 		byte[] udpHeader = getRequestTypeHeaderByteArray();
 		this.mBuffer = new byte[payload.length + udpHeader.length + blockNumber.length];

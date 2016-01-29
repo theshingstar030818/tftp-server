@@ -16,6 +16,7 @@ public class Strings {
 	public static final String DIRECTORY_MAKE_ERROR = "An error occured while making a new directory.";
 	public static final String FILE_WRITE_COMPLETE = "Server received a block size zero, terminating write procedure.";
 	public static final String FILE_CHANNEL_CLOSE_ERROR = "Closing file channel failed.";
+	public static final String FILE_NOT_EXIST = "File does not exist.";
 	
 	// Server messages.
 	public static final String SERVER_RECEIVE_ERROR = "Failed to receive packet on main thread.";
@@ -27,4 +28,6 @@ public class Strings {
 	public static final String PROMPT_FILE_NAME_PATH = "Please enter file name or file path:";
 	public static final String ERROR_INPUT = "ERROR : Please select a valid option.";
 	public static final String EXIT_BYE = "Bye bye.";
+	public static final String TRANSFER_SUCCESSFUL = "File transfer was successul.";
+	public static final String TRANSFER_FAILED = "File transfer failed.";
 }

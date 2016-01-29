@@ -186,6 +186,8 @@ public class FileStorageService {
 			// We found the end of the file, or something bad happened where we cannot
 			// read anymore of the file
 			System.out.println(Strings.FILE_WRITE_COMPLETE);
+			byte[] lastBlock = new byte[bytesRead];
+			System.arraycopy(fileBuffer.array(), 0, lastBlock, 0, bytesRead);
 			try {
 				this.mFileChannel.close();
 				this.mFile.close();
@@ -193,6 +195,7 @@ public class FileStorageService {
 				System.out.println(Strings.FILE_CHANNEL_CLOSE_ERROR);
 				e.printStackTrace();
 			}
+			return lastBlock;
 		}
 		return fileBuffer.array();
 	}
