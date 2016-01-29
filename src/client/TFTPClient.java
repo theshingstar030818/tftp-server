@@ -10,6 +10,7 @@ import java.net.SocketException;
 import java.util.Scanner;
 
 import helpers.FileStorageService;
+import helpers.Keyboard;
 import packet.*;
 import resource.*;
 import types.*;
@@ -20,26 +21,34 @@ import types.*;
  */
 public class TFTPClient {
 
-	private static DatagramSocket sendReceiveSocket;
-	private static boolean isClientAlive = true;
-
+	private DatagramSocket sendReceiveSocket;
+	private boolean isClientAlive = true;
+	
 	public static void main(String[] args) {
-
+		TFTPClient vClient = new TFTPClient();
+		vClient.initialize();
+	}
+	
+	public TFTPClient() {
+		
+	}
+	
+	public void initialize() {
+		Scanner scan = new Scanner(System.in);
 		try {
 			sendReceiveSocket = new DatagramSocket();
-
+			int optionSelected = 0;
+			
 			while (isClientAlive) {
 				printSelectMenu();
-
-				Scanner scan = new Scanner(System.in);
-				int optionSelected = scan.nextInt();
-
+				
+				optionSelected = Keyboard.getInteger();
 				switch (optionSelected) {
 				case 1:
 					// Read file
-					System.out.println("Please enter file name : ");
-					scan.nextLine();
-					String readFileName = scan.nextLine();
+					System.out.println(Strings.PROMPT_ENTER_FILE_NAME);
+
+					String readFileName = Keyboard.getString();
 					try {
 						readRequestHandler(readFileName);
 					} catch (Exception e) {
@@ -48,27 +57,28 @@ public class TFTPClient {
 					break;
 				case 2:
 					// Write file
-					System.out.println("Please enter file name or file path : ");
-					scan.nextLine();
-					String writeFileNameOrFilePath = scan.nextLine();
+					System.out.println(Strings.PROMPT_FILE_NAME_PATH);
+
+					String writeFileNameOrFilePath = Keyboard.getString();
 					writeRequestHandler(writeFileNameOrFilePath);
 					break;
 				case 3:
 					// shutdown client
 					isClientAlive = false;
+					System.out.println(Strings.EXIT_BYE);
 					break;
 
 				default:
-					System.out.println("ERROR : Please select a valid option.");
+					System.out.println(Strings.ERROR_INPUT);
 					break;
 				}
-				scan.close();
 			}
-
 		} catch (SocketException e) {
 			e.printStackTrace();
+			scan.close();
+		} finally {
+			scan.close();
 		}
-		
 	}
 
 	/**
@@ -79,7 +89,7 @@ public class TFTPClient {
 	 *            - the name of the file that the client requests to send to
 	 *            server
 	 */
-	private static void writeRequestHandler(String writeFileNameOrFilePath) {
+	private void writeRequestHandler(String writeFileNameOrFilePath) {
 
 		ReadWritePacketPacketBuilder wpb;
 		FileStorageService writeRequestFileStorageService;
@@ -131,7 +141,7 @@ public class TFTPClient {
 	 * @param readFileName
 	 *            - the name of the file that the client requests from server
 	 */
-	private static void readRequestHandler(String readFileName) throws Exception {
+	private void readRequestHandler(String readFileName) throws Exception {
 
 		AckPacketBuilder ackPacketBuilder;
 		DatagramPacket lastPacket;
@@ -140,10 +150,10 @@ public class TFTPClient {
 		FileStorageService readRequestFileStorageService;
 
 		// +4 for the opcode and block#
-		byte[] dataBuf = new byte[Configurations.MAX_BUFFER + 4];
+		byte[] dataBuf = new byte[Configurations.MAX_MESSAGE_SIZE];
 
 		try {
-			readRequestFileStorageService = new FileStorageService(readFileName);
+			readRequestFileStorageService = new FileStorageService(readFileName,InstanceType.CLIENT);
 			// build read request packet
 			ReadPacketBuilder rpb = new ReadPacketBuilder(InetAddress.getLocalHost(), Configurations.SERVER_LISTEN_PORT,
 					readFileName, Configurations.DEFAULT_RW_MODE);
@@ -156,7 +166,7 @@ public class TFTPClient {
 
 			// loop until no more packets to receive
 			while (morePackets) {
-				dataBuf = new byte[Configurations.MAX_BUFFER + 4];
+				dataBuf = new byte[Configurations.MAX_MESSAGE_SIZE];
 				lastPacket = new DatagramPacket(dataBuf, dataBuf.length);
 				
 				// receive a data packet
@@ -165,8 +175,20 @@ public class TFTPClient {
 				// Use the packet builder class to manage and extract the data
 				dataPacketBuilder = new DataPacketBuilder(lastPacket);
 				
+				byte[] fileData = dataPacketBuilder.getDataBuffer();
+				// We need trim the byte array
+				if(fileData[fileData.length-1] == 0) {
+					// Give this a trim. 
+					int indexOfZero = fileData.length;
+					// Find the first index of occurring 0
+					while(--indexOfZero > 0 && fileData[indexOfZero] == 0) {}
+					byte[] temp = fileData;
+					fileData = new byte[indexOfZero+1];
+					System.arraycopy(temp, 0, fileData, 0, indexOfZero+1);
+				}
+				
 				// Save the last packet file buffer
-				morePackets = readRequestFileStorageService.saveFileByteBufferToDisk(dataPacketBuilder.getDataBuffer());
+				morePackets = readRequestFileStorageService.saveFileByteBufferToDisk(fileData);
 
 				// Prepare to ACK the data packet
 				ackPacketBuilder = new AckPacketBuilder(lastPacket);
@@ -184,7 +206,7 @@ public class TFTPClient {
 	 * 
 	 * @param
 	 */
-	public static void printSelectMenu() {
+	public void printSelectMenu() {
 		System.out.println("----------------------");
 		System.out.println("| Client Select Menu |");
 		System.out.println("----------------------");

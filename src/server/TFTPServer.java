@@ -16,7 +16,7 @@ import java.util.concurrent.locks.ReentrantLock;
 import resource.Configurations;
 import resource.Strings;
 import helpers.BufferPrinter;
-
+import helpers.Keyboard;
 
 /**
  * The Console class will allow someone (presumably an admin) to manage the server
@@ -25,14 +25,20 @@ import helpers.BufferPrinter;
  */
 class Console implements Runnable {
 
+	private TFTPServer mMonitorServer;
+	public Console(TFTPServer monitorServer) {
+		this.mMonitorServer = monitorServer;
+	}
 	public void run() {
-		try {
-			 (new BufferedReader(new InputStreamReader(System.in))).readLine();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
 		
+		//(new BufferedReader(new InputStreamReader(System.in))).readLine();
+		String quitCommand = Keyboard.getString();
+		while(!quitCommand.equalsIgnoreCase("q")) {
+			quitCommand = Keyboard.getString();
+		}
+		System.out.println(Strings.EXITING);
 		TFTPServer.active.set(false);
+		this.mMonitorServer.interruptSocketAndShutdown();
 	}
 }
 
@@ -51,8 +57,10 @@ public class TFTPServer implements Callback {
 	static AtomicBoolean active = new AtomicBoolean(true);
 	Vector<Thread> threads;
 	
-	final Lock lock = new ReentrantLock();
-	final Condition notEmpty = lock.newCondition();
+	DatagramSocket serverSock = null;
+	
+//	final Lock lock = new ReentrantLock();
+//	final Condition notEmpty = lock.newCondition();
 
 	
 	/**
@@ -69,7 +77,7 @@ public class TFTPServer implements Callback {
 	public void start() {
 		
 		// Create the socket.
-		DatagramSocket serverSock = null;
+		
 		DatagramPacket receivePacket = null;
 		try {
 			serverSock = new DatagramSocket(Configurations.SERVER_LISTEN_PORT);
@@ -81,10 +89,8 @@ public class TFTPServer implements Callback {
 		}
 		
 		// Create and start a thread for the command console.
-		Thread console = new Thread(new Console(), "command console");
+		Thread console = new Thread(new Console(this), "command console");
 		console.start();
-		
-		
 		
 		/*
 		 * - Receive packets until the admin console gives the shutdown signal.
@@ -99,6 +105,8 @@ public class TFTPServer implements Callback {
 				serverSock.receive(receivePacket);
 			} catch (SocketTimeoutException e) {
 				continue;
+			} catch (SocketException e) {
+				continue;
 			} catch (IOException e) {
 				System.out.println(Strings.SERVER_RECEIVE_ERROR);
 				e.printStackTrace();
@@ -110,26 +118,29 @@ public class TFTPServer implements Callback {
 			service.start();
 		}
 		
-		serverSock.close();
+		this.serverSock.close();
 		
 		/*
 		 * Wait for all service threads to close before completely exiting.
 		 */
-		while (!threads.isEmpty()) {
+		for(Thread t : threads) {
 			try {
-				notEmpty.await();
+				t.join();
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}
 		}
 	}
 	
+	public void interruptSocketAndShutdown() {
+		this.serverSock.close();
+	}
 	
 	public synchronized void callback(long id) {
 		for (Thread t : threads)
 			if (t.getId() == id) {
 				threads.remove(t);
-				notEmpty.signal();
+				//notEmpty.signal();
 				break;
 			}
 	}

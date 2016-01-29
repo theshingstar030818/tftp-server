@@ -12,6 +12,7 @@ import java.net.UnknownHostException;
 
 import helpers.BufferPrinter;
 import resource.Configurations;
+import types.RequestType;
 
 /**
  * @author Team 3
@@ -25,7 +26,7 @@ public class ErrorSimulator {
 	private final int MAX_BUFFER = 4096;
 	private final String CLASS_TAG = "Error Simulator";
 	
-	private final int FORWARD_PORT;
+	private int mForwardPort;
 	private final int RECEIVE_PORT;
 	private final String INET_ADDRESS;
 	
@@ -51,7 +52,7 @@ public class ErrorSimulator {
 	 * @param host specifies the host in which the host is located
 	 */
 	public ErrorSimulator(int recvPort, int fwdPort, String host) {
-		this.FORWARD_PORT = fwdPort;
+		this.mForwardPort = fwdPort;
 		this.RECEIVE_PORT = recvPort;
 		this.INET_ADDRESS = host;
 	}
@@ -64,8 +65,9 @@ public class ErrorSimulator {
 	public void initializeErrorSimulator() {
 		try {
 			// Initialization tasks
-			initializeUDPSocket(this.RECEIVE_PORT);
 			initiateInetAddress();
+			initializeUDPSocket(this.RECEIVE_PORT);
+			
 			
 			// Start main functionality
 			startTrafficMediation();
@@ -98,7 +100,14 @@ public class ErrorSimulator {
 			clientPort = clientPacket.getPort();
 			
 			// We redirect the packet to a new port
-			clientPacket.setPort(this.FORWARD_PORT);
+			RequestType passByHeader = RequestType.matchRequestByNumber((int)clientPacket.getData()[1]);
+			if(passByHeader == RequestType.RRQ || passByHeader == RequestType.WRQ) {
+				// This setting completes the case where all RRQ and WRQ's go to the server
+				// This means this is a new file transfer request.
+				this.mForwardPort = Configurations.SERVER_LISTEN_PORT;
+			}
+			
+			clientPacket.setPort(this.mForwardPort);
 			System.out.println(CLASS_TAG + " preparing to send packet to server.");
 			forwardPacketToSocket(clientPacket);
 			
@@ -106,7 +115,8 @@ public class ErrorSimulator {
 			System.out.println(CLASS_TAG + " preparing to retrieve packet from server.");
 			serverPacket = retrievePacketFromSocket(this.mUDPSendSocket);
 			this.mUDPSendSocket.close();
-			
+			// We set this forward port so the client can contact the thread
+			this.mForwardPort = serverPacket.getPort();
 			// Redirect the packet back to the client address
 			serverPacket.setPort(clientPort);
 			serverPacket.setAddress(clientAddress);
