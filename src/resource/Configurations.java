@@ -14,6 +14,7 @@ public class Configurations {
 	
 	public static final String ROOT_FILE_DIRECTORY = System.getProperty("user.home") + "/TFTP-Storage-Folder";
 	public static final int MAX_BUFFER = 512;
+	public static final int MAX_MESSAGE_SIZE = 516;
 	public static final int ERROR_SIM_LISTEN_PORT = 5001;   // Change this to something your Unix systems like
 	public static final int SERVER_LISTEN_PORT = 5000;		// Ditto line above
 	public static final ModeType DEFAULT_RW_MODE = ModeType.OCTET;
