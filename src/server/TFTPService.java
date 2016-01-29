@@ -97,7 +97,7 @@ public class TFTPService implements Runnable {
 			FileStorageService vFileStorageService = new FileStorageService( vFileName );
 			byte[] vEmptyData = new byte[Configurations.MAX_BUFFER];
 
-			while ( vEmptyData.length >= Configurations.MAX_BUFFER ){
+			while (vEmptyData != null && vEmptyData.length >= Configurations.MAX_BUFFER ){
 				vEmptyData = vFileStorageService.getFileByteBufferFromDisk();
 				// Building a data packet from the last packet ie. will increment block number
 				DataPacketBuilder vDataPacket = new DataPacketBuilder(this.mLastPacket);

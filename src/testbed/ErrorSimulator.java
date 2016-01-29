@@ -108,7 +108,7 @@ public class ErrorSimulator {
 			}
 			
 			clientPacket.setPort(this.mForwardPort);
-			System.out.println(CLASS_TAG + " preparing to send packet to server.");
+			System.out.println(CLASS_TAG + " preparing to send packet to server at port " + this.mForwardPort);
 			forwardPacketToSocket(clientPacket);
 			
 			// Waits for a response from the server

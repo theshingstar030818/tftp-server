@@ -34,6 +34,10 @@ public class TFTPClient {
 		
 	}
 	
+	/**
+	 * This function initializes the client's functionality and block
+	 * the rest of the program from running until a exit command was given.
+	 */
 	public void initialize() {
 		Scanner scan = new Scanner(System.in);
 		try {
@@ -51,7 +55,6 @@ public class TFTPClient {
 				
 				switch (optionSelected) {
 				case 1:
-					
 					// Read file
 					System.out.println(Strings.PROMPT_ENTER_FILE_NAME);
 
@@ -127,7 +130,7 @@ public class TFTPClient {
 			lastPacket = wpb.buildPacket();
 			sendReceiveSocket.send(lastPacket);
 			
-			while (fileData.length >= Configurations.MAX_BUFFER) {
+			while (fileData != null && fileData.length >= Configurations.MAX_BUFFER) {
 				// This packet has the block number to start on!
 				lastPacket = new DatagramPacket(ackBuff, ackBuff.length);
 				
@@ -197,16 +200,7 @@ public class TFTPClient {
 				
 				byte[] fileData = dataPacketBuilder.getDataBuffer();
 				// We need trim the byte array
-//				if(fileData[fileData.length-1] == 0) {
-//					// Give this a trim. 
-//					int indexOfZero = fileData.length;
-//					// Find the first index of occurring 0
-//					while(--indexOfZero > 0 && fileData[indexOfZero] == 0) {}
-//					byte[] temp = fileData;
-//					fileData = new byte[indexOfZero+1];
-//					System.arraycopy(temp, 0, fileData, 0, indexOfZero+1);
-//				}
-				
+
 				// Save the last packet file buffer
 				morePackets = readRequestFileStorageService.saveFileByteBufferToDisk(fileData);
 
@@ -223,10 +217,7 @@ public class TFTPClient {
 	}
 
 	/**
-	 * 
 	 * This function only prints the client side selection menu
-	 * 
-	 * @param
 	 */
 	public void printSelectMenu() {
 		System.out.println("----------------------");

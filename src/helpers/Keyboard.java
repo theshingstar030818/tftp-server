@@ -10,7 +10,6 @@ public class Keyboard {
 		try {
 	    	return (Integer.valueOf(inputStream.readLine().trim()).intValue());
 		} catch (Exception e) {
-	    	e.printStackTrace();
 	    	return 0;
 		}
     }
@@ -19,7 +18,6 @@ public class Keyboard {
 		try {
             return (Double.valueOf(inputStream.readLine().trim()).doubleValue());
 		} catch (Exception e) {
-	    	e.printStackTrace();
 	    	return 0.0;
 		}
     }
@@ -28,7 +26,6 @@ public class Keyboard {
 		try {
             return (Float.valueOf(inputStream.readLine().trim()).floatValue());
 		} catch (Exception e) {
-	    	e.printStackTrace();
 	    	return 0.0f;
 		}
     }
@@ -37,7 +34,6 @@ public class Keyboard {
 		try {
             return inputStream.readLine();
 		} catch (Exception e) {
-	    	e.printStackTrace();
 	    	return "";
 		}
     }
@@ -50,7 +46,6 @@ public class Keyboard {
 			else
             	return (in.charAt(0));
 		} catch (Exception e) {
-	    	e.printStackTrace();
 	    	return(char)0;
 		}
     }
@@ -59,7 +54,6 @@ public class Keyboard {
 		try {
 			return (Boolean.valueOf(inputStream.readLine().trim()).booleanValue());
 		} catch (Exception e) {
-	    	e.printStackTrace();
 	    	return false;
 		}
     }

@@ -21,9 +21,14 @@ import helpers.Keyboard;
 class Console implements Runnable {
 
 	private TFTPServer mMonitorServer;
+	
 	public Console(TFTPServer monitorServer) {
 		this.mMonitorServer = monitorServer;
 	}
+	
+	/* (non-Javadoc)
+	 * @see java.lang.Runnable#run()
+	 */
 	public void run() {
 		
 		String quitCommand = Keyboard.getString();
@@ -61,14 +66,10 @@ public class TFTPServer implements Callback {
 		threads = new Vector<Thread>();
 	}
 	
-	
 	/**
 	 * Handles operation of the server.
 	 */
 	public void start() {
-		
-		// Create the socket.
-		
 		DatagramPacket receivePacket = null;
 		try {
 			serverSock = new DatagramSocket(Configurations.SERVER_LISTEN_PORT);
@@ -108,9 +109,7 @@ public class TFTPServer implements Callback {
 			threads.addElement(service);
 			service.start();
 		}
-		
 		this.serverSock.close();
-		
 		// Wait for all service threads to close before completely exiting.
 		for(Thread t : threads) {
 			try {
@@ -121,6 +120,9 @@ public class TFTPServer implements Callback {
 		}
 	}
 	
+	/**
+	 * This interrupt will stop the socket from receving.
+	 */
 	public void interruptSocketAndShutdown() {
 		this.serverSock.close();
 	}

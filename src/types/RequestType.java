@@ -1,7 +1,5 @@
 package types;
 
-import resource.Configurations;
-
 /**
  * @author Team 3
  *
@@ -48,10 +46,11 @@ public enum RequestType {
 	/**
 	 * Gets the RequestType enum match the ordinal number 
 	 * 
-	 * @param num - 
+	 * @param num - the number which corresponds to the header
 	 * @return
 	 */
 	public static RequestType matchRequestByNumber(int num) {
+		num -= 1;
 		switch(num) {
 			case 0:
 				return RequestType.RRQ;

@@ -44,7 +44,7 @@ public abstract class PacketBuilder {
 	public PacketBuilder(DatagramPacket inDatagramPacket) {
 		this.mDatagramPacket = inDatagramPacket;
 		byte[] tempBuffer = new byte[inDatagramPacket.getLength()];
-		tempBuffer = inDatagramPacket.getData();
+		System.arraycopy(inDatagramPacket.getData(), 0, tempBuffer, 0, inDatagramPacket.getLength());
 		this.mBuffer = tempBuffer;
 		this.mInetAddress = inDatagramPacket.getAddress();
 		this.mDestinationPort = inDatagramPacket.getPort();
