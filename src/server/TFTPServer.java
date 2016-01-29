@@ -58,9 +58,6 @@ public class TFTPServer implements Callback {
 	Vector<Thread> threads;
 	
 	DatagramSocket serverSock = null;
-	
-//	final Lock lock = new ReentrantLock();
-//	final Condition notEmpty = lock.newCondition();
 
 	
 	/**
@@ -120,9 +117,7 @@ public class TFTPServer implements Callback {
 		
 		this.serverSock.close();
 		
-		/*
-		 * Wait for all service threads to close before completely exiting.
-		 */
+		// Wait for all service threads to close before completely exiting.
 		for(Thread t : threads) {
 			try {
 				t.join();
@@ -136,12 +131,17 @@ public class TFTPServer implements Callback {
 		this.serverSock.close();
 	}
 	
+	/**
+	 * - Check if the server is still active. If it is not then the join operation is running, making this unnecessary.
+	 * - Loop through all the threads, checking if that thread's ID is the ID of the thread that just ended.
+	 * - If it is, remove it from the vector of threads and break out of the loop.
+	 */
 	public synchronized void callback(long id) {
-		for (Thread t : threads)
-			if (t.getId() == id) {
-				threads.remove(t);
-				//notEmpty.signal();
-				break;
-			}
+		if (active.get())
+			for (Thread t : threads)
+				if (t.getId() == id) {
+					threads.remove(t);
+					break;
+				}
 	}
 }
