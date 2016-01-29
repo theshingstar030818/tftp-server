@@ -105,6 +105,11 @@ public class FileStorageService {
 		// Open or create a our file name path and create a channel for us to access the file on
 		this.mFile = new RandomAccessFile(this.mFilePath, "rw");
 		this.mFileChannel = this.mFile.getChannel();
+		try {
+			System.out.println("Opened a channel for a " + this.mFile.length() + " bytes long.");
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 	}
 	
 	/**
@@ -162,27 +167,20 @@ public class FileStorageService {
 	 * @param inByteBufferToFile - an initialized empty byte array sized 512 bytes
 	 * @return boolean - if there is or is not any more file content to buffer 
 	 */
-	public boolean getFileByteBufferFromDisk(byte[] inByteBufferToFile) {
-		if(inByteBufferToFile == null) {
-			return false;
-		}
+	public byte[] getFileByteBufferFromDisk() {
 		ByteBuffer fileBuffer = ByteBuffer.allocate(Configurations.MAX_BUFFER);
 		int bytesRead = 0;
 		try {
 			bytesRead = this.mFileChannel.read(fileBuffer, this.mBytesProcessed);
 		} catch (IOException e) {
+			// An error will occur if the file is corrupt. We need to deal with it
 			System.out.println(Strings.FILE_READ_ERROR + " " + this.mFileName);
 			e.printStackTrace();
-			return false;
+			return null;
 		}
-		
 		
 		// Increment the total number number of bytes processed
 		this.mBytesProcessed += bytesRead;
-		// Fill the input parameter
-		byte[] tempArray = fileBuffer.array();
-		System.arraycopy(tempArray, 0, inByteBufferToFile, 0, tempArray.length);
-		
 		// We determine if we reached the end of the file
 		if(bytesRead == 0 || bytesRead < Configurations.MAX_BUFFER) {
 			// We found the end of the file, or something bad happened where we cannot
@@ -195,9 +193,8 @@ public class FileStorageService {
 				System.out.println(Strings.FILE_CHANNEL_CLOSE_ERROR);
 				e.printStackTrace();
 			}
-			return false;
 		}
-		return true;
+		return fileBuffer.array();
 	}
 	
 	/**
