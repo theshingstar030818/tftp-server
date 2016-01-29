@@ -95,9 +95,8 @@ public class TFTPClient {
 		FileStorageService writeRequestFileStorageService;
 		DataPacketBuilder dataPacket; 
 		DatagramPacket lastPacket;
-		byte[] fileData;
+		byte[] fileData = new byte[Configurations.MAX_BUFFER];
 		byte[] ackBuff = new byte[Configurations.LEN_ACK_PACKET_BUFFET];
-		boolean moreData = true;
 
 		try {
 			writeRequestFileStorageService = new FileStorageService(writeFileNameOrFilePath,InstanceType.CLIENT);
@@ -108,7 +107,7 @@ public class TFTPClient {
 			lastPacket = wpb.buildPacket();
 			sendReceiveSocket.send(lastPacket);
 			
-			while (moreData) {
+			while (fileData.length >= Configurations.MAX_BUFFER) {
 				// This packet has the block number to start on!
 				lastPacket = new DatagramPacket(ackBuff, ackBuff.length);
 				
@@ -116,9 +115,8 @@ public class TFTPClient {
 				sendReceiveSocket.receive(lastPacket);
 				// Check if the receiving packet is an ACK
 				
-				fileData = new byte[Configurations.MAX_BUFFER];
 				// get the first block of file to transfer
-				moreData = writeRequestFileStorageService.getFileByteBufferFromDisk(fileData);
+				fileData = writeRequestFileStorageService.getFileByteBufferFromDisk();
 				
 				// Initialize DataPacket with block number n
 				dataPacket = new DataPacketBuilder(lastPacket);
@@ -177,15 +175,15 @@ public class TFTPClient {
 				
 				byte[] fileData = dataPacketBuilder.getDataBuffer();
 				// We need trim the byte array
-				if(fileData[fileData.length-1] == 0) {
-					// Give this a trim. 
-					int indexOfZero = fileData.length;
-					// Find the first index of occurring 0
-					while(--indexOfZero > 0 && fileData[indexOfZero] == 0) {}
-					byte[] temp = fileData;
-					fileData = new byte[indexOfZero+1];
-					System.arraycopy(temp, 0, fileData, 0, indexOfZero+1);
-				}
+//				if(fileData[fileData.length-1] == 0) {
+//					// Give this a trim. 
+//					int indexOfZero = fileData.length;
+//					// Find the first index of occurring 0
+//					while(--indexOfZero > 0 && fileData[indexOfZero] == 0) {}
+//					byte[] temp = fileData;
+//					fileData = new byte[indexOfZero+1];
+//					System.arraycopy(temp, 0, fileData, 0, indexOfZero+1);
+//				}
 				
 				// Save the last packet file buffer
 				morePackets = readRequestFileStorageService.saveFileByteBufferToDisk(fileData);
