@@ -70,15 +70,7 @@ public class TFTPService implements Runnable {
 				}
 				DataPacketBuilder vDataPacketBuilder = new DataPacketBuilder(this.mLastPacket);
 				vEmptyData = vDataPacketBuilder.getDataBuffer();
-//				if(vEmptyData[vEmptyData.length-1] == 0) {
-//					// Give this a trim. 
-//					int indexOfZero = vEmptyData.length;
-//					// Find the first index of occurring 0
-//					while(--indexOfZero > 0 && vEmptyData[indexOfZero] == 0) {}
-//					byte[] temp = vEmptyData;
-//					vEmptyData = new byte[indexOfZero+1];
-//					System.arraycopy(temp, 0, vEmptyData, 0, indexOfZero+1);
-//				}
+
 				vHasMore = vFileStorageService.saveFileByteBufferToDisk(vEmptyData);
 				// ACK this bit of data
 				vAckPacket = new AckPacketBuilder(this.mLastPacket);

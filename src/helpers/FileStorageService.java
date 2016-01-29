@@ -123,6 +123,15 @@ public class FileStorageService {
 	 */
 	public boolean saveFileByteBufferToDisk(byte[] fileBuffer) {
 		if(fileBuffer == null) {
+			// We know that the last packet is an empty packet (512 byte case)
+			try {
+				this.mFileChannel.force(false);
+				this.mFileChannel.close();
+				this.mFile.close();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 			return false;
 		}
 		int bytesWritten = 0;
@@ -141,7 +150,7 @@ public class FileStorageService {
 		this.mBytesProcessed += bytesWritten;
 		
 		// Check if we received a length zero
-		if(fileBuffer.length == 0 || bytesWritten < Configurations.MAX_BUFFER) {
+		if(bytesWritten < Configurations.MAX_BUFFER) {
 			System.out.println(Strings.FILE_WRITE_COMPLETE);
 			try {
 				// Force the changes into disk, without force(false) we would write 
@@ -182,12 +191,17 @@ public class FileStorageService {
 		// Increment the total number number of bytes processed
 		this.mBytesProcessed += bytesRead;
 		// We determine if we reached the end of the file
-		if(bytesRead == 0 || bytesRead < Configurations.MAX_BUFFER) {
+		if(bytesRead < Configurations.MAX_BUFFER) {
 			// We found the end of the file, or something bad happened where we cannot
 			// read anymore of the file
 			System.out.println(Strings.FILE_WRITE_COMPLETE);
-			byte[] lastBlock = new byte[bytesRead];
-			System.arraycopy(fileBuffer.array(), 0, lastBlock, 0, bytesRead);
+			byte[] lastBlock = null;
+			if(bytesRead != -1) {
+				// This function will return NULL if the last block is 0 bytes read
+				lastBlock = new byte[bytesRead];
+				System.arraycopy(fileBuffer.array(), 0, lastBlock, 0, bytesRead);
+			}
+			
 			try {
 				this.mFileChannel.close();
 				this.mFile.close();
