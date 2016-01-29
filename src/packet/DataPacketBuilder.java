@@ -71,12 +71,18 @@ public class DataPacketBuilder extends PacketBuilder {
 		this.mBlockNumber = (short)((this.mBlockNumber + 1) % Short.MAX_VALUE);
 		byte[] blockNumber = Conversion.shortToBytes(this.mBlockNumber);
 		byte[] udpHeader = getRequestTypeHeaderByteArray();
-		this.mBuffer = new byte[payload.length + udpHeader.length + blockNumber.length];
+		int sizeOfPayload = 0;
+		if(payload != null) {
+			sizeOfPayload = payload.length;
+		}
+		this.mBuffer = new byte[sizeOfPayload + udpHeader.length + blockNumber.length];
 		
 		// Copy everything into the new buffer
 		System.arraycopy(udpHeader, 0, this.mBuffer, 0, udpHeader.length);
 		System.arraycopy(blockNumber, 0, this.mBuffer, udpHeader.length, blockNumber.length);
-		System.arraycopy(payload, 0, this.mBuffer, udpHeader.length + blockNumber.length, payload.length);
+		if(payload != null) {
+			System.arraycopy(payload, 0, this.mBuffer, udpHeader.length + blockNumber.length, payload.length);
+		}
 		this.mDatagramPacket = new DatagramPacket(this.mBuffer, this.mBuffer.length, this.mInetAddress, this.mDestinationPort);
 		return this.mDatagramPacket;
 	}
@@ -97,6 +103,8 @@ public class DataPacketBuilder extends PacketBuilder {
 		if(this.mBuffer.length > Configurations.LEN_ACK_PACKET_BUFFET) {
 			this.mDataBuffer = Arrays.copyOfRange(this.mBuffer, 
 					Configurations.LEN_ACK_PACKET_BUFFET, this.mBuffer.length);
+		} else {
+			this.mDataBuffer = null;
 		}
 		
 	}

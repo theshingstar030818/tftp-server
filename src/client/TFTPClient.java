@@ -43,7 +43,12 @@ public class TFTPClient {
 			while (isClientAlive) {
 				printSelectMenu();
 				
-				optionSelected = Keyboard.getInteger();
+				try {
+					optionSelected = Keyboard.getInteger();
+				} catch (NumberFormatException e) {
+					optionSelected = 0;
+				}
+				
 				switch (optionSelected) {
 				case 1:
 					
