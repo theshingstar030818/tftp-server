@@ -3,6 +3,7 @@
  */
 package client;
 
+import java.io.File;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
@@ -45,22 +46,36 @@ public class TFTPClient {
 				optionSelected = Keyboard.getInteger();
 				switch (optionSelected) {
 				case 1:
+					
 					// Read file
 					System.out.println(Strings.PROMPT_ENTER_FILE_NAME);
 
 					String readFileName = Keyboard.getString();
 					try {
-						readRequestHandler(readFileName);
+						boolean result = readRequestHandler(readFileName);
+						if(!result) {
+							System.out.println(Strings.TRANSFER_FAILED);
+						} 
+						System.out.println(Strings.TRANSFER_SUCCESSFUL);
 					} catch (Exception e) {
 						e.printStackTrace();
+						System.out.println(Strings.TRANSFER_FAILED);
 					}
 					break;
 				case 2:
 					// Write file
 					System.out.println(Strings.PROMPT_FILE_NAME_PATH);
-
 					String writeFileNameOrFilePath = Keyboard.getString();
-					writeRequestHandler(writeFileNameOrFilePath);
+					File f = new File(writeFileNameOrFilePath);
+					if(!f.exists() || f.isDirectory()) { 
+						System.out.println(Strings.FILE_NOT_EXIST);
+					    break;
+					}
+					boolean result = writeRequestHandler(writeFileNameOrFilePath);
+					if(!result) {
+						System.out.println(Strings.TRANSFER_FAILED);
+					} 
+					System.out.println(Strings.TRANSFER_SUCCESSFUL);
 					break;
 				case 3:
 					// shutdown client
@@ -89,7 +104,7 @@ public class TFTPClient {
 	 *            - the name of the file that the client requests to send to
 	 *            server
 	 */
-	private void writeRequestHandler(String writeFileNameOrFilePath) {
+	private boolean writeRequestHandler(String writeFileNameOrFilePath) {
 
 		ReadWritePacketPacketBuilder wpb;
 		FileStorageService writeRequestFileStorageService;
@@ -129,7 +144,9 @@ public class TFTPClient {
 
 		} catch (Exception e) {
 			e.printStackTrace();
+			return false;
 		}
+		return true;
 	}
 
 	/**
@@ -139,7 +156,7 @@ public class TFTPClient {
 	 * @param readFileName
 	 *            - the name of the file that the client requests from server
 	 */
-	private void readRequestHandler(String readFileName) throws Exception {
+	private boolean readRequestHandler(String readFileName) throws Exception {
 
 		AckPacketBuilder ackPacketBuilder;
 		DatagramPacket lastPacket;
@@ -195,7 +212,9 @@ public class TFTPClient {
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
+			return false;
 		}
+		return true;
 	}
 
 	/**
