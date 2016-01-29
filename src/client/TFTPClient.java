@@ -3,8 +3,6 @@
  */
 package client;
 
-import java.io.FileNotFoundException;
-import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
@@ -40,6 +38,7 @@ public class TFTPClient {
 				case 1:
 					// Read file
 					System.out.println("Please enter file name : ");
+					scan.nextLine();
 					String readFileName = scan.nextLine();
 					try {
 						readRequestHandler(readFileName);
@@ -50,6 +49,7 @@ public class TFTPClient {
 				case 2:
 					// Write file
 					System.out.println("Please enter file name or file path : ");
+					scan.nextLine();
 					String writeFileNameOrFilePath = scan.nextLine();
 					writeRequestHandler(writeFileNameOrFilePath);
 					break;
@@ -80,41 +80,45 @@ public class TFTPClient {
 	private static void writeRequestHandler(String writeFileNameOrFilePath) {
 
 		ReadWritePacketPacketBuilder wpb;
-		AckPacketBuilder ackPacketBuilder;
 		FileStorageService writeRequestFileStorageService;
+		DataPacketBuilder dataPacket; 
 		DatagramPacket lastPacket;
-		byte[] fileData = new byte[Configurations.MAX_BUFFER];
+		byte[] fileData;
 		byte[] ackBuff = new byte[Configurations.LEN_ACK_PACKET_BUFFET];
 		boolean moreData = true;
 
 		try {
-			writeRequestFileStorageService = new FileStorageService(writeFileNameOrFilePath);
-
+			writeRequestFileStorageService = new FileStorageService(writeFileNameOrFilePath,InstanceType.CLIENT);
+			wpb = new WritePacketBuilder(InetAddress.getLocalHost(), Configurations.ERROR_SIM_LISTEN_PORT,
+					writeFileNameOrFilePath, Configurations.DEFAULT_RW_MODE);
+			lastPacket = wpb.buildPacket();
+			sendReceiveSocket.send(lastPacket);
+			
+			lastPacket = new DatagramPacket(ackBuff, ackBuff.length);
+			
+			// This packet has the block number to start on!
+			sendReceiveSocket.receive(lastPacket);
+			
 			while (moreData) {
+				fileData = new byte[Configurations.MAX_BUFFER];
 				// get the first block of file to transfer
 				moreData = writeRequestFileStorageService.getFileByteBufferFromDisk(fileData);
+				
+				// Initialize DataPacket with block number n
+				dataPacket = new DataPacketBuilder(lastPacket);
+				
+				// Overwrite last packet
+				lastPacket = dataPacket.buildPacket(fileData);
 
-				// create a writePacketBuilder
-				wpb = new WritePacketBuilder(InetAddress.getLocalHost(), Configurations.SERVER_LISTEN_PORT,
-						writeFileNameOrFilePath, Configurations.DEFAULT_RW_MODE);
-
-				// build the Packet to send
-				lastPacket = wpb.buildPacket();
-
-				// send the packet
-				sendReceiveSocket.send(lastPacket);
-
-				// now wait for an ACK packet from server
-				lastPacket = new DatagramPacket(ackBuff, ackBuff.length);
+				// receive a data packet
 				sendReceiveSocket.receive(lastPacket);
 
-				// build the ack Packet
-				ackPacketBuilder = new AckPacketBuilder(lastPacket);
-
-				// make sure no error packet received
-				if (ackPacketBuilder.getRequestType() != RequestType.ACK) {
-					//// handle error and quit here with exception
-				}
+				ackBuff = new byte[Configurations.LEN_ACK_PACKET_BUFFET];
+				lastPacket = new DatagramPacket(ackBuff,ackBuff.length);
+				
+				// Last packet now has the ACK block number, ready to be incremented
+				sendReceiveSocket.receive(lastPacket);
+				// Check if the receiving packet is an ACK
 			}
 
 		} catch (Exception e) {
@@ -131,6 +135,7 @@ public class TFTPClient {
 	 */
 	private static void readRequestHandler(String readFileName) throws Exception {
 
+		AckPacketBuilder ackPacketBuilder;
 		DatagramPacket lastPacket;
 		DataPacketBuilder dataPacket;
 		AckPacketBuilder ackPacket;

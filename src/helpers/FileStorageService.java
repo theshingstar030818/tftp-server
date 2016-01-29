@@ -9,6 +9,7 @@ import java.nio.channels.FileChannel;
 import java.nio.file.Paths;
 
 import resource.*;
+import types.InstanceType;
 
 /**
  * @author Team 3
@@ -38,6 +39,16 @@ public class FileStorageService {
 	 * @throws FileNotFoundException
 	 */
 	public FileStorageService(String fileNameOrFilePath) throws FileNotFoundException {
+		this.mDefaultStorageFolder = Configurations.SERVER_ROOT_FILE_DIRECTORY;
+		initializeFileServiceStorageLocation();
+		initializeNewFileChannel(fileNameOrFilePath);
+	}
+	
+	public FileStorageService(String fileNameOrFilePath, InstanceType instanceType) throws FileNotFoundException {
+		
+		this.mDefaultStorageFolder = instanceType == InstanceType.CLIENT ? Configurations.CLIENT_ROOT_FILE_DIRECTORY : 
+			Configurations.SERVER_ROOT_FILE_DIRECTORY;
+		
 		initializeFileServiceStorageLocation();
 		initializeNewFileChannel(fileNameOrFilePath);
 	}
@@ -47,7 +58,6 @@ public class FileStorageService {
 	 * not, creates one.
 	 */
 	private void initializeFileServiceStorageLocation() {
-		this.mDefaultStorageFolder = Paths.get(Configurations.ROOT_FILE_DIRECTORY).toString();
 		File storageDirectory = new File(this.mDefaultStorageFolder);
 		if(!storageDirectory.exists()) {
 			if(!storageDirectory.mkdir()) {

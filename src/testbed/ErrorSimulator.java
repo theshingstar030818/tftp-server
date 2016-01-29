@@ -11,6 +11,7 @@ import java.net.SocketException;
 import java.net.UnknownHostException;
 
 import helpers.BufferPrinter;
+import resource.Configurations;
 
 /**
  * @author Team 3
@@ -39,7 +40,8 @@ public class ErrorSimulator {
 	 * @param args
 	 */
 	public static void main(String[] args) {
-		ErrorSimulator mMediatorHost = new ErrorSimulator(68,69, "localhost");
+		ErrorSimulator mMediatorHost = new ErrorSimulator(Configurations.ERROR_SIM_LISTEN_PORT,
+				Configurations.SERVER_LISTEN_PORT, "localhost");
 		mMediatorHost.initializeErrorSimulator();
 	}
 	
