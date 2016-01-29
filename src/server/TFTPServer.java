@@ -82,13 +82,13 @@ public class TFTPServer implements Callback {
 		console.start();
 		
 		// Create the packet for receiving.
-		byte[] buffer = new byte[1024]; // Temporary. Will be replaced with exact value soon.
+		byte[] buffer = new byte[Configurations.MAX_MESSAGE_SIZE]; // Temporary. Will be replaced with exact value soon.
 		DatagramPacket receivePacket = new DatagramPacket(buffer, buffer.length);
 		
 		/*
 		 * - Receive packets until the admin console gives the shutdown signal.
 		 * - Since receiving a packet is a blocking operation, timeouts have been set to loop back
-		 *   and check if the signal to close has been given.
+		 *   and check if the close signal has been given.
 		 */
 		while (active.get()) {
 			try {
