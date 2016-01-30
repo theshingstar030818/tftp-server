@@ -49,6 +49,9 @@ Set up Instructions
 
 Usage Instructions
 ------------------
+1. Run Server
+2. Run Error simulator
+
 You'll be primarily interfacing with TDTPClient.java. 
 
 ----------------------
@@ -62,10 +65,8 @@ Options :
 Select option : 
 
 1. Enter a number to select an option will take you to a section where.
-
-Select option : 
-2
-Please enter file name or file path:
+	Select option :2
+	Please enter file name or file path:
 
 2. Enter an absolute file path to the file you want to transfer.
    We have included some test files in the TestFiles/ directory.
@@ -78,16 +79,16 @@ Responsibilities
 ----------------
  - Ananth Akhila:
     Made custom packet functions to wrap TFTP information around the data
-    in a UDP packet. Also make the client UCM.
+    in a UDP packet. Also made the server UCM.Helped test the program and write the ReadMe. 
  - Chen Yike:
 	Created server side service handler to facilitate a file transfer
-	between a single client. Also did the UCM for Error Simulator and UML.
+	between a single client. Also did the UCM for Error Simulator and UML. Helped test the program and write the ReadMe. 
  - Li Ziqiao Charlie:
 	Team leader. Handled many design decisions. Managed github repository.
 	Miscellaneous work on all classes providing general help and quality
-	assurance to other team members.
+	assurance to other team members.Helped test the program and write the ReadMe. 
  - Rana Tanzeel:
 	Created the client class. Made UCMs for client.
  - Thompson Kyle:
 	Created the main server that manages all service threads and accepts
-	incoming initial requests.
+	incoming initial requests.Helped test the program and write the ReadMe. 
