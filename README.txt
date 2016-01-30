@@ -37,17 +37,42 @@ Files included
     + RequestType.java
 
 
-Instructions
-------------
-1. Extract sysc3303TFTPi1 into a location on your computer
+Set up Instructions
+-------------------
+1. Extract sysc3303TFTP-i1 into a location on your computer
 2. Open Eclipse (Mars.1) and select the workspace path
    of where you extracted the assignment
 3. Open 3 console windows in Eclipse where you will see the print
    out of the three classes
 4. Execute TFTPServer.java and ErrorSimulator.java before you execute
    TFTPClient.java
-5.
 
+Usage Instructions
+------------------
+You'll be primarily interfacing with TDTPClient.java. 
+
+----------------------
+| Client Select Menu |
+----------------------
+Options : 
+	 1. Read File
+	 2. Write File
+	 3. Exit File
+
+Select option : 
+
+1. Enter a number to select an option will take you to a section where.
+
+Select option : 
+2
+Please enter file name or file path:
+
+2. Enter an absolute file path to the file you want to transfer.
+   We have included some test files in the TestFiles/ directory.
+   	+ 512bytes.txt
+   	+ lessthan512bytex.txt
+   	+ 513bytes.txt
+   	+ 1025bytes.txt
 
 Responsibilities
 ----------------
