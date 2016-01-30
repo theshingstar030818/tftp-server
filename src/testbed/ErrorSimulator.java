@@ -91,6 +91,8 @@ public class ErrorSimulator {
 		DatagramPacket clientPacket = null;
 		InetAddress clientAddress = null;
 		int clientPort = 0;
+		RequestType clientRequestType = RequestType.NONE;
+		boolean receiveReads = true;
 		while(true) {
 			// Receiving packets from the client, remembering where the packets came from
 			System.out.println(CLASS_TAG + " preparing to retrieve packet from client.");
@@ -105,24 +107,34 @@ public class ErrorSimulator {
 				// This setting completes the case where all RRQ and WRQ's go to the server
 				// This means this is a new file transfer request.
 				this.mForwardPort = Configurations.SERVER_LISTEN_PORT;
+				clientRequestType = passByHeader;
+				receiveReads = true;
 			}
 			
 			clientPacket.setPort(this.mForwardPort);
 			System.out.println(CLASS_TAG + " preparing to send packet to server at port " + this.mForwardPort);
 			forwardPacketToSocket(clientPacket);
 			
-			// Waits for a response from the server
-			System.out.println(CLASS_TAG + " preparing to retrieve packet from server.");
-			serverPacket = retrievePacketFromSocket(this.mUDPSendSocket);
-			this.mUDPSendSocket.close();
-			// We set this forward port so the client can contact the thread
-			this.mForwardPort = serverPacket.getPort();
-			// Redirect the packet back to the client address
-			serverPacket.setPort(clientPort);
-			serverPacket.setAddress(clientAddress);
-			System.out.println(CLASS_TAG + " preparing to send packet to client.");
-			forwardPacketToSocket(serverPacket);
-			this.mUDPSendSocket.close();
+			
+			if(receiveReads) {
+				// Waits for a response from the server
+				System.out.println(CLASS_TAG + " preparing to retrieve packet from server.");
+				serverPacket = retrievePacketFromSocket(this.mUDPSendSocket);
+				this.mUDPSendSocket.close();
+				// We set this forward port so the client can contact the thread
+				this.mForwardPort = serverPacket.getPort();
+				// Redirect the packet back to the client address
+				serverPacket.setPort(clientPort);
+				serverPacket.setAddress(clientAddress);
+				System.out.println(CLASS_TAG + " preparing to send packet to client.");
+				forwardPacketToSocket(serverPacket);
+			}
+
+			if(clientRequestType == RequestType.RRQ) {
+				if(serverPacket.getLength() < Configurations.MAX_MESSAGE_SIZE) {
+					receiveReads = false;
+				}
+			}
 		}
 	}
 	
