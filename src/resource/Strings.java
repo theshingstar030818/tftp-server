@@ -28,6 +28,6 @@ public class Strings {
 	public static final String PROMPT_FILE_NAME_PATH = "Please enter file name or file path:";
 	public static final String ERROR_INPUT = "ERROR : Please select a valid option.";
 	public static final String EXIT_BYE = "Bye bye.";
-	public static final String TRANSFER_SUCCESSFUL = "File transfer was successul.";
+	public static final String TRANSFER_SUCCESSFUL = "File transfer was successful.";
 	public static final String TRANSFER_FAILED = "File transfer failed.";
 }

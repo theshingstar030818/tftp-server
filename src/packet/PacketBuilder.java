@@ -149,46 +149,4 @@ public abstract class PacketBuilder {
 			this.mRequestType = RequestType.ERROR;
 		}
 	}
-	
-//	// gets opcode byte array of the inputed packet
-//	protected byte[] getOpcode(byte[] info) {
-//		ArrayList<Byte> opcodeLst = new ArrayList<Byte>();
-//		opcodeLst.add(info[0]);
-//		opcodeLst.add(info[1]);
-//		return (toByteArray(opcodeLst));
-//	}
-//
-//	// return request type
-//	public RequestType getRequestType() {
-//		return this.rt;
-//	}
-//
-//	// sets filename to the filename of the input packet info
-//	private void setFilename(byte[] info) {
-//		ArrayList<Byte> fileN = new ArrayList<Byte>();
-//		for (int i = 2; info[i] != ((byte) 0); i++) {
-//			fileN.add(info[i]);
-//		}
-//		this.filename = new String(toByteArray(fileN));
-//	}
-//
-//	// returns filename
-//	public String getFilename() {
-//		return (this.filename);
-//	}
-//
-//	// sets mode to the mode of the inputed packet info
-//	private void setMode(byte[] info) {
-//		ArrayList<Byte> fileMode = new ArrayList<Byte>();
-//		for (int i = (info.length - 2); info[i] != 0; i--) {
-//			fileMode.add(info[i]);
-//		}
-//		this.mode = new StringBuffer(new String(toByteArray(fileMode))).reverse().toString();
-//	}
-//
-//	// returns mode
-//	public String getMode() {
-//		return this.mode;
-//	}
-
-}// end of TFTPPacket class
+}

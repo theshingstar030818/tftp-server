@@ -93,13 +93,14 @@ public class ErrorSimulator {
 		int clientPort = 0;
 		RequestType clientRequestType = RequestType.NONE;
 		boolean receiveReads = true;
+		int serverThreadPort = 0;
 		while(true) {
 			// Receiving packets from the client, remembering where the packets came from
-			System.out.println(CLASS_TAG + " preparing to retrieve packet from client.");
+			System.out.println(CLASS_TAG + " preparing to retrieve packet from client. ");
 			clientPacket = retrievePacketFromSocket(this.mUDPListenSocket);
-			
 			clientAddress = clientPacket.getAddress();
 			clientPort = clientPacket.getPort();
+			System.out.print("... received on " + clientPort);
 			
 			// We redirect the packet to a new port
 			RequestType passByHeader = RequestType.matchRequestByNumber((int)clientPacket.getData()[1]);
@@ -110,10 +111,11 @@ public class ErrorSimulator {
 				clientRequestType = passByHeader;
 				receiveReads = true;
 			}
-			
+			DatagramPacket toServerPacket = new DatagramPacket(clientPacket.getData(),
+					clientPacket.getLength(), InetAddress.getLocalHost(), this.mForwardPort);
 			clientPacket.setPort(this.mForwardPort);
 			System.out.println(CLASS_TAG + " preparing to send packet to server at port " + this.mForwardPort);
-			forwardPacketToSocket(clientPacket);
+			forwardPacketToSocket(toServerPacket);
 			
 			
 			if(receiveReads) {
@@ -124,10 +126,12 @@ public class ErrorSimulator {
 				// We set this forward port so the client can contact the thread
 				this.mForwardPort = serverPacket.getPort();
 				// Redirect the packet back to the client address
-				serverPacket.setPort(clientPort);
-				serverPacket.setAddress(clientAddress);
+				DatagramPacket toClientPacket = new DatagramPacket(serverPacket.getData(),
+						serverPacket.getLength(), clientAddress,clientPort);
+				
 				System.out.println(CLASS_TAG + " preparing to send packet to client.");
-				forwardPacketToSocket(serverPacket);
+				forwardPacketToSocket(toClientPacket);
+				this.mUDPSendSocket.close();
 			}
 
 			if(clientRequestType == RequestType.RRQ) {
