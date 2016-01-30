@@ -178,7 +178,7 @@ public class TFTPClient {
 		try {
 			readRequestFileStorageService = new FileStorageService(readFileName,InstanceType.CLIENT);
 			// build read request packet
-			ReadPacketBuilder rpb = new ReadPacketBuilder(InetAddress.getLocalHost(), Configurations.SERVER_LISTEN_PORT,
+			ReadPacketBuilder rpb = new ReadPacketBuilder(InetAddress.getLocalHost(), Configurations.ERROR_SIM_LISTEN_PORT,
 					readFileName, Configurations.DEFAULT_RW_MODE);
 
 			// now get the packet from the ReadPacketBuilder
