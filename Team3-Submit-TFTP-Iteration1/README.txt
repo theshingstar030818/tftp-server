@@ -96,10 +96,6 @@ Select option :
 4. Try write/read (Reading and writing the same file will overwrite 
    your previous)
 
-5. Read request: Only enter the file name into the prompt.
-
-6. Write request: Enter the full absolute path to your file
-
 
 
 Responsibilities
