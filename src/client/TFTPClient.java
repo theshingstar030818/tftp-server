@@ -149,7 +149,10 @@ public class TFTPClient {
 				lastPacket.setPort(Configurations.ERROR_SIM_LISTEN_PORT);
 				sendReceiveSocket.send(lastPacket);
 			}
-
+			// Receive the last ACK. 
+			lastPacket = new DatagramPacket(ackBuff, ackBuff.length);
+			sendReceiveSocket.receive(lastPacket);
+			
 		} catch (Exception e) {
 			e.printStackTrace();
 			return false;
@@ -206,6 +209,8 @@ public class TFTPClient {
 
 				// Prepare to ACK the data packet
 				ackPacketBuilder = new AckPacketBuilder(lastPacket);
+				// Always send the ACK back to the error sim (BAD)
+				
 				lastPacket = ackPacketBuilder.buildPacket();
 				lastPacket.setPort(Configurations.ERROR_SIM_LISTEN_PORT);
 				sendReceiveSocket.send(lastPacket);
