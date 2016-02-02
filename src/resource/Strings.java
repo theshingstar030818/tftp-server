@@ -30,4 +30,14 @@ public class Strings {
 	public static final String EXIT_BYE = "Bye bye.";
 	public static final String TRANSFER_SUCCESSFUL = "File transfer was successful.";
 	public static final String TRANSFER_FAILED = "File transfer failed.";
+	
+	// TFTP error messages.
+	public static final String NOT_DEFINED = "Not defined, see error message (if any).";
+	public static final String FILE_NOT_FOUND = "File not found.";
+	public static final String ACCESS_VIOLATION = "Access violation.";
+	public static final String ALLOCATION_EXCEED = "Disk full or allocation exceeded.";
+	public static final String ILLEGAL_OPERATION = "Illegal TFTP operation.";
+	public static final String UNKNOWN_TRANSFER = "Unknown transfer ID.";
+	public static final String FILE_EXISTS = "File already exists.";
+	public static final String NO_SUCH_USER = "No such user.";
 }
