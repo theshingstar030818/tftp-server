@@ -9,8 +9,10 @@ public enum Logger {
 		@Override
 		public void print(Logger c, String s){
 			//print all the information of DEBUG 
-			if(c == VERBOSE || c == DEBUG || c == INFO || c == WARN || c == ERROR || c == FATAL){
+			if(c == VERBOSE || c == DEBUG || c == INFO || c == WARN ){
 				System.out.println(s);
+			} else if(c == ERROR || c == FATAL){
+				System.err.println(s);
 			}
 		}
 	},
