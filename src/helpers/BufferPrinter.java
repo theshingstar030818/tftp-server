@@ -1,20 +1,27 @@
 package helpers;
 
 import java.util.Arrays;
-import java.util.regex.Pattern;
-
+import types.LogLevel;
 /**
  * @author Team 3
  *
  * This is a printing class helper for the TFTP system
  */
 public class BufferPrinter {
-	public static void printBuffer(byte[] buffer, String entity) {
-		System.out.print(entity + " prints contents of the UDP buffer:");
-		System.out.println(Arrays.toString(buffer));
-		System.out.print(entity + " prints contents of UDP buffer as string: ");
-		System.out.println(new String(buffer));
-		System.out.println();
+	
+	// this metthod now only prints if the client/Error simulator/server was initialized
+	// with a LogLevel VERBOSE 
+	public static void printBuffer(byte[] buffer, String entity, LogLevel logLevel) {
+		
+		String s = "";
+		
+		s += entity + " prints contents of the UDP buffer:\n";
+		s += Arrays.toString(buffer) + "\n";
+		s += entity + " prints contents of UDP buffer as string: \n";
+		s += new String(buffer) + "\n";
+		
+		logLevel.print(LogLevel.VERBOSE, s);
+		
 	}
 	
 	public static String bufferToString(byte[] buffer) {
