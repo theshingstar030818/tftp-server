@@ -15,7 +15,7 @@ import helpers.BufferPrinter;
 import helpers.Keyboard;
 import resource.Configurations;
 import resource.Strings;
-import types.LogLevel;
+import types.Logger;
 import types.RequestType;
 
 /**
@@ -28,7 +28,7 @@ import types.RequestType;
 public class ErrorSimulator {
 	
 	//by default set the log level to debug
-	private static LogLevel logLevel = LogLevel.DEBUG;
+	private static Logger logger = Logger.DEBUG;
 
 	private final int MAX_BUFFER = 4096;
 	private final String CLASS_TAG = "Error Simulator";
@@ -65,11 +65,11 @@ public class ErrorSimulator {
 			
 			switch (optionSelected) {
 			case 1:
-				logLevel = LogLevel.VERBOSE;
+				logger = Logger.VERBOSE;
 				validInput = true;
 				break;
 			case 2:
-				logLevel = LogLevel.DEBUG;
+				logger = Logger.DEBUG;
 				validInput = true;
 				break;
 			default:
@@ -139,11 +139,11 @@ public class ErrorSimulator {
 		while (true) {
 			// Receiving packets from the client, remembering where the packets
 			// came from
-			logLevel.print(LogLevel.DEBUG, CLASS_TAG + " preparing to retrieve packet from client. ");
+			logger.print(Logger.DEBUG, CLASS_TAG + " preparing to retrieve packet from client. ");
 			clientPacket = retrievePacketFromSocket(this.mUDPListenSocket);
 			clientAddress = clientPacket.getAddress();
 			clientPort = clientPacket.getPort();
-			logLevel.print(LogLevel.DEBUG, "... received on " + clientPort);
+			logger.print(Logger.DEBUG, "... received on " + clientPort);
 
 			// We redirect the packet to a new port
 			RequestType passByHeader = RequestType.matchRequestByNumber((int) clientPacket.getData()[1]);
@@ -158,12 +158,12 @@ public class ErrorSimulator {
 			DatagramPacket toServerPacket = new DatagramPacket(clientPacket.getData(), clientPacket.getLength(),
 					InetAddress.getLocalHost(), this.mForwardPort);
 			clientPacket.setPort(this.mForwardPort);
-			logLevel.print(LogLevel.DEBUG, CLASS_TAG + " preparing to send packet to server at port " + this.mForwardPort);
+			logger.print(Logger.DEBUG, CLASS_TAG + " preparing to send packet to server at port " + this.mForwardPort);
 			forwardPacketToSocket(toServerPacket);
 
 			if (receiveReads) {
 				// Waits for a response from the server
-				logLevel.print(LogLevel.DEBUG, CLASS_TAG + " preparing to retrieve packet from server.");
+				logger.print(Logger.DEBUG, CLASS_TAG + " preparing to retrieve packet from server.");
 				serverPacket = retrievePacketFromSocket(this.mUDPSendSocket);
 				this.mUDPSendSocket.close();
 				// We set this forward port so the client can contact the thread
@@ -172,7 +172,7 @@ public class ErrorSimulator {
 				DatagramPacket toClientPacket = new DatagramPacket(serverPacket.getData(), serverPacket.getLength(),
 						clientAddress, clientPort);
 
-				logLevel.print(LogLevel.DEBUG, CLASS_TAG + " preparing to send packet to client.");
+				logger.print(Logger.DEBUG, CLASS_TAG + " preparing to send packet to client.");
 				forwardPacketToSocket(toClientPacket);
 				this.mUDPSendSocket.close();
 			}
@@ -227,7 +227,7 @@ public class ErrorSimulator {
 	 */
 	private void sendPacket(DatagramPacket packet, DatagramSocket sendSocket) throws IOException {
 		sendSocket.send(packet);
-		BufferPrinter.printBuffer(packet.getData(), CLASS_TAG, logLevel);
+		BufferPrinter.printBuffer(packet.getData(), CLASS_TAG, logger);
 	}
 
 	/**
@@ -241,7 +241,7 @@ public class ErrorSimulator {
 	private void sendPacket(DatagramPacket packet) throws IOException {
 		this.mUDPSendSocket = new DatagramSocket();
 		this.mUDPSendSocket.send(packet);
-		BufferPrinter.printBuffer(packet.getData(), CLASS_TAG, logLevel);
+		BufferPrinter.printBuffer(packet.getData(), CLASS_TAG, logger);
 	}
 
 	/**
@@ -264,7 +264,7 @@ public class ErrorSimulator {
 		System.arraycopy(receivePacket.getData(), 0, packetBuffer, 0, realPacketSize);
 		receivePacket.setData(packetBuffer);
 		
-		BufferPrinter.printBuffer(receivePacket.getData(), CLASS_TAG, logLevel);
+		BufferPrinter.printBuffer(receivePacket.getData(), CLASS_TAG, logger);
 		return receivePacket;
 	}
 
@@ -293,7 +293,7 @@ public class ErrorSimulator {
 			this.mInetAddress = InetAddress.getByName(this.INET_ADDRESS);
 		}
 		
-		logLevel.print(LogLevel.DEBUG, CLASS_TAG + " initalized destination to host: " + this.mInetAddress + "\n");
+		logger.print(Logger.DEBUG, CLASS_TAG + " initalized destination to host: " + this.mInetAddress + "\n");
 	}
 	
 	private static void printSelectLogLevelMenu() {

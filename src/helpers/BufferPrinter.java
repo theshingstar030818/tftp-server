@@ -1,7 +1,7 @@
 package helpers;
 
 import java.util.Arrays;
-import types.LogLevel;
+import types.Logger;
 /**
  * @author Team 3
  *
@@ -11,7 +11,7 @@ public class BufferPrinter {
 	
 	// this metthod now only prints if the client/Error simulator/server was initialized
 	// with a LogLevel VERBOSE 
-	public static void printBuffer(byte[] buffer, String entity, LogLevel logLevel) {
+	public static void printBuffer(byte[] buffer, String entity, Logger logLevel) {
 		
 		String s = "";
 		
@@ -20,7 +20,7 @@ public class BufferPrinter {
 		s += entity + " prints contents of UDP buffer as string: \n";
 		s += new String(buffer) + "\n";
 		
-		logLevel.print(LogLevel.VERBOSE, s);
+		logLevel.print(Logger.VERBOSE, s);
 		
 	}
 	
