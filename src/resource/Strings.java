@@ -40,4 +40,5 @@ public class Strings {
 	public static final String UNKNOWN_TRANSFER = "Unknown transfer ID.";
 	public static final String FILE_EXISTS = "File already exists.";
 	public static final String NO_SUCH_USER = "No such user.";
+	public static final String NO_ERROR = "No error.";
 }

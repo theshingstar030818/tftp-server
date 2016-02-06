@@ -91,6 +91,16 @@ public enum ErrorType {
 		public String getErrorMessageString() {
 			return Strings.NO_SUCH_USER;
 		}
+	},
+	NO_ERROR {
+		@Override
+		public short getErrorCodeShort() {
+			return -1;
+		}
+		@Override
+		public String getErrorMessageString() {
+			return Strings.NO_ERROR;
+		}
 	};
 	
 	/**
