@@ -4,9 +4,11 @@ import java.io.*;
 import java.net.*;
 
 import helpers.FileStorageService;
+import types.ErrorType;
 import types.RequestType;
 import packet.*;
 import resource.Configurations;
+import testbed.ErrorChecker;
 
 /**
  * @author Team 3
@@ -19,6 +21,7 @@ public class TFTPService implements Runnable {
 	private DatagramSocket mSendReceiveSocket;
 	private DatagramPacket mLastPacket;
 	private Callback mClientFinishedCallback;
+	private ErrorChecker errorChecker;
 	
 	/**
 	 * This class is initialized by the server on a separate thread.
@@ -28,6 +31,7 @@ public class TFTPService implements Runnable {
 	 * @param packet
 	 */
 	public TFTPService(DatagramPacket packet, Callback finCallback) {
+		errorChecker = new ErrorChecker(new ReadWritePacketPacketBuilder(packet));
 		this.mLastPacket = packet;
 		this.mClientFinishedCallback = finCallback;
 		try {
@@ -44,7 +48,7 @@ public class TFTPService implements Runnable {
 	 * 
 	 * @param writeRequest - write request packet from client
 	 */
-	private void handleFileWriteOperation(WritePacketBuilder writeRequest) {
+	private void handleFileWriteOperation(WritePacketBuilder writeRequest) { // check data
 		// when we get a write request, we need to acknowledge client first (block 0)
 		AckPacketBuilder vAckPacket = new AckPacketBuilder(this.mLastPacket);
 		DatagramPacket vSendPacket = vAckPacket.buildPacket();
@@ -61,6 +65,10 @@ public class TFTPService implements Runnable {
 				this.mLastPacket = new DatagramPacket(data, data.length);
 				
 				this.mSendReceiveSocket.receive(this.mLastPacket);
+				ErrorType error = errorChecker.check(new DataPacketBuilder(this.mLastPacket), RequestType.DATA);
+				if (error != ErrorType.NO_ERROR) {
+					errorHandle(error, this.mLastPacket);
+				}
 				// Extract the data from the received packet with packet builder
 				if(this.mLastPacket.getLength() < Configurations.MAX_MESSAGE_SIZE) {
 					int realPacketSize = this.mLastPacket.getLength();
@@ -91,7 +99,7 @@ public class TFTPService implements Runnable {
 	 * 
 	 * @param readRequest - the read request data gram packet getting from the client
 	 */
-	private void handleFileReadOperation(ReadPacketBuilder readRequest) {
+	private void handleFileReadOperation(ReadPacketBuilder readRequest) { // check ack
 		String vFileName = readRequest.getFilename();
 		try {
 			FileStorageService vFileStorageService = new FileStorageService( vFileName );
@@ -107,9 +115,11 @@ public class TFTPService implements Runnable {
 				byte[] data = new byte[Configurations.LEN_ACK_PACKET_BUFFET];
 				DatagramPacket vReceivePacket = new DatagramPacket(data, data.length);
 				mSendReceiveSocket.receive(vReceivePacket);
-				if(vReceivePacket.getData()[1] != 3) {
-					// its not an ack
+				ErrorType error = errorChecker.check(new AckPacketBuilder(vReceivePacket), RequestType.ACK);
+				if (error != ErrorType.NO_ERROR) {
+					errorHandle(error, vReceivePacket);
 				}
+
 				this.mLastPacket = vReceivePacket;
 			}
 		} catch (FileNotFoundException e) {
@@ -119,6 +129,24 @@ public class TFTPService implements Runnable {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}	
+	}
+	
+	public void errorHandle(ErrorType error, DatagramPacket packet) {
+		switch (error) {
+		case ILLEGAL_OPERATION:
+			System.exit(4);
+			
+		case UNKNOWN_TRANSFER:
+			ErrorPacketBuilder errorPacket = new ErrorPacketBuilder(packet);
+			try {
+				mSendReceiveSocket.send(errorPacket.getPacket());
+			} catch (IOException e) { e.printStackTrace(); }
+			break;
+		
+		default:
+			System.out.println("Unhandled Exception.");
+			break;
+		}			
 	}
 	
 	/* (non-Javadoc)
@@ -139,11 +167,7 @@ public class TFTPService implements Runnable {
 				ReadPacketBuilder vReadPacket = new ReadPacketBuilder(this.mLastPacket);
 				handleFileReadOperation(vReadPacket);
 				break;
-			case DATA:
-				break;
-			case ACK:
-				break;
-			case ERROR:
+			default:
 				break;
 		}
 		
