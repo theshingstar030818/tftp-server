@@ -112,6 +112,10 @@ public class TFTPService implements Runnable {
 				}
 				this.mLastPacket = vReceivePacket;
 			}
+			byte[] data = new byte[Configurations.LEN_ACK_PACKET_BUFFET];
+			DatagramPacket vReceivePacket = new DatagramPacket(data, data.length);
+			this.mSendReceiveSocket.receive(vReceivePacket);
+			System.err.println("If the code reached here, the bug was fixed. Make sure the last ack packet was acked");
 		} catch (FileNotFoundException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
