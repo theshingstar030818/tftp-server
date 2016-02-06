@@ -162,4 +162,9 @@ public abstract class PacketBuilder {
 	public int getPacketLength() {
 		return this.mPacketLength;
 	}
+	
+	public abstract void setBlockNumber(short blockNumber);
+	public abstract short getBlockNumber();
+
+
 }
