@@ -205,5 +205,12 @@ public class ReadWritePacketPacketBuilder extends PacketBuilder {
 	public String getFilename() {
 		return this.mFilename;
 	}
+	
+	/* (non-Javadoc)
+	 * @see packet.PacketBuilder#getDataBuffer()
+	 */
+	public byte[] getDataBuffer() {
+		return this.mBuffer;
+	}
 
 }

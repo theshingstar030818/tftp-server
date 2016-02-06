@@ -37,6 +37,13 @@ public class ErrorPacketBuilder extends PacketBuilder {
 	@Override 
 	protected byte[] getRequestTypeHeaderByteArray() {
 		return RequestType.ERROR.getHeaderByteArray();
-	};
+	}
+	
+	/* (non-Javadoc)
+	 * @see packet.PacketBuilder#getDataBuffer()
+	 */
+	public byte[] getDataBuffer() {
+		return this.mBuffer;
+	}
 
 }
