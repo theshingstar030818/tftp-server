@@ -127,11 +127,8 @@ public class DataPacketBuilder extends PacketBuilder {
 		this.mBlockNumber = blockNumber;
 	}
 	
-	/**
-	 * Gets the file segment of the packet. This function will return the actual
-	 * file bytes, retrieved from the packet
-	 * 
-	 * @return byte[] buffer
+	/* (non-Javadoc)
+	 * @see packet.PacketBuilder#getDataBuffer()
 	 */
 	public byte[] getDataBuffer() {
 		return this.mDataBuffer;

@@ -97,4 +97,11 @@ public class AckPacketBuilder extends PacketBuilder {
 	public short getBlockNumber() {
 		return this.mBlockNumber;
 	}
+	
+	/* (non-Javadoc)
+	 * @see packet.PacketBuilder#getDataBuffer()
+	 */
+	public byte[] getDataBuffer() {
+		return this.mBuffer;
+	}
 }

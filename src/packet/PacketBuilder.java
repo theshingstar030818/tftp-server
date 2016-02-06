@@ -20,6 +20,7 @@ public abstract class PacketBuilder {
 	protected int mDestinationPort;
 	protected DatagramPacket mDatagramPacket;
 	protected byte[] mBuffer;
+	protected int mPacketLength;
 
 	/**
 	 * Used to create a packet from scratch by inputing the required parameters of the
@@ -48,6 +49,7 @@ public abstract class PacketBuilder {
 		this.mBuffer = tempBuffer;
 		this.mInetAddress = inDatagramPacket.getAddress();
 		this.mDestinationPort = inDatagramPacket.getPort();
+		this.mPacketLength = this.mBuffer.length;
 	}
 
 	/**
@@ -76,6 +78,14 @@ public abstract class PacketBuilder {
 	 */
 	protected abstract byte[] getRequestTypeHeaderByteArray();
 
+	/**
+	 * Gets the file segment of the packet. This function will return the actual
+	 * file bytes, retrieved from the packet
+	 * 
+	 * @return byte[] buffer
+	 */
+	public abstract byte[] getDataBuffer();
+	
 	/**
 	 * This function can be used to get the current packet that PacketBuilder
 	 * has been working on. 
@@ -124,7 +134,6 @@ public abstract class PacketBuilder {
 	public RequestType getRequestType() {
 		return this.mRequestType;
 	}
-
 	
 	/**
 	 * This function is used to set the current RequestType that the PacketBuilder
@@ -148,5 +157,9 @@ public abstract class PacketBuilder {
 		if (buffer[1] == 5) {
 			this.mRequestType = RequestType.ERROR;
 		}
+	}
+	
+	public int getPacketLength() {
+		return this.mPacketLength;
 	}
 }
