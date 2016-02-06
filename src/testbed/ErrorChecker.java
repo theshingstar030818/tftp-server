@@ -1,6 +1,5 @@
 package testbed;
 
-import java.net.DatagramPacket;
 import java.net.InetAddress;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -18,9 +17,9 @@ public class ErrorChecker {
     private int otherPort; // Temporary name.
     private int expectedBlockNumber;
     
-    public ErrorChecker(DatagramPacket packet) {
-        otherAddress = packet.getAddress();
-        otherPort = packet.getPort();
+    public ErrorChecker(PacketBuilder packet) {
+        otherAddress = packet.getPacket().getAddress();
+        otherPort = packet.getPacket().getPort();
         expectedBlockNumber = 0;
     }
     
