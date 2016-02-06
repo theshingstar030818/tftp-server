@@ -104,6 +104,36 @@ public enum ErrorType {
 	};
 	
 	/**
+	 * Gets the ErrorType enum match the ordinal number 
+	 * 
+	 * @param num - the number which corresponds to the header
+	 * @return
+	 */
+	public static ErrorType matchErrorByNumber(int num) {
+		num -= 1;
+		switch(num) {
+			case 0:
+				return ErrorType.NOT_DEFINED;
+			case 1:
+				return ErrorType.FILE_NOT_FOUND;
+			case 2:
+				return ErrorType.ACCESS_VIOLATION;
+			case 3: 
+				return ErrorType.ALLOCATION_EXCEED;
+			case 4:
+				return ErrorType.ILLEGAL_OPERATION;
+			case 5:
+				return ErrorType.UNKNOWN_TRANSFER;
+			case 6: 
+				return ErrorType.FILE_EXISTS;
+			case 7:
+				return ErrorType.NO_SUCH_USER;
+			default:
+				return ErrorType.NO_ERROR;
+		}
+	}
+	
+	/**
 	 * Get the numeric error code that the error represents in the TFTP specs.
 	 * Use Conversions to convert to byte and back
 	 * 
