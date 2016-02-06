@@ -15,6 +15,7 @@ import helpers.BufferPrinter;
 import helpers.Keyboard;
 import resource.Configurations;
 import resource.Strings;
+import resource.UIManager;
 import types.Logger;
 import types.RequestType;
 
@@ -111,6 +112,7 @@ public class ErrorSimulator {
 			initiateInetAddress();
 			initializeUDPSocket(this.RECEIVE_PORT);
 
+			getErrorCodeFromUser();
 			// Start main functionality
 			startTrafficMediation();
 		} catch (Exception e) {
@@ -118,6 +120,52 @@ public class ErrorSimulator {
 		} finally {
 			this.mUDPListenSocket.close();
 		}
+	}
+	
+	private void getErrorCodeFromUser() {
+		int optionSelected = 0;
+		Scanner scaner = new Scanner(System.in);
+		boolean validInput = false;
+		
+		while(!validInput){
+			printErrorSelectMenu();
+			try {
+				optionSelected = Keyboard.getInteger();
+			} catch (NumberFormatException e) {
+				optionSelected = 0;
+			}
+			
+			switch (optionSelected) {
+			case 1:
+				logger.print(Logger.DEBUG,Strings.OPERATION_NOT_SUPPORTED);
+				break;
+			case 2:
+				logger.print(Logger.DEBUG,Strings.OPERATION_NOT_SUPPORTED);
+				break;
+			case 3:
+				logger.print(Logger.DEBUG,Strings.OPERATION_NOT_SUPPORTED);
+				break;
+			case 4:
+				// illegal TFTP operation option
+				validInput = true;
+				break;
+			case 5:
+				// unknown transfer ID operation option
+				
+				validInput = true;
+				break;
+			case 6:
+				logger.print(Logger.DEBUG,Strings.OPERATION_NOT_SUPPORTED);
+				break;
+			case 7:
+				logger.print(Logger.DEBUG,Strings.OPERATION_NOT_SUPPORTED);
+				break;
+			default:
+				System.out.println(Strings.ERROR_INPUT);
+				break;
+			}
+		}
+		scaner.close();
 	}
 
 	/**
@@ -297,14 +345,18 @@ public class ErrorSimulator {
 	}
 	
 	private static void printSelectLogLevelMenu() {
-		System.out.println("----------------------------------");
-		System.out.println("| Error Simulator Log Level Menu |");
-		System.out.println("----------------------------------");
-		System.out.println("Please Select logging level for this session");
-		System.out.println("Options : ");
-		System.out.println("\t 1. VERBOSE");
-		System.out.println("\t 2. DEBUG");
-		System.out.println("Select option : ");
+		System.out.println(UIManager.MENU_ERROR_SIMULATOR_LOG_LEVEL);
+	}
+	
+	/**
+	 * This function prints out error selections for client
+	 */
+	private void printErrorSelectMenu() {
+		logger.print(Logger.VERBOSE, UIManager.MENU_ERROR_SIMULATOR_ERROR_SELECTION);
+	}
+	
+	private void printIllegalTFTPOperation() {
+		logger.print(Logger.VERBOSE, UIManager.MENU_ERROR_SIMULATOR_ILLEGAL_TFTP_OPERATION);
 	}
 
 }
