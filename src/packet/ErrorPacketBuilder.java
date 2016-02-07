@@ -86,6 +86,4 @@ public class ErrorPacketBuilder extends PacketBuilder {
 	public short getBlockNumber() {
 		return this.mBlockNumber;
 	}
-	
-
 }

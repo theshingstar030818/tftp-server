@@ -146,11 +146,16 @@ public class ErrorSimulator {
 				break;
 			case 4:
 				// illegal TFTP operation option
+				
 				validInput = true;
 				break;
 			case 5:
 				// unknown transfer ID operation option
-				
+				// ErrorCodeSimulator constructor take three parameters
+				// first one is the datagram packet
+				// second parameter is error code
+				// third is the sub-error code
+				//ErrorCodeSimulator ER = new ErrorCodeSimulator()
 				validInput = true;
 				break;
 			case 6:

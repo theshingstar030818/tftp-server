@@ -232,5 +232,4 @@ public class ReadWritePacketPacketBuilder extends PacketBuilder {
 	public short getBlockNumber() {
 		return this.mBlockNumber;
 	}
-
 }

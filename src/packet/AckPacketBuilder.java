@@ -112,5 +112,4 @@ public class AckPacketBuilder extends PacketBuilder {
 	public byte[] getDataBuffer() {
 		return this.mBuffer;
 	}
-
 }
