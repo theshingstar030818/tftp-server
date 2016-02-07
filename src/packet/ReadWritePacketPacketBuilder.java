@@ -232,17 +232,4 @@ public class ReadWritePacketPacketBuilder extends PacketBuilder {
 	public short getBlockNumber() {
 		return this.mBlockNumber;
 	}
-
-	@Override
-	public void setBlockNumber(short blockNumber) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public short getBlockNumber() {
-		// TODO Auto-generated method stub
-		return 0;
-	}
-
 }

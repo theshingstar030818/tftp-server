@@ -112,11 +112,4 @@ public class AckPacketBuilder extends PacketBuilder {
 	public byte[] getDataBuffer() {
 		return this.mBuffer;
 	}
-
-	@Override
-	public void setBlockNumber(short blockNumber) {
-		// TODO Auto-generated method stub
-		
-	}
-
 }
