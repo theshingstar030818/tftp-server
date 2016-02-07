@@ -127,13 +127,6 @@ public class DataPacketBuilder extends PacketBuilder {
 		this.mBlockNumber = blockNumber;
 	}
 	
-	/* (non-Javadoc)
-	 * @see packet.PacketBuilder#getDataBuffer()
-	 */
-	public byte[] getDataBuffer() {
-		return this.mDataBuffer;
-	}
-	
 	/**
 	 * A public method to return the block number associated with the packet.
 	 * Note: block number changes before building and after building the packet
@@ -142,5 +135,12 @@ public class DataPacketBuilder extends PacketBuilder {
 	 */
 	public short getBlockNumber() {
 		return this.mBlockNumber;
+	}
+	
+	/* (non-Javadoc)
+	 * @see packet.PacketBuilder#getDataBuffer()
+	 */
+	public byte[] getDataBuffer() {
+		return this.mDataBuffer;
 	}
 }

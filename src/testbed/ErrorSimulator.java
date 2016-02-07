@@ -39,8 +39,9 @@ public class ErrorSimulator {
 	private final String INET_ADDRESS;
 
 	private DatagramSocket mUDPListenSocket = null;
-	private DatagramSocket mUDPSendSocket = null;
-	private InetAddress mInetAddress = null;
+	private DatagramSocket mServerCommunicationSocket = null;
+	private DatagramSocket mClientCommunicationSocket = null;
+	private InetAddress mServerHostAddress = null;
 
 	private byte[] mBuffer = null;
 
@@ -50,6 +51,23 @@ public class ErrorSimulator {
 	 * @param args
 	 */
 	public static void main(String[] args) {
+		ErrorSimulator mMediatorHost = new ErrorSimulator(Configurations.ERROR_SIM_LISTEN_PORT,
+				Configurations.SERVER_LISTEN_PORT, "localhost");
+		mMediatorHost.initializeErrorSimulator();
+	}
+
+	/**
+	 * @param recvPort
+	 *            specifies the port that this host will received at
+	 * @param fwdPort
+	 *            specifies the port that this host will send towards
+	 * @param host
+	 *            specifies the host in which the host is located
+	 */
+	public ErrorSimulator(int recvPort, int fwdPort, String host) {
+		this.mForwardPort = fwdPort;
+		this.RECEIVE_PORT = recvPort;
+		this.INET_ADDRESS = host;
 		
 		int optionSelected = 0;
 		Scanner scan = new Scanner(System.in);
@@ -78,27 +96,8 @@ public class ErrorSimulator {
 				break;
 			}
 		}
-		
 		//close scanner
 		scan.close();
-		
-		ErrorSimulator mMediatorHost = new ErrorSimulator(Configurations.ERROR_SIM_LISTEN_PORT,
-				Configurations.SERVER_LISTEN_PORT, "localhost");
-		mMediatorHost.initializeErrorSimulator();
-	}
-
-	/**
-	 * @param recvPort
-	 *            specifies the port that this host will received at
-	 * @param fwdPort
-	 *            specifies the port that this host will send towards
-	 * @param host
-	 *            specifies the host in which the host is located
-	 */
-	public ErrorSimulator(int recvPort, int fwdPort, String host) {
-		this.mForwardPort = fwdPort;
-		this.RECEIVE_PORT = recvPort;
-		this.INET_ADDRESS = host;
 	}
 
 	/**
@@ -110,7 +109,7 @@ public class ErrorSimulator {
 		try {
 			// Initialization tasks
 			initiateInetAddress();
-			initializeUDPSocket(this.RECEIVE_PORT);
+			initializeUDPSocket();
 
 			getErrorCodeFromUser();
 			// Start main functionality
@@ -180,10 +179,11 @@ public class ErrorSimulator {
 		DatagramPacket serverPacket = null;
 		DatagramPacket clientPacket = null;
 		InetAddress clientAddress = null;
+		InetAddress serverAddress = null; // Not exactly needed cause server host does not change
 		int clientPort = 0;
 		RequestType clientRequestType = RequestType.NONE;
 		boolean receiveReads = true;
-		int serverThreadPort = 0;
+		
 		while (true) {
 			// Receiving packets from the client, remembering where the packets
 			// came from
@@ -204,25 +204,25 @@ public class ErrorSimulator {
 				receiveReads = true;
 			}
 			DatagramPacket toServerPacket = new DatagramPacket(clientPacket.getData(), clientPacket.getLength(),
-					InetAddress.getLocalHost(), this.mForwardPort);
+					serverAddress, this.mForwardPort);
 			clientPacket.setPort(this.mForwardPort);
 			logger.print(Logger.DEBUG, CLASS_TAG + " preparing to send packet to server at port " + this.mForwardPort);
-			forwardPacketToSocket(toServerPacket);
-
+			forwardPacketToSocket(toServerPacket, this.mServerCommunicationSocket);
+			
 			if (receiveReads) {
 				// Waits for a response from the server
 				logger.print(Logger.DEBUG, CLASS_TAG + " preparing to retrieve packet from server.");
-				serverPacket = retrievePacketFromSocket(this.mUDPSendSocket);
-				this.mUDPSendSocket.close();
+				serverPacket = retrievePacketFromSocket(this.mServerCommunicationSocket);
+		
 				// We set this forward port so the client can contact the thread
 				this.mForwardPort = serverPacket.getPort();
+				serverAddress = serverPacket.getAddress();
 				// Redirect the packet back to the client address
 				DatagramPacket toClientPacket = new DatagramPacket(serverPacket.getData(), serverPacket.getLength(),
 						clientAddress, clientPort);
 
 				logger.print(Logger.DEBUG, CLASS_TAG + " preparing to send packet to client.");
-				forwardPacketToSocket(toClientPacket);
-				this.mUDPSendSocket.close();
+				forwardPacketToSocket(toClientPacket, this.mClientCommunicationSocket);
 			}
 
 			if (clientRequestType == RequestType.RRQ) {
@@ -279,6 +279,8 @@ public class ErrorSimulator {
 	}
 
 	/**
+	 * Deprecated. Cannot be used to get a reply as the socket will be closed
+	 * right after a send happens.
 	 * This function will use the initialized DatagramSocket to send off the
 	 * incoming packet and print the packet buffer to console
 	 * 
@@ -287,9 +289,10 @@ public class ErrorSimulator {
 	 * @throws IOException
 	 */
 	private void sendPacket(DatagramPacket packet) throws IOException {
-		this.mUDPSendSocket = new DatagramSocket();
-		this.mUDPSendSocket.send(packet);
+		DatagramSocket mUDPSendSocket = new DatagramSocket();
+		mUDPSendSocket.send(packet);
 		BufferPrinter.printBuffer(packet.getData(), CLASS_TAG, logger);
+		mUDPSendSocket.close();
 	}
 
 	/**
@@ -324,8 +327,10 @@ public class ErrorSimulator {
 	 *            represents the port to bind and listen on
 	 * @throws SocketException
 	 */
-	private void initializeUDPSocket(int port) throws SocketException {
-		this.mUDPListenSocket = new DatagramSocket(port);
+	private void initializeUDPSocket() throws SocketException {
+		this.mUDPListenSocket = new DatagramSocket(this.RECEIVE_PORT);
+		this.mClientCommunicationSocket = new DatagramSocket();
+		this.mServerCommunicationSocket = new DatagramSocket();
 	}
 
 	/**
@@ -336,12 +341,12 @@ public class ErrorSimulator {
 	 */
 	private void initiateInetAddress() throws UnknownHostException {
 		if (this.INET_ADDRESS == "localhost") {
-			this.mInetAddress = InetAddress.getLocalHost();
+			this.mServerHostAddress = InetAddress.getLocalHost();
 		} else {
-			this.mInetAddress = InetAddress.getByName(this.INET_ADDRESS);
+			this.mServerHostAddress = InetAddress.getByName(this.INET_ADDRESS);
 		}
 		
-		logger.print(Logger.DEBUG, CLASS_TAG + " initalized destination to host: " + this.mInetAddress + "\n");
+		logger.print(Logger.DEBUG, CLASS_TAG + " initalized destination to host: " + this.mServerHostAddress + "\n");
 	}
 	
 	private static void printSelectLogLevelMenu() {

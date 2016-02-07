@@ -14,8 +14,6 @@ import resource.Configurations;
  *	block number it should reply with
  */
 public class AckPacketBuilder extends PacketBuilder {
-
-	private short mBlockNumber;
 	
 	/**
 	 * Used to create a packet from scratch by inputing the required parameters of the
@@ -96,6 +94,16 @@ public class AckPacketBuilder extends PacketBuilder {
 	 */
 	public short getBlockNumber() {
 		return this.mBlockNumber;
+	}
+	
+	/**
+	 * Allows the user to specifically override the block number for this transaction
+	 * Note: buildPacket(byte[] payload) will always increment so adjust accordingly
+	 * 
+	 * @param blockNumber
+	 */
+	public void setBlockNumber(short blockNumber) {
+		this.mBlockNumber = blockNumber;
 	}
 	
 	/* (non-Javadoc)
