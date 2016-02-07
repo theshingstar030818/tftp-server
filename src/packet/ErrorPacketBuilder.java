@@ -88,4 +88,16 @@ public class ErrorPacketBuilder extends PacketBuilder {
 	}
 	
 
+	@Override
+	public void setBlockNumber(short blockNumber) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public short getBlockNumber() {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+
 }
