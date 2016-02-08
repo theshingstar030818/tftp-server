@@ -101,9 +101,6 @@ public class ErrorSimulator {
 		this.mScan = new Scanner(System.in);
 		boolean validInput = false;
 		
-		int errorCode;
-		int subErro;
-		
 		while(!validInput){
 			printSelectLogLevelMenu();
 			
@@ -137,7 +134,7 @@ public class ErrorSimulator {
 		boolean validInput = false;
 		
 		while(!validInput){
-			System.out.println(UIManager.MENU_ERROR_SIMULATOR_ERROR_SELECTION);
+			printErrorSelectMenu();
 			try {
 				optionSelected = Keyboard.getInteger();
 			} catch (NumberFormatException e) {
@@ -147,18 +144,21 @@ public class ErrorSimulator {
 			switch (optionSelected) {
 			case 1:
 				// file not found
+				this.mUserErrorOption = 1;
 				logger.print(Logger.DEBUG,Strings.OPERATION_NOT_SUPPORTED);
 				validInput = true;
 				this.printMainMenu();
 				break;
 			case 2:
 				// Access violation
+				this.mUserErrorOption = 2;
 				logger.print(Logger.DEBUG,Strings.OPERATION_NOT_SUPPORTED);
 				validInput = true;
 				this.printMainMenu();
 				break;
 			case 3:
 				// Disk full or allocation exceeded
+				this.mUserErrorOption = 3;
 				logger.print(Logger.DEBUG,Strings.OPERATION_NOT_SUPPORTED);
 				validInput = true;
 				this.printMainMenu();
@@ -184,24 +184,28 @@ public class ErrorSimulator {
 				break;
 			case 6:
 				// File already exists
+				this.mUserErrorOption = 6;
 				logger.print(Logger.DEBUG,Strings.OPERATION_NOT_SUPPORTED);
 				validInput = true;
 				this.printMainMenu();
 				break;
 			case 7:
 				// No such user
+				this.mUserErrorOption = 7;
 				logger.print(Logger.DEBUG,Strings.OPERATION_NOT_SUPPORTED);
 				validInput = true;
 				this.printMainMenu();
 				break;
 			case 8:
 				// No error
+				this.mUserErrorOption = 8;
 				System.out.println(Strings.EXIT_BYE);
 				validInput = true;
 				this.printMainMenu();
 				break;
 			case 9:
 				// Go back to the previous menu
+				this.mUserErrorOption = 9;
 				this.printMainMenu();
 				validInput = true;
 				break;

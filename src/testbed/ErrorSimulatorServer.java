@@ -106,9 +106,9 @@ public class ErrorSimulatorServer implements Callback {
 			}
 			System.out.println(BufferPrinter.acceptConnectionMessage(Strings.SERVER_ACCEPT_CONNECTION, 
 					receivePacket.getSocketAddress().toString()));
-			Thread service = new Thread(new ErrorSimulatorService(receivePacket, this), "Service");
+			/*Thread service = new Thread(new ErrorSimulatorService(receivePacket, this), "Service");
 			threads.addElement(service);
-			service.start();
+			service.start();*/
 		}
 		this.errorSimulatorSock.close();
 		// Wait for all service threads to close before completely exiting.
