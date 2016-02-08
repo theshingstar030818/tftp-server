@@ -4,6 +4,7 @@ import java.net.DatagramPacket;
 import java.net.InetAddress;
 import helpers.Conversion;
 import types.ErrorType;
+import types.ModeType;
 import types.RequestType;
 
 /**
@@ -65,6 +66,36 @@ public class ErrorPacketBuilder extends PacketBuilder {
 	 */
 	public byte[] getDataBuffer() {
 		return this.mBuffer;
+	}
+
+	@Override
+	public void setBlockNumber(short i) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public short getBlockNumber() {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+
+	@Override
+	public void setFilename(String fileName) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void setMode(ModeType mode) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public ModeType getMode() {
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 }

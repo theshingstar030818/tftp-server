@@ -6,6 +6,7 @@ import java.util.Arrays;
 
 import helpers.Conversion;
 import resource.Configurations;
+import types.ModeType;
 import types.RequestType;
 
 /**
@@ -142,5 +143,23 @@ public class DataPacketBuilder extends PacketBuilder {
 	 */
 	public short getBlockNumber() {
 		return this.mBlockNumber;
+	}
+
+	@Override
+	public void setFilename(String fileName) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void setMode(ModeType mode) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public ModeType getMode() {
+		// TODO Auto-generated method stub
+		return null;
 	}
 }

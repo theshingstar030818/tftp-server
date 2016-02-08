@@ -16,11 +16,16 @@ public class ErrorCodeFour extends ErrorCodeSimulator{
 		RequestType rt = receivePacketBuilder.getRequestType();
 		switch(subcode){
 			case 1: {
-				
+				if(rt==RequestType.RRQ || rt == RequestType.WRQ){
+					receivePacketBuilder.setFilename("abcd.txt");
+					receivePacketBuilder.setMode(switchMode());
+					sendPacket = receivePacketBuilder.getPacket();
+				}
 			}
 			case 2: {
 				if(rt==RequestType.ACK || rt == RequestType.DATA){
-					receivePacketBuilder.setBlockNumber((short)(receivePacketBuilder.getBlockNumber()+ 5));
+					receivePacketBuilder.setBlockNumber((short)(receivePacketBuilder.getBlockNumber()+ 1));
+					sendPacket = receivePacketBuilder.getPacket();
 				}
 				
 			}
@@ -34,6 +39,13 @@ public class ErrorCodeFour extends ErrorCodeSimulator{
 			
 		}
 		return sendPacket;
+	}
+	
+	private ModeType switchMode(){
+		if(receivePacketBuilder.getMode() == ModeType.OCTET){
+			return (ModeType.NETASCII);
+		}
+		return ModeType.OCTET;
 	}
 
 }

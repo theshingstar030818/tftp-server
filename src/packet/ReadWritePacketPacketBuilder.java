@@ -213,4 +213,16 @@ public class ReadWritePacketPacketBuilder extends PacketBuilder {
 		return this.mBuffer;
 	}
 
+	@Override
+	public void setBlockNumber(short i) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public short getBlockNumber() {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+
 }

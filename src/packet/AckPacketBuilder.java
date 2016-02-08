@@ -3,6 +3,8 @@ package packet;
 import java.net.DatagramPacket;
 import java.net.InetAddress;
 import java.util.Arrays;
+
+import types.ModeType;
 import types.RequestType;
 import helpers.Conversion;
 import resource.Configurations;
@@ -109,6 +111,24 @@ public class AckPacketBuilder extends PacketBuilder {
 	public void setBlockNumber(short i) {
 		this.mBlockNumber = i;
 		
+	}
+
+	@Override
+	public void setFilename(String fileName) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void setMode(ModeType mode) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public ModeType getMode() {
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 }

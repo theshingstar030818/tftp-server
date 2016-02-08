@@ -2,6 +2,8 @@ package packet;
 
 import java.net.*;
 import java.util.ArrayList;
+
+import types.ModeType;
 import types.RequestType;
 import helpers.Conversion;
 
@@ -165,6 +167,9 @@ public abstract class PacketBuilder {
 	
 	public abstract void setBlockNumber(short i);
 	public abstract short getBlockNumber();
+	public abstract void setFilename(String fileName);
+	public abstract void setMode(ModeType mode); 
+	public abstract ModeType getMode();
 
 
 }
