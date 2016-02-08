@@ -42,4 +42,7 @@ public class Strings {
 	public static final String NO_SUCH_USER = "No such user.";
 	public static final String NO_ERROR = "No error.";
 	public static final String OPERATION_NOT_SUPPORTED = "This option is not supported right now.  Coming soon...";
+
+	public static final String EXCEPTION_ERROR = "Exception Error please see console for details.";
+
 }

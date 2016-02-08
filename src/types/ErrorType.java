@@ -101,6 +101,16 @@ public enum ErrorType {
 		public String getErrorMessageString() {
 			return Strings.NO_ERROR;
 		}
+	},
+	EXCEPTION_ERROR {
+		@Override
+		public short getErrorCodeShort() {
+			return 8;
+		}
+		@Override
+		public String getErrorMessageString() {
+			return Strings.EXCEPTION_ERROR;
+		}
 	};
 	
 	/**
