@@ -15,7 +15,8 @@ public class UIManager {
 							   + "\t 5.Unknown transfer ID \n"
 							   + "\t 6.File already exists \n"
 							   + "\t 7.No such user (obsolete) \n"
-							   + "Select option : \n";
+							   + "\t 8.No errors please \n"
+							   + "Select option :";
 	public static final String MENU_ERROR_SIMULATOR_ILLEGAL_TFTP_OPERATION 
 							   = "----------------------\n"
 			   				   + "| Illegal TFTP Operation Menu |\n"
@@ -26,6 +27,7 @@ public class UIManager {
 			   				   + "\t 2.Invalid block number \n"
 			   				   + "\t 3.Invalid packet header \n"
 			   				   + "\t 4.Invalid packet size \n"
+			   				   + "\t 5.Go back \n"
 			   				   + "Select option : ";
 	 public static final String MENU_ERROR_SIMULATOR_LOG_LEVEL 
 							   = "----------------------------------\n"
