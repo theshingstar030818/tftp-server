@@ -8,6 +8,7 @@ import packet.AckPacketBuilder;
 import packet.DataPacketBuilder;
 import packet.PacketBuilder;
 import resource.Configurations;
+import resource.Strings;
 import types.ErrorType;
 import types.RequestType;
 
@@ -27,30 +28,33 @@ public class ErrorChecker {
     	expectedBlockNumber++;
     }
     
-    public ErrorType check(PacketBuilder packet, RequestType expectedCommunicationType) {
+    public TFTPError check(PacketBuilder packet, RequestType expectedCommunicationType) {
 
         // Check if address and port match the expected address and port.
         if (!otherAddress.equals(packet.getPacket().getAddress()) || otherPort != packet.getPacket().getPort())
-            return ErrorType.UNKNOWN_TRANSFER;
+            return new TFTPError(ErrorType.UNKNOWN_TRANSFER, Strings.UNKNOWN_TRANSFER);
                 
         // Check that the packet format is correct.
-        if (formatError(packet, expectedCommunicationType))
-            return ErrorType.ILLEGAL_OPERATION;
+        String formatErrorMessage = formatError(packet, expectedCommunicationType);
+        if (!formatErrorMessage.isEmpty())
+            return new TFTPError(ErrorType.ILLEGAL_OPERATION, formatErrorMessage);
 
-        return ErrorType.NO_ERROR;
+        // No error occurred.
+        return new TFTPError(ErrorType.NO_ERROR, Strings.NO_ERROR);
         
     }
     
-    private boolean formatError(PacketBuilder packet, RequestType comType) {
+    private String formatError(PacketBuilder packet, RequestType comType) {
     	
     	byte[] data = packet.getPacket().getData();
-    	if (data[0] != 0) return false;
-    	if (RequestType.matchRequestByNumber(data[1]) != comType) return false;
+    	if (data[0] != 0) return Strings.NON_ZERO_FIRST_BYTE;
+    	if (RequestType.matchRequestByNumber(data[1]) != comType) 
+    		return Strings.COMMUNICATION_TYPE_MISMATCH;
     	
     	switch (comType) {
     		case RRQ:
     		case WRQ:
-    			if (data[2] == 0) return false; // Missing filename.
+    			if (data[2] == 0) return Strings.MISSING_FILENAME;
     			int secondZeroIndex = -1, thirdZeroIndex = -1;    			
     			
     			for (int i = 3; i < data.length; ++i) {
@@ -71,36 +75,38 @@ public class ErrorChecker {
     			System.arraycopy(data, secondZeroIndex, mode, 0, mode.length);
     			
     			if (!mode.toString().equalsIgnoreCase("octet") && !mode.toString().equalsIgnoreCase("netascii"))
-    				return false;
+    				return Strings.INVALID_MODE;
     			if (!isValidFilename(filename.toString()))
-    				return false;
+    				return Strings.INVALID_FILENAME;
     				
     			break;
     			
     		case DATA:
-    			if (packet.getPacket().getData().length > Configurations.MAX_MESSAGE_SIZE) return false; // Packet too large.
-    			if (expectedBlockNumber != ((DataPacketBuilder) packet).getBlockNumber()) return false; // Block number mismatch. 
+    			if (packet.getPacket().getData().length > Configurations.MAX_MESSAGE_SIZE) 
+    				return Strings.PACKET_TOO_LARGE;
+    			if (expectedBlockNumber != ((DataPacketBuilder) packet).getBlockNumber()) 
+    				return Strings.BLOCK_NUMBER_MISMATCH; 
     			break;
     			
     		case ACK:
-    			if (packet.getPacket().getData().length != 4) return false; // ACK packets must be of size 4.
-    			if (expectedBlockNumber != ((AckPacketBuilder) packet).getBlockNumber()) return false; // Block numbers do not match.
+    			if (packet.getPacket().getData().length != 4) 
+    				return Strings.INVALID_PACKET_SIZE;
+    			if (expectedBlockNumber != ((AckPacketBuilder) packet).getBlockNumber()) 
+    				return Strings.BLOCK_NUMBER_MISMATCH;
     			break;
     			
     		case ERROR:
-    			if (data.length < 6) return false; // No room for error message.
-    			if (data[data.length-1] != 0) return false; // Must be trailing 0.
-    			if (data[2] != 0) return false; // Beginning of error code must be 0.
-    			if (data[3] < 0 || data[3] > 8) return false; // Error code must be between 0 and 8 inclusive.
+    			if (data.length < 6) return Strings.PACKET_TOO_SMALL;
+    			if (data[data.length-1] != 0) return Strings.NON_ZERO_LAST_BYTE;
+    			if (data[2] != 0) return Strings.INVALID_ERROR_CODE_FORMAT;
+    			if (data[3] < 0 || data[3] > 8) return Strings.UNKOWN_ERROR_CODE;
     			break;
     			
     		case NONE:
-    			return false;
+    			return Strings.INVALID_PACKET_NONE_TYPE;
     	}
     	
-    	
-    	
-    	return true;
+    	return "";
     }
     
     public static boolean isValidFilename(String text)
