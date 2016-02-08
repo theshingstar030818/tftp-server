@@ -163,7 +163,7 @@ public abstract class PacketBuilder {
 		return this.mPacketLength;
 	}
 	
-	public abstract void setBlockNumber(short blockNumber);
+	public abstract void setBlockNumber(short i);
 	public abstract short getBlockNumber();
 
 

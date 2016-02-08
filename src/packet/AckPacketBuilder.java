@@ -105,4 +105,10 @@ public class AckPacketBuilder extends PacketBuilder {
 		return this.mBuffer;
 	}
 
+	@Override
+	public void setBlockNumber(short i) {
+		this.mBlockNumber = i;
+		
+	}
+
 }
