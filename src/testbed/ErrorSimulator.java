@@ -55,7 +55,7 @@ public class ErrorSimulator {
 		boolean validInput = false;
 		
 		int errorCode;
-		int subErro
+	
 		
 		while(!validInput){
 			printSelectLogLevelMenu();
@@ -153,7 +153,7 @@ public class ErrorSimulator {
 			
 			if(errorCodeSimulator == null){
 				// error 5 can never be here
-				errorCodeSimulator = new ErrorCodeSimulator(clientPacket, 4, 1);
+				//errorCodeSimulator = new ErrorCodeSimulator(clientPacket, 4, 1);
 			}
 			
 			// We redirect the packet to a new port
