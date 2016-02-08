@@ -23,6 +23,8 @@ public abstract class PacketBuilder {
 	protected DatagramPacket mDatagramPacket;
 	protected byte[] mBuffer;
 	protected int mPacketLength;
+	protected short mBlockNumber;
+	
 
 	/**
 	 * Used to create a packet from scratch by inputing the required parameters of the
@@ -45,6 +47,7 @@ public abstract class PacketBuilder {
 	 * @param inDatagramPacket - packet that was received by the system
 	 */
 	public PacketBuilder(DatagramPacket inDatagramPacket) {
+		this.mBlockNumber = -1;
 		this.mDatagramPacket = inDatagramPacket;
 		byte[] tempBuffer = new byte[inDatagramPacket.getLength()];
 		System.arraycopy(inDatagramPacket.getData(), 0, tempBuffer, 0, inDatagramPacket.getLength());
@@ -87,6 +90,36 @@ public abstract class PacketBuilder {
 	 * @return byte[] buffer
 	 */
 	public abstract byte[] getDataBuffer();
+	
+	/**
+	 * Returns the length of the packet buffer
+	 * 
+	 * @return int - length
+	 */
+	public int getPacketLength() {
+		return this.mPacketLength;
+	}
+	
+	public abstract void setFilename(String fileName);
+	public abstract void setMode(ModeType mode); 
+	public abstract ModeType getMode();
+	
+	/**
+	 * Sets the current block number of the packet. If the packet does not
+	 * generally have a block number ie WRQ and RRQ, then this function will 
+	 * return -1
+	 * 
+	 * @param blockNumber 
+	 */
+	public abstract void setBlockNumber(short blockNumber);
+	
+	/**
+	 * Returns the block number of packet, if the packet does not have a block
+	 * number, then it returns zero
+	 * 
+	 * @return int - block number
+	 */
+	public abstract short getBlockNumber();
 	
 	/**
 	 * This function can be used to get the current packet that PacketBuilder
@@ -160,16 +193,4 @@ public abstract class PacketBuilder {
 			this.mRequestType = RequestType.ERROR;
 		}
 	}
-	
-	public int getPacketLength() {
-		return this.mPacketLength;
-	}
-	
-	public abstract void setBlockNumber(short i);
-	public abstract short getBlockNumber();
-	public abstract void setFilename(String fileName);
-	public abstract void setMode(ModeType mode); 
-	public abstract ModeType getMode();
-
-
 }

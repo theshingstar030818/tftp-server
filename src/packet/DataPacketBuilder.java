@@ -128,13 +128,6 @@ public class DataPacketBuilder extends PacketBuilder {
 		this.mBlockNumber = blockNumber;
 	}
 	
-	/* (non-Javadoc)
-	 * @see packet.PacketBuilder#getDataBuffer()
-	 */
-	public byte[] getDataBuffer() {
-		return this.mDataBuffer;
-	}
-	
 	/**
 	 * A public method to return the block number associated with the packet.
 	 * Note: block number changes before building and after building the packet
@@ -147,19 +140,23 @@ public class DataPacketBuilder extends PacketBuilder {
 
 	@Override
 	public void setFilename(String fileName) {
-		// TODO Auto-generated method stub
-		
+		throw new IllegalArgumentException("You cannot use filename with this type of packet.");
 	}
 
 	@Override
 	public void setMode(ModeType mode) {
-		// TODO Auto-generated method stub
-		
+		throw new IllegalArgumentException("You cannot use Mode with this type of packet.");
 	}
 
 	@Override
 	public ModeType getMode() {
-		// TODO Auto-generated method stub
-		return null;
+		throw new IllegalArgumentException("You cannot use Mode with this type of packet.");
+	}
+	
+	/* (non-Javadoc)
+	 * @see packet.PacketBuilder#getDataBuffer()
+	 */
+	public byte[] getDataBuffer() {
+		return this.mDataBuffer;
 	}
 }

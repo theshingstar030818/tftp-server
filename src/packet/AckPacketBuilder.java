@@ -16,8 +16,6 @@ import resource.Configurations;
  *	block number it should reply with
  */
 public class AckPacketBuilder extends PacketBuilder {
-
-	private short mBlockNumber;
 	
 	/**
 	 * Used to create a packet from scratch by inputing the required parameters of the
@@ -100,6 +98,16 @@ public class AckPacketBuilder extends PacketBuilder {
 		return this.mBlockNumber;
 	}
 	
+	/**
+	 * Allows the user to specifically override the block number for this transaction
+	 * Note: buildPacket(byte[] payload) will always increment so adjust accordingly
+	 * 
+	 * @param blockNumber
+	 */
+	public void setBlockNumber(short blockNumber) {
+		this.mBlockNumber = blockNumber;
+	}
+	
 	/* (non-Javadoc)
 	 * @see packet.PacketBuilder#getDataBuffer()
 	 */
@@ -108,27 +116,17 @@ public class AckPacketBuilder extends PacketBuilder {
 	}
 
 	@Override
-	public void setBlockNumber(short i) {
-		this.mBlockNumber = i;
-		
-	}
-
-	@Override
 	public void setFilename(String fileName) {
-		// TODO Auto-generated method stub
-		
+		throw new IllegalArgumentException("You cannot use filename with this type of packet.");
 	}
 
 	@Override
 	public void setMode(ModeType mode) {
-		// TODO Auto-generated method stub
-		
+		throw new IllegalArgumentException("You cannot use Mode with this type of packet.");
 	}
 
 	@Override
 	public ModeType getMode() {
-		// TODO Auto-generated method stub
-		return null;
+		throw new IllegalArgumentException("You cannot use Mode with this type of packet.");
 	}
-
 }

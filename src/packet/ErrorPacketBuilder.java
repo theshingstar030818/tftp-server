@@ -69,33 +69,37 @@ public class ErrorPacketBuilder extends PacketBuilder {
 	}
 
 	@Override
-	public void setBlockNumber(short i) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public short getBlockNumber() {
-		// TODO Auto-generated method stub
-		return 0;
-	}
-
-	@Override
 	public void setFilename(String fileName) {
-		// TODO Auto-generated method stub
-		
+		throw new IllegalArgumentException("You cannot use filename with this type of packet.");
 	}
 
 	@Override
 	public void setMode(ModeType mode) {
-		// TODO Auto-generated method stub
-		
+		throw new IllegalArgumentException("You cannot use Mode with this type of packet.");
 	}
 
 	@Override
 	public ModeType getMode() {
-		// TODO Auto-generated method stub
-		return null;
+		throw new IllegalArgumentException("You cannot use Mode with this type of packet.");
 	}
 
+	/**
+	 * Allows the user to specifically override the block number for this transaction
+	 * Note: buildPacket(byte[] payload) will always increment so adjust accordingly
+	 * 
+	 * @param blockNumber
+	 */
+	public void setBlockNumber(short blockNumber) {
+		this.mBlockNumber = blockNumber;
+	}
+	
+	/**
+	 * A public method to return the block number associated with the packet.
+	 * Note: block number changes before building and after building the packet
+	 * 
+	 * @return a short - of the block number associated with the transfer
+	 */
+	public short getBlockNumber() {
+		return this.mBlockNumber;
+	}
 }
