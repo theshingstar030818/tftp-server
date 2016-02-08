@@ -9,6 +9,7 @@ import types.RequestType;
 import packet.*;
 import resource.Configurations;
 import testbed.ErrorChecker;
+import testbed.TFTPError;
 
 /**
  * @author Team 3
@@ -37,7 +38,6 @@ public class TFTPService implements Runnable {
 		try {
 			this.mSendReceiveSocket = new DatagramSocket();
 		} catch (SocketException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}
@@ -65,9 +65,9 @@ public class TFTPService implements Runnable {
 				this.mLastPacket = new DatagramPacket(data, data.length);
 				
 				this.mSendReceiveSocket.receive(this.mLastPacket);
-				ErrorType error = errorChecker.check(new DataPacketBuilder(this.mLastPacket), RequestType.DATA);
-				if (error != ErrorType.NO_ERROR) {
-					errorHandle(error, this.mLastPacket);
+				TFTPError error = errorChecker.check(new DataPacketBuilder(this.mLastPacket), RequestType.DATA);
+				if (error.getType() != ErrorType.NO_ERROR) {
+					errorHandle(error.getType(), this.mLastPacket);
 				}
 				// Extract the data from the received packet with packet builder
 				if(this.mLastPacket.getLength() < Configurations.MAX_MESSAGE_SIZE) {
@@ -88,7 +88,6 @@ public class TFTPService implements Runnable {
 			}
 			
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}
@@ -115,18 +114,20 @@ public class TFTPService implements Runnable {
 				byte[] data = new byte[Configurations.LEN_ACK_PACKET_BUFFET];
 				DatagramPacket vReceivePacket = new DatagramPacket(data, data.length);
 				mSendReceiveSocket.receive(vReceivePacket);
-				ErrorType error = errorChecker.check(new AckPacketBuilder(vReceivePacket), RequestType.ACK);
-				if (error != ErrorType.NO_ERROR) {
-					errorHandle(error, vReceivePacket);
+				TFTPError error = errorChecker.check(new AckPacketBuilder(vReceivePacket), RequestType.ACK);
+				if (error.getType() != ErrorType.NO_ERROR) {
+					errorHandle(error.getType(), vReceivePacket);
 				}
 
 				this.mLastPacket = vReceivePacket;
 			}
+			byte[] data = new byte[Configurations.LEN_ACK_PACKET_BUFFET];
+			DatagramPacket vReceivePacket = new DatagramPacket(data, data.length);
+			this.mSendReceiveSocket.receive(vReceivePacket);
+			System.err.println("If the code reached here, the bug was fixed. Make sure the last ack packet was acked");
 		} catch (FileNotFoundException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}	
 	}

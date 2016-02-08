@@ -41,4 +41,23 @@ public class Strings {
 	public static final String FILE_EXISTS = "File already exists.";
 	public static final String NO_SUCH_USER = "No such user.";
 	public static final String NO_ERROR = "No error.";
+	public static final String OPERATION_NOT_SUPPORTED = "This option is not supported right now.  Coming soon...";
+	
+	// TFTP error message templates.
+	public static final String NON_ZERO_FIRST_BYTE = "First byte is not 0.";
+	public static final String NON_ZERO_LAST_BYTE = "Last byte is not 0.";
+	public static final String COMMUNICATION_TYPE_MISMATCH = "Unexpected communication type.";
+	public static final String MISSING_FILENAME = "Missing filename.";
+	public static final String INVALID_FILENAME = "Invalid filename.";
+	public static final String INVALID_MODE = "Invalid mode.";
+	public static final String INVALID_PACKET_NONE_TYPE = "Invalid packet of 'none' type.";
+	public static final String PACKET_TOO_LARGE = "Packet too large.";
+	public static final String PACKET_TOO_SMALL = "Packet too small.";
+	public static final String BLOCK_NUMBER_MISMATCH = "Block number mismatch.";
+	public static final String INVALID_PACKET_SIZE = "Invalid packet size.";
+	public static final String UNKOWN_ERROR_CODE = "Unknown error code.";
+	public static final String INVALID_ERROR_CODE_FORMAT = "Error code does not begin with 0.";
+	
+	
+	
 }

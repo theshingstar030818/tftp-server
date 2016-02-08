@@ -212,17 +212,24 @@ public class ReadWritePacketPacketBuilder extends PacketBuilder {
 	public byte[] getDataBuffer() {
 		return this.mBuffer;
 	}
-
-	@Override
-	public void setBlockNumber(short i) {
-		// TODO Auto-generated method stub
-		
+	
+	/**
+	 * Allows the user to specifically override the block number for this transaction
+	 * Note: buildPacket(byte[] payload) will always increment so adjust accordingly
+	 * 
+	 * @param blockNumber
+	 */
+	public void setBlockNumber(short blockNumber) {
+		this.mBlockNumber = blockNumber;
 	}
-
-	@Override
+	
+	/**
+	 * A public method to return the block number associated with the packet.
+	 * Note: block number changes before building and after building the packet
+	 * 
+	 * @return a short - of the block number associated with the transfer
+	 */
 	public short getBlockNumber() {
-		// TODO Auto-generated method stub
-		return 0;
+		return this.mBlockNumber;
 	}
-
 }

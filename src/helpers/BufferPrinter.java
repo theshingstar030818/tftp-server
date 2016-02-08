@@ -12,16 +12,12 @@ public class BufferPrinter {
 	// this metthod now only prints if the client/Error simulator/server was initialized
 	// with a LogLevel VERBOSE 
 	public static void printBuffer(byte[] buffer, String entity, Logger logLevel) {
-		
-		String s = "";
-		
-		s += entity + " prints contents of the UDP buffer:\n";
-		s += Arrays.toString(buffer) + "\n";
-		s += entity + " prints contents of UDP buffer as string: \n";
-		s += new String(buffer) + "\n";
-		
-		logLevel.print(Logger.VERBOSE, s);
-		
+		StringBuilder strBuilder = new StringBuilder();
+		strBuilder.append(entity + " prints contents of the UDP buffer:\n");
+		strBuilder.append(Arrays.toString(buffer) + "\n");
+		strBuilder.append(entity + " prints contents of UDP buffer as string: \n");
+		strBuilder.append(new String(buffer) + "\n");
+		logLevel.print(Logger.VERBOSE, strBuilder.toString());
 	}
 	
 	public static String bufferToString(byte[] buffer) {
