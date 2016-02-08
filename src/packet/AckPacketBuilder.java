@@ -3,6 +3,8 @@ package packet;
 import java.net.DatagramPacket;
 import java.net.InetAddress;
 import java.util.Arrays;
+
+import types.ModeType;
 import types.RequestType;
 import helpers.Conversion;
 import resource.Configurations;
@@ -111,5 +113,20 @@ public class AckPacketBuilder extends PacketBuilder {
 	 */
 	public byte[] getDataBuffer() {
 		return this.mBuffer;
+	}
+
+	@Override
+	public void setFilename(String fileName) {
+		throw new IllegalArgumentException("You cannot use filename with this type of packet.");
+	}
+
+	@Override
+	public void setMode(ModeType mode) {
+		throw new IllegalArgumentException("You cannot use Mode with this type of packet.");
+	}
+
+	@Override
+	public ModeType getMode() {
+		throw new IllegalArgumentException("You cannot use Mode with this type of packet.");
 	}
 }

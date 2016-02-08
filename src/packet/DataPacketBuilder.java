@@ -6,6 +6,7 @@ import java.util.Arrays;
 
 import helpers.Conversion;
 import resource.Configurations;
+import types.ModeType;
 import types.RequestType;
 
 /**
@@ -135,6 +136,21 @@ public class DataPacketBuilder extends PacketBuilder {
 	 */
 	public short getBlockNumber() {
 		return this.mBlockNumber;
+	}
+
+	@Override
+	public void setFilename(String fileName) {
+		throw new IllegalArgumentException("You cannot use filename with this type of packet.");
+	}
+
+	@Override
+	public void setMode(ModeType mode) {
+		throw new IllegalArgumentException("You cannot use Mode with this type of packet.");
+	}
+
+	@Override
+	public ModeType getMode() {
+		throw new IllegalArgumentException("You cannot use Mode with this type of packet.");
 	}
 	
 	/* (non-Javadoc)

@@ -101,6 +101,9 @@ public class ErrorSimulator {
 		this.mScan = new Scanner(System.in);
 		boolean validInput = false;
 		
+		int errorCode;
+		int subErro;
+		
 		while(!validInput){
 			printSelectLogLevelMenu();
 			
@@ -225,6 +228,9 @@ public class ErrorSimulator {
 		int clientPort = 0;
 		RequestType clientRequestType = RequestType.NONE;
 		boolean receiveReads = true;
+		int serverThreadPort = 0;
+		
+		ErrorCodeSimulator errorCodeSimulator = null;
 		
 		while (true) {
 			// Receiving packets from the client, remembering where the packets
@@ -234,7 +240,12 @@ public class ErrorSimulator {
 			clientAddress = clientPacket.getAddress();
 			clientPort = clientPacket.getPort();
 			logger.print(Logger.DEBUG, "... received on " + clientPort);
-
+			
+			if(errorCodeSimulator == null){
+				// error 5 can never be here   --- Can't be initializing an abstract class like that
+				//errorCodeSimulator = new ErrorCodeSimulator(clientPacket, 4, 1);
+			}
+			
 			// We redirect the packet to a new port
 			RequestType passByHeader = RequestType.matchRequestByNumber((int) clientPacket.getData()[1]);
 			if (passByHeader == RequestType.RRQ || passByHeader == RequestType.WRQ) {

@@ -2,6 +2,8 @@ package packet;
 
 import java.net.*;
 import java.util.ArrayList;
+
+import types.ModeType;
 import types.RequestType;
 import helpers.Conversion;
 
@@ -97,6 +99,10 @@ public abstract class PacketBuilder {
 	public int getPacketLength() {
 		return this.mPacketLength;
 	}
+	
+	public abstract void setFilename(String fileName);
+	public abstract void setMode(ModeType mode); 
+	public abstract ModeType getMode();
 	
 	/**
 	 * Sets the current block number of the packet. If the packet does not

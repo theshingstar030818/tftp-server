@@ -4,6 +4,7 @@ import java.net.DatagramPacket;
 import java.net.InetAddress;
 import helpers.Conversion;
 import types.ErrorType;
+import types.ModeType;
 import types.RequestType;
 
 /**
@@ -66,7 +67,22 @@ public class ErrorPacketBuilder extends PacketBuilder {
 	public byte[] getDataBuffer() {
 		return this.mBuffer;
 	}
-	
+
+	@Override
+	public void setFilename(String fileName) {
+		throw new IllegalArgumentException("You cannot use filename with this type of packet.");
+	}
+
+	@Override
+	public void setMode(ModeType mode) {
+		throw new IllegalArgumentException("You cannot use Mode with this type of packet.");
+	}
+
+	@Override
+	public ModeType getMode() {
+		throw new IllegalArgumentException("You cannot use Mode with this type of packet.");
+	}
+
 	/**
 	 * Allows the user to specifically override the block number for this transaction
 	 * Note: buildPacket(byte[] payload) will always increment so adjust accordingly
