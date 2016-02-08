@@ -72,7 +72,31 @@ public class ErrorSimulator {
 		this.mForwardPort = fwdPort;
 		this.RECEIVE_PORT = recvPort;
 		this.INET_ADDRESS = host;
-		
+		this.printMainMenu();
+	}
+
+	/**
+	 * This public function will start up the error simulator server It will
+	 * take care of initializing ports and start the main traffic mediation
+	 * functionality
+	 */
+	public void initializeErrorSimulator() {
+		try {			
+			// Initialization tasks
+			initiateInetAddress();
+			initializeUDPSocket();
+			
+			// Start main functionality
+			startTrafficMediation();
+		} catch (Exception e) {
+			e.printStackTrace();
+		} finally {
+			this.mScan.close();
+			this.mUDPListenSocket.close();
+		}
+	}
+	
+	private void printMainMenu() {
 		int optionSelected = 0;
 		this.mScan = new Scanner(System.in);
 		boolean validInput = false;
@@ -100,32 +124,10 @@ public class ErrorSimulator {
 			default:
 				System.out.println(Strings.ERROR_INPUT);
 				break;
-			}
-		}
-		//close scanner
-		//scan.close();
-	}
-
-	/**
-	 * This public function will start up the error simulator server It will
-	 * take care of initializing ports and start the main traffic mediation
-	 * functionality
-	 */
-	public void initializeErrorSimulator() {
-		try {			
-			// Initialization tasks
-			initiateInetAddress();
-			initializeUDPSocket();
-			
-			// Start main functionality
-			startTrafficMediation();
-		} catch (Exception e) {
-			e.printStackTrace();
-		} finally {
-			this.mScan.close();
-			this.mUDPListenSocket.close();
+			}					
 		}
 	}
+	
 	
 	private void getErrorCodeFromUser() {
 		int optionSelected = 0;
@@ -141,16 +143,22 @@ public class ErrorSimulator {
 			
 			switch (optionSelected) {
 			case 1:
+				// file not found
 				logger.print(Logger.DEBUG,Strings.OPERATION_NOT_SUPPORTED);
 				validInput = true;
+				this.printMainMenu();
 				break;
 			case 2:
+				// Access violation
 				logger.print(Logger.DEBUG,Strings.OPERATION_NOT_SUPPORTED);
 				validInput = true;
+				this.printMainMenu();
 				break;
 			case 3:
+				// Disk full or allocation exceeded
 				logger.print(Logger.DEBUG,Strings.OPERATION_NOT_SUPPORTED);
 				validInput = true;
+				this.printMainMenu();
 				break;
 			case 4:
 				// illegal TFTP operation option
@@ -167,24 +175,31 @@ public class ErrorSimulator {
 				break;
 			case 5:
 				// unknown transfer ID operation option
-				// ErrorCodeSimulator constructor take three parameters
-				// first one is the datagram packet
-				// second parameter is error code
-				// third is the sub-error code
 				this.mUserErrorOption = 5;
 				this.mUserErrorSubOption = 0;
 				validInput = true;
 				break;
 			case 6:
+				// File already exists
 				logger.print(Logger.DEBUG,Strings.OPERATION_NOT_SUPPORTED);
 				validInput = true;
+				this.printMainMenu();
 				break;
 			case 7:
+				// No such user
 				logger.print(Logger.DEBUG,Strings.OPERATION_NOT_SUPPORTED);
 				validInput = true;
+				this.printMainMenu();
 				break;
 			case 8:
+				// No error
 				System.out.println(Strings.EXIT_BYE);
+				validInput = true;
+				this.printMainMenu();
+				break;
+			case 9:
+				// Go back to the previous menu
+				this.printMainMenu();
 				validInput = true;
 				break;
 			default:
