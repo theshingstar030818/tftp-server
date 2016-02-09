@@ -141,7 +141,7 @@ public class TFTPClient {
 
 		try {
 			writeRequestFileStorageService = new FileStorageService(writeFileNameOrFilePath,InstanceType.CLIENT);
-			
+
 			String actualFileName;
 			
 			if(this.mode == 1){ // no error simulator in between
@@ -153,7 +153,7 @@ public class TFTPClient {
 				wpb = new WritePacketBuilder(InetAddress.getLocalHost(), Configurations.ERROR_SIM_LISTEN_PORT,
 						actualFileName, Configurations.DEFAULT_RW_MODE);
 			}
-			
+
 			lastPacket = wpb.buildPacket();
 			sendReceiveSocket.send(lastPacket);
 			
@@ -184,7 +184,6 @@ public class TFTPClient {
 				
 				// Overwrite last packet
 				lastPacket = dataPacket.buildPacket(fileData);
-				//lastPacket.setPort(Configurations.ERROR_SIM_LISTEN_PORT);
 				sendReceiveSocket.send(lastPacket);
 			}
 			// Receive the last ACK. 
@@ -268,7 +267,6 @@ public class TFTPClient {
 				// Always send the ACK back to the error sim (BAD)
 				
 				lastPacket = ackPacketBuilder.buildPacket();
-				//lastPacket.setPort(Configurations.ERROR_SIM_LISTEN_PORT);
 				sendReceiveSocket.send(lastPacket);
 			}
 		} catch (Exception e) {

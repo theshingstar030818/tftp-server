@@ -5,46 +5,26 @@ import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.SocketException;
 import java.net.SocketTimeoutException;
+import java.util.Scanner;
 import java.util.Vector;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import resource.Configurations;
 import resource.Strings;
+import resource.Tuple;
+import resource.UIStrings;
 import server.Callback;
+import types.ErrorType;
+import types.Logger;
 import helpers.BufferPrinter;
 import helpers.Keyboard;
 
-/**
- * The Console class will allow someone (presumably an admin) to manage the error simulator
- * from a local machine. Currently its only functionality is to close the error simulator,
- * but this can be expanded later.
- */
-class Console implements Runnable {
-
-	private ErrorSimulatorServer mMonitorServer;
-	
-	public Console(ErrorSimulatorServer monitorServer) {
-		this.mMonitorServer = monitorServer;
-	}
-	
-	/* (non-Javadoc)
-	 * @see java.lang.Runnable#run()
-	 */
-	public void run() {
-		
-		String quitCommand = Keyboard.getString();
-		while(!quitCommand.equalsIgnoreCase("q")) {
-			quitCommand = Keyboard.getString();
-		}
-		System.out.println(Strings.EXITING);
-		ErrorSimulatorServer.active.set(false);
-		this.mMonitorServer.interruptSocketAndShutdown();
-	}
-}
-
-
 public class ErrorSimulatorServer implements Callback {
 	
+	private static Logger logger = Logger.VERBOSE;
+	private TFTPUserInterface mErrorUI;
+	private Tuple<ErrorType, Integer> mErrorOptionSettings;
+	private final String CLASS_TAG = "Error Simulator Service";
 	/**
 	 * Main function that starts the server.
 	 */
@@ -65,25 +45,25 @@ public class ErrorSimulatorServer implements Callback {
 	 */
 	public ErrorSimulatorServer() {
 		threads = new Vector<Thread>();
+		this.mErrorUI = new TFTPUserInterface();
+		ErrorSimulatorServer.logger = this.mErrorUI.printLoggerSelection();
+		logger.setClassTag(CLASS_TAG);
 	}
 	
 	/**
 	 * Handles operation of the error simulator server.
 	 */
 	public void start() {
+		
 		DatagramPacket receivePacket = null;
 		try {
-			errorSimulatorSock = new DatagramSocket(Configurations.SERVER_LISTEN_PORT);
-			System.out.println("Error simulator initiated on port " + Configurations.SERVER_LISTEN_PORT);
+			errorSimulatorSock = new DatagramSocket(Configurations.ERROR_SIM_LISTEN_PORT);
+			
 			errorSimulatorSock.setSoTimeout(30000);
 		} catch (SocketException e) {
 			e.printStackTrace();
 			System.exit(1);
 		}
-		
-		// Create and start a thread for the command console.
-		Thread console = new Thread(new Console(this), "command console");
-		console.start();
 		
 		/*
 		 * - Receive packets until the admin console gives the shutdown signal.
@@ -93,8 +73,12 @@ public class ErrorSimulatorServer implements Callback {
 		while (active.get()) {
 			try {
 				// Create the packet for receiving.
+				this.mErrorOptionSettings = this.mErrorUI.getErrorCodeFromUser();
 				byte[] buffer = new byte[Configurations.MAX_MESSAGE_SIZE]; 
 				receivePacket = new DatagramPacket(buffer, buffer.length);
+				System.out.printf(Strings.ES_INITIALIZED, Configurations.ERROR_SIM_LISTEN_PORT);
+				logger.print(logger.VERBOSE, Strings.ES_START_LISTENING);
+				
 				errorSimulatorSock.receive(receivePacket);
 			} catch (SocketTimeoutException e) {
 				continue;
@@ -106,9 +90,10 @@ public class ErrorSimulatorServer implements Callback {
 			}
 			System.out.println(BufferPrinter.acceptConnectionMessage(Strings.SERVER_ACCEPT_CONNECTION, 
 					receivePacket.getSocketAddress().toString()));
-			/*Thread service = new Thread(new ErrorSimulatorService(receivePacket, this), "Service");
+			
+			Thread service = new Thread(new ErrorSimulatorService(receivePacket, this, this.mErrorOptionSettings), CLASS_TAG);
 			threads.addElement(service);
-			service.start();*/
+			service.start();
 		}
 		this.errorSimulatorSock.close();
 		// Wait for all service threads to close before completely exiting.

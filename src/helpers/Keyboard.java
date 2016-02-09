@@ -10,7 +10,7 @@ public class Keyboard {
 		try {
 	    	return (Integer.valueOf(inputStream.readLine().trim()).intValue());
 		} catch (Exception e) {
-			System.out.println("Coco i got an exception");
+			System.err.println(e);
 	    	return 0;
 		}
     }
