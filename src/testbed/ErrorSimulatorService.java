@@ -103,12 +103,13 @@ public class ErrorSimulatorService implements Runnable {
 		DatagramPacket serverPacket = null;
 		boolean transferNotFinished = true;
 		boolean ackServerOnLastBlockByClient = false;
-		ErrorCodeSimulator errorCodeSimulator = null;
 		int wrqPacketSize = -1;
-		
+
 		while (transferNotFinished) {
 			try {
-				this.ErrorCreator(this.mLastPacket);
+				// TODO: Have an option to trigger Errors for Server or Client. T
+				// 		 Currently, only errors are drawn to server. 
+				this.createSpecifiedError(this.mLastPacket);
 				// On first iteration mForwardPort = Server Listen port
 				// Proceeding iterations, mForwardPort will change to Server
 				// Thread Port
@@ -123,7 +124,8 @@ public class ErrorSimulatorService implements Runnable {
 				// Wait/block for a server reply
 				serverPacket = retrievePacketFromSocket();
 
-				// This following block, checks if we are on the last packet to be sent
+				// This following block, checks if we are on the last packet to
+				// be sent
 				if (this.mInitialRequestType == RequestType.RRQ) {
 					if (serverPacket.getLength() < Configurations.MAX_MESSAGE_SIZE) {
 						// Coming into this block means that on a RRQ, the last
@@ -137,7 +139,8 @@ public class ErrorSimulatorService implements Runnable {
 						ackServerOnLastBlockByClient = true;
 					}
 				} else if (this.mInitialRequestType == RequestType.WRQ && wrqPacketSize > 0) {
-					// Must test if this was the first transfer wrqPacketSize = 0
+					// Must test if this was the first transfer wrqPacketSize =
+					// 0
 					if (wrqPacketSize < Configurations.MAX_MESSAGE_SIZE) {
 						// We have finished the transfer
 						logger.print(Logger.DEBUG, "Got last write packet, fwding ACK to client");
@@ -155,7 +158,7 @@ public class ErrorSimulatorService implements Runnable {
 				logger.print(Logger.DEBUG, "Preparing to send packet to client.");
 				// Send that packet back to the client
 				forwardPacketToSocket(this.mLastPacket);
-				
+
 				if (transferNotFinished) {
 					logger.print(Logger.DEBUG, "Preparing to retrieve packet from client.");
 					// Receiving from client
@@ -179,14 +182,14 @@ public class ErrorSimulatorService implements Runnable {
 				e.printStackTrace();
 			}
 		}
-		
+		logger.print(Logger.DEBUG, "<Error Simulator Thread> Finished transfer and shutting down");
 		this.mSendReceiveSocket.close();
 	}
-	
-	private void ErrorCreator( DatagramPacket inPacket ) {
+
+	private void createSpecifiedError(DatagramPacket inPacket) {
 		ErrorType vErrType = this.mErrorSettings.first;
 		int subOpt = this.mErrorSettings.second;
-		switch(vErrType) {
+		switch (vErrType) {
 		case FILE_NOT_FOUND:
 			// error code 1
 			break;
@@ -204,6 +207,15 @@ public class ErrorSimulatorService implements Runnable {
 		case UNKNOWN_TRANSFER:
 			ErrorCodeFive vEPFive = new ErrorCodeFive(inPacket);
 			// error code 5
+			break;
+		case FILE_EXISTS:
+			// error code 6
+			break;
+		case NO_SUCH_USER:
+			// error code 5
+			break;
+		default:
+			// Don't create an error
 			break;
 		}
 	}

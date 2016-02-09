@@ -5,19 +5,16 @@ import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.SocketException;
 import java.net.SocketTimeoutException;
-import java.util.Scanner;
 import java.util.Vector;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import resource.Configurations;
 import resource.Strings;
 import resource.Tuple;
-import resource.UIStrings;
 import server.Callback;
 import types.ErrorType;
 import types.Logger;
 import helpers.BufferPrinter;
-import helpers.Keyboard;
 
 public class ErrorSimulatorServer implements Callback {
 	
