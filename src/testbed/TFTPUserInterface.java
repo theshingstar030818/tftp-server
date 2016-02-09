@@ -133,12 +133,10 @@ public class TFTPUserInterface {
 			switch (optionSelected) {
 			case 1:
 				logger = Logger.VERBOSE;
-				//getErrorCodeFromUser();
 				validInput = true;
 				break;
 			case 2:
 				logger = Logger.DEBUG;
-				//getErrorCodeFromUser();
 				validInput = true;
 				break;
 			default:

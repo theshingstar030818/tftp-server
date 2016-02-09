@@ -29,132 +29,65 @@ import types.RequestType;
  *         The primary object of this class is to simulate UDP errors in order
  *         to test the soundness of our TFTP system
  */
-public class ErrorSimulatorService {
-	
-	//by default set the log level to debug
+public class ErrorSimulatorService implements Runnable {
+
+	// by default set the log level to debug
 	private static Logger logger = Logger.VERBOSE;
 
-	private final int MAX_BUFFER = 4096;
 	private final String CLASS_TAG = "Error Simulator";
 
 	private int mForwardPort;
 	private final int mClientPort;
-	private final InetAddress mClientAddress;
-	private final int mServerPort;
-	private final InetAddress mServerAddress;
+	private final InetAddress mClientHostAddress;
+	private final int mServerListenPort;
+	private InetAddress mServerHostAddress;
 
 	private Callback mCallback;
 	private Tuple<ErrorType, Integer> mErrorSettings;
 	private DatagramPacket mLastPacket;
-	private DatagramSocket mSendReceiveSocket = null;
-	private InetAddress mServerHostAddress = null;
+	private DatagramSocket mSendReceiveSocket;
+	private RequestType mInitialRequestType;
 
 	private byte[] mBuffer = null;
 
 	/**
-	 * Main Error Simulator entry
+	 * This thread manages the facilitation of packets from the client to the
+	 * server. It remembers where the packet comes from and also fixes the
+	 * destination of the packet. The configurations for this handler is in the
+	 * resource/Configurations class.
 	 * 
-	 * @param args
+	 * @param inDatagram
+	 *            - last packet received, first instance will tell use who to
+	 *            reply to
+	 * @param cb
+	 *            - call back to tell main thread this runnable finished
+	 * @param errorSetting
+	 *            - configurable to determine which error to produce for this
+	 *            thread
 	 */
-	public static void main(String[] args) {
-		ErrorSimulatorService mMediatorHost = new ErrorSimulatorService(Configurations.ERROR_SIM_LISTEN_PORT,
-				Configurations.SERVER_LISTEN_PORT, "localhost");
-		mMediatorHost.initializeErrorSimulator();
-	}
-
-	/**
-	 * @param recvPort
-	 *            specifies the port that this host will received at
-	 * @param fwdPort
-	 *            specifies the port that this host will send towards
-	 * @param host
-	 *            specifies the host in which the host is located
-	 */
-	public ErrorSimulatorService(int recvPort, int fwdPort, String host) {
-		this.mForwardPort = fwdPort;
-		this.RECEIVE_PORT = recvPort;
-		this.INET_ADDRESS = host;
-	}
-	
-	public ErrorSimulatorService(DatagramPacket inDatagram, 
-			Callback cb, 
-			Tuple<ErrorType, Integer> errorSetting) {
+	@SuppressWarnings("unused")
+	public ErrorSimulatorService(DatagramPacket inDatagram, Callback cb, Tuple<ErrorType, Integer> errorSetting) {
 		this.mLastPacket = inDatagram;
 		this.mErrorSettings = errorSetting;
 		this.mCallback = cb;
-		this.E
-	}
-
-	/**
-	 * This public function will start up the error simulator server It will
-	 * take care of initializing ports and start the main traffic mediation
-	 * functionality
-	 */
-	public void initializeErrorSimulator() {
+		this.mClientHostAddress = inDatagram.getAddress();
+		this.mClientPort = inDatagram.getPort();
+		this.mServerListenPort = Configurations.SERVER_LISTEN_PORT;
+		this.mForwardPort = this.mServerListenPort;
+		this.mInitialRequestType = RequestType.matchRequestByNumber((int) this.mLastPacket.getData()[1]);
 		try {
-			// Initialization tasks
-			initiateInetAddress();
-			initializeUDPSocket();
-
-			getErrorCodeFromUser();
-			// Start main functionality
-			startTrafficMediation();
-		} catch (Exception e) {
+			if (Configurations.SERVER_INET_HOST == "localhost") {
+				this.mServerHostAddress = InetAddress.getLocalHost();
+			} else {
+				this.mServerHostAddress = InetAddress.getByName(Configurations.SERVER_INET_HOST);
+			}
+			this.mSendReceiveSocket = new DatagramSocket(Configurations.ERROR_SIM_LISTEN_PORT);
+		} catch (UnknownHostException e) {
 			e.printStackTrace();
-		} finally {
-			this.mUDPListenSocket.close();
+		} catch (SocketException e) {
+			e.printStackTrace();
 		}
-	}
-	
-	private void getErrorCodeFromUser() {
-		int optionSelected = 0;
-		Scanner scaner = new Scanner(System.in);
-		boolean validInput = false;
-		
-		while(!validInput){
-			printErrorSelectMenu();
-			try {
-				optionSelected = Keyboard.getInteger();
-			} catch (NumberFormatException e) {
-				optionSelected = 0;
-			}
-			
-			switch (optionSelected) {
-			case 1:
-				logger.print(Logger.DEBUG,Strings.OPERATION_NOT_SUPPORTED);
-				break;
-			case 2:
-				logger.print(Logger.DEBUG,Strings.OPERATION_NOT_SUPPORTED);
-				break;
-			case 3:
-				logger.print(Logger.DEBUG,Strings.OPERATION_NOT_SUPPORTED);
-				break;
-			case 4:
-				// illegal TFTP operation option
-				
-				validInput = true;
-				break;
-			case 5:
-				// unknown transfer ID operation option
-				// ErrorCodeSimulator constructor take three parameters
-				// first one is the datagram packet
-				// second parameter is error code
-				// third is the sub-error code
-				//ErrorCodeSimulator ER = new ErrorCodeSimulator()
-				validInput = true;
-				break;
-			case 6:
-				logger.print(Logger.DEBUG,Strings.OPERATION_NOT_SUPPORTED);
-				break;
-			case 7:
-				logger.print(Logger.DEBUG,Strings.OPERATION_NOT_SUPPORTED);
-				break;
-			default:
-				System.out.println(Strings.ERROR_INPUT);
-				break;
-			}
-		}
-		scaner.close();
+		logger.print(Logger.DEBUG, CLASS_TAG + " initalized destination to host: " + this.mServerHostAddress + "\n");
 	}
 
 	/**
@@ -165,70 +98,87 @@ public class ErrorSimulatorService {
 	 * 
 	 * @throws IOException
 	 */
-	private void startTrafficMediation() throws IOException {
+	public void run() {
 		DatagramPacket serverPacket = null;
-		DatagramPacket clientPacket = null;
-		InetAddress clientAddress = null;
-		InetAddress serverAddress = null; // Not exactly needed cause server host does not change
-		int clientPort = 0;
-		RequestType clientRequestType = RequestType.NONE;
-		boolean receiveReads = true;
-		int serverThreadPort = 0;
-		
+		boolean transferNotFinished = true;
+		boolean ackServerOnLastBlockByClient = false;
 		ErrorCodeSimulator errorCodeSimulator = null;
+		int wrqPacketSize = -1;
 		
-		while (true) {
-			// Receiving packets from the client, remembering where the packets
-			// came from
-			logger.print(Logger.DEBUG, CLASS_TAG + " preparing to retrieve packet from client. ");
-			clientPacket = retrievePacketFromSocket(this.mUDPListenSocket);
-			clientAddress = clientPacket.getAddress();
-			clientPort = clientPacket.getPort();
-			logger.print(Logger.DEBUG, "... received on " + clientPort);
-			
-			if(errorCodeSimulator == null){
-				// error 5 can never be here   --- Can't be initializing an abstract class like that
-				//errorCodeSimulator = new ErrorCodeSimulator(clientPacket, 4, 1);
-			}
-			
-			// We redirect the packet to a new port
-			RequestType passByHeader = RequestType.matchRequestByNumber((int) clientPacket.getData()[1]);
-			if (passByHeader == RequestType.RRQ || passByHeader == RequestType.WRQ) {
-				// This setting completes the case where all RRQ and WRQ's go to
-				// the server
-				// This means this is a new file transfer request.
-				this.mForwardPort = Configurations.SERVER_LISTEN_PORT;
-				clientRequestType = passByHeader;
-				receiveReads = true;
-			}
-			DatagramPacket toServerPacket = new DatagramPacket(clientPacket.getData(), clientPacket.getLength(),
-					serverAddress, this.mForwardPort);
-			clientPacket.setPort(this.mForwardPort);
-			logger.print(Logger.DEBUG, CLASS_TAG + " preparing to send packet to server at port " + this.mForwardPort);
-			forwardPacketToSocket(toServerPacket, this.mServerCommunicationSocket);
-			
-			if (receiveReads) {
-				// Waits for a response from the server
+		while (transferNotFinished) {
+			try {
+				// On first iteration mForwardPort = Server Listen port
+				// Proceeding iterations, mForwardPort will change to Server
+				// Thread Port
+				this.mLastPacket.setPort(this.mForwardPort);
+				this.mLastPacket.setAddress(this.mServerHostAddress);
+				logger.print(Logger.DEBUG,
+						CLASS_TAG + " preparing to send packet to server at port " + this.mForwardPort);
+				// Send off this that is directed to the server
+				forwardPacketToSocket(this.mLastPacket);
+
 				logger.print(Logger.DEBUG, CLASS_TAG + " preparing to retrieve packet from server.");
-				serverPacket = retrievePacketFromSocket(this.mServerCommunicationSocket);
-		
-				// We set this forward port so the client can contact the thread
-				this.mForwardPort = serverPacket.getPort();
-				serverAddress = serverPacket.getAddress();
-				// Redirect the packet back to the client address
-				DatagramPacket toClientPacket = new DatagramPacket(serverPacket.getData(), serverPacket.getLength(),
-						clientAddress, clientPort);
+				// Wait/block for a server reply
+				serverPacket = retrievePacketFromSocket();
 
-				logger.print(Logger.DEBUG, CLASS_TAG + " preparing to send packet to client.");
-				forwardPacketToSocket(toClientPacket, this.mClientCommunicationSocket);
-			}
-
-			if (clientRequestType == RequestType.RRQ) {
-				if (serverPacket.getLength() < Configurations.MAX_MESSAGE_SIZE) {
-					receiveReads = false;
+				// This following block, checks if we are on the last packet to be sent
+				if (this.mInitialRequestType == RequestType.RRQ) {
+					if (serverPacket.getLength() < Configurations.MAX_MESSAGE_SIZE) {
+						// Coming into this block means that on a RRQ, the last
+						// data block
+						// must be ACK'd by the client to the server. Taking us
+						// one extra operation
+						// If this was a WRQ, then what we forward down
+						// following this if statement
+						// is the server's last ACK
+						transferNotFinished = false;
+						ackServerOnLastBlockByClient = true;
+					}
+				} else if (this.mInitialRequestType == RequestType.WRQ && wrqPacketSize > 0) {
+					// Must test if this was the first transfer wrqPacketSize = 0
+					if (wrqPacketSize < Configurations.MAX_MESSAGE_SIZE) {
+						// We have finished the transfer
+						logger.print(Logger.DEBUG, CLASS_TAG + " got last write packet, fwding ACK to client");
+						transferNotFinished = false;
+					}
 				}
+
+				this.mLastPacket = serverPacket;
+				// Set the mForwardPort to the Server's Thread Port
+				this.mForwardPort = serverPacket.getPort();
+
+				// Redirect the packet back to the client address
+				this.mLastPacket.setPort(this.mClientPort);
+				this.mLastPacket.setAddress(this.mClientHostAddress);
+				logger.print(Logger.DEBUG, CLASS_TAG + " preparing to send packet to client.");
+				// Send that packet back to the client
+				forwardPacketToSocket(this.mLastPacket);
+				
+				if (transferNotFinished) {
+					logger.print(Logger.DEBUG, CLASS_TAG + " preparing to retrieve packet from client.");
+					// Receiving from client
+					this.mLastPacket = retrievePacketFromSocket();
+					// Set the write packet size in order to determine the end
+					wrqPacketSize = this.mLastPacket.getLength();
+				}
+
+				if (ackServerOnLastBlockByClient) {
+					// This extra process is needed on a read request
+					// Gets a client reply - last ACK
+					// Send the last ACK to the server
+					logger.print(Logger.DEBUG, "Sending last ACK packet to server (RRQ) " + this.mClientPort);
+					this.mLastPacket.setPort(this.mForwardPort);
+					this.mLastPacket.setAddress(this.mServerHostAddress);
+					forwardPacketToSocket(this.mLastPacket);
+				}
+
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
 			}
 		}
+		
+		this.mSendReceiveSocket.close();
 	}
 
 	/**
@@ -278,19 +228,17 @@ public class ErrorSimulatorService {
 
 	/**
 	 * Deprecated. Cannot be used to get a reply as the socket will be closed
-	 * right after a send happens.
-	 * This function will use the initialized DatagramSocket to send off the
-	 * incoming packet and print the packet buffer to console
+	 * right after a send happens. This function will use the initialized
+	 * DatagramSocket to send off the incoming packet and print the packet
+	 * buffer to console
 	 * 
 	 * @param packet
 	 *            represents the DatagramPacket that requires to be sent
 	 * @throws IOException
 	 */
 	private void sendPacket(DatagramPacket packet) throws IOException {
-		DatagramSocket mUDPSendSocket = new DatagramSocket();
-		mUDPSendSocket.send(packet);
+		this.mSendReceiveSocket.send(packet);
 		BufferPrinter.printBuffer(packet.getData(), CLASS_TAG, logger);
-		mUDPSendSocket.close();
 	}
 
 	/**
@@ -303,50 +251,18 @@ public class ErrorSimulatorService {
 	 * @return returns the DatagramPacket that the socket as received
 	 * @throws IOException
 	 */
-	private DatagramPacket retrievePacketFromSocket(DatagramSocket socket) throws IOException {
-		mBuffer = new byte[MAX_BUFFER];
+	private DatagramPacket retrievePacketFromSocket() throws IOException {
+		mBuffer = new byte[Configurations.MAX_MESSAGE_SIZE];
 		DatagramPacket receivePacket = new DatagramPacket(mBuffer, mBuffer.length);
-		socket.receive(receivePacket);
+		this.mSendReceiveSocket.receive(receivePacket);
 
 		int realPacketSize = receivePacket.getLength();
 		byte[] packetBuffer = new byte[realPacketSize];
 		System.arraycopy(receivePacket.getData(), 0, packetBuffer, 0, realPacketSize);
 		receivePacket.setData(packetBuffer);
-		
+
 		BufferPrinter.printBuffer(receivePacket.getData(), CLASS_TAG, logger);
 		return receivePacket;
 	}
-
-	/**
-	 * This function initializes the DatagramSocket that the client will use to
-	 * send and receive messages
-	 * 
-	 * @param port
-	 *            represents the port to bind and listen on
-	 * @throws SocketException
-	 */
-	private void initializeUDPSocket() throws SocketException {
-		this.mUDPListenSocket = new DatagramSocket(this.RECEIVE_PORT);
-		this.mClientCommunicationSocket = new DatagramSocket();
-		this.mServerCommunicationSocket = new DatagramSocket();
-	}
-
-	/**
-	 * This function will initialize the InetAddress host for the DatagramPacket
-	 * destination
-	 * 
-	 * @throws UnknownHostException
-	 */
-	private void initiateInetAddress() throws UnknownHostException {
-		if (Configurations.SERVER_INET_HOST == "localhost") {
-			this.mServerHostAddress = InetAddress.getLocalHost();
-		} else {
-			this.mServerHostAddress = InetAddress.getByName(Configurations.SERVER_INET_HOST);
-		}
-		
-		logger.print(Logger.DEBUG, CLASS_TAG + " initalized destination to host: " + this.mServerHostAddress + "\n");
-	}
-	
-
 
 }
