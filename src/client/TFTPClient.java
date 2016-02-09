@@ -26,6 +26,7 @@ public class TFTPClient {
 	private DatagramSocket sendReceiveSocket;
 	private boolean isClientAlive = true;
 	private final String CLASS_TAG = "Client";
+	private int mode;
 	
 	//by default the logger is set to DEBUG level
 	private Logger logger = Logger.VERBOSE;
@@ -49,6 +50,9 @@ public class TFTPClient {
 	public void initialize() {
 		Scanner scan = new Scanner(System.in);
 		try {
+			
+			this.mode = getSendPort();
+			
 			sendReceiveSocket = new DatagramSocket();
 			int optionSelected = 0;
 			
@@ -137,9 +141,18 @@ public class TFTPClient {
 		try {
 			writeRequestFileStorageService = new FileStorageService(writeFileNameOrFilePath,InstanceType.CLIENT);
 			
-			String actualFileName = writeRequestFileStorageService.getFileName();
-			wpb = new WritePacketBuilder(InetAddress.getLocalHost(), Configurations.ERROR_SIM_LISTEN_PORT,
-					actualFileName, Configurations.DEFAULT_RW_MODE);
+			String actualFileName;
+			
+			if(this.mode == 1){ // no error simulator in between
+				actualFileName = writeRequestFileStorageService.getFileName();
+				wpb = new WritePacketBuilder(InetAddress.getLocalHost(), Configurations.SERVER_LISTEN_PORT,
+						actualFileName, Configurations.DEFAULT_RW_MODE);
+			}else{ // client sends packets to the error simulator
+				actualFileName = writeRequestFileStorageService.getFileName();
+				wpb = new WritePacketBuilder(InetAddress.getLocalHost(), Configurations.ERROR_SIM_LISTEN_PORT,
+						actualFileName, Configurations.DEFAULT_RW_MODE);
+			}
+			
 			lastPacket = wpb.buildPacket();
 			sendReceiveSocket.send(lastPacket);
 			
@@ -147,8 +160,11 @@ public class TFTPClient {
 				// This packet has the block number to start on!
 				lastPacket = new DatagramPacket(ackBuff, ackBuff.length);
 				
+				System.out.println("waiting on a ACK");
 				// receive a ACK packet
 				sendReceiveSocket.receive(lastPacket);
+				
+				System.out.println("got a ACK");
 				
 				// get the first block of file to transfer
 				fileData = writeRequestFileStorageService.getFileByteBufferFromDisk();
@@ -167,7 +183,7 @@ public class TFTPClient {
 				
 				// Overwrite last packet
 				lastPacket = dataPacket.buildPacket(fileData);
-				lastPacket.setPort(Configurations.ERROR_SIM_LISTEN_PORT);
+				//lastPacket.setPort(Configurations.ERROR_SIM_LISTEN_PORT);
 				sendReceiveSocket.send(lastPacket);
 			}
 			// Receive the last ACK. 
@@ -202,8 +218,16 @@ public class TFTPClient {
 		try {
 			readRequestFileStorageService = new FileStorageService(readFileName,InstanceType.CLIENT);
 			// build read request packet
-			ReadPacketBuilder rpb = new ReadPacketBuilder(InetAddress.getLocalHost(), Configurations.ERROR_SIM_LISTEN_PORT,
-					readFileName, Configurations.DEFAULT_RW_MODE);
+			
+			ReadPacketBuilder rpb;
+			
+			if(this.mode == 1){ // no error simulator in between
+				rpb = new ReadPacketBuilder(InetAddress.getLocalHost(), Configurations.SERVER_LISTEN_PORT,
+						readFileName, Configurations.DEFAULT_RW_MODE);
+			}else{ // send packets to error simulator
+				rpb = new ReadPacketBuilder(InetAddress.getLocalHost(), Configurations.ERROR_SIM_LISTEN_PORT,
+						readFileName, Configurations.DEFAULT_RW_MODE);
+			}
 
 			// now get the packet from the ReadPacketBuilder
 			lastPacket = rpb.buildPacket();
@@ -244,7 +268,7 @@ public class TFTPClient {
 				// Always send the ACK back to the error sim (BAD)
 				
 				lastPacket = ackPacketBuilder.buildPacket();
-				lastPacket.setPort(Configurations.ERROR_SIM_LISTEN_PORT);
+				//lastPacket.setPort(Configurations.ERROR_SIM_LISTEN_PORT);
 				sendReceiveSocket.send(lastPacket);
 			}
 		} catch (Exception e) {
@@ -252,6 +276,30 @@ public class TFTPClient {
 			return ErrorType.EXCEPTION_ERROR;
 		}
 		return ErrorType.NO_ERROR;
+	}
+
+	private int getSendPort() {
+		while(true){
+			Scanner s = new Scanner(System.in);
+			System.out.println("--------------------------------");
+			System.out.println("| Select Client operation Mode |");
+			System.out.println("--------------------------------");
+			System.out.println("Options : ");
+			System.out.println("\t 1. Normal (No Error Simulator)");
+			System.out.println("\t 2. Test (With Error Simulator)");
+			System.out.println("Select option : ");
+			
+			int mode = s.nextInt();
+			
+			if(mode == 1){
+				return mode;
+			}else if( mode == 2){
+				return mode;
+			}else{
+				System.out.println("Invalid input !!");
+			}
+			
+		}
 	}
 
 	/**
