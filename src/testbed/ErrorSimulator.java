@@ -37,6 +37,8 @@ public class ErrorSimulator {
 	private int mForwardPort;
 	private final int RECEIVE_PORT;
 	private final String INET_ADDRESS;
+	private int mUserErrorOption;
+	private int mUserErrorSubOption;
 
 	private DatagramSocket mUDPListenSocket = null;
 	private DatagramSocket mServerCommunicationSocket = null;
@@ -44,6 +46,8 @@ public class ErrorSimulator {
 	private InetAddress mServerHostAddress = null;
 
 	private byte[] mBuffer = null;
+	
+	private Scanner mScan;
 
 	/**
 	 * Main Error Simulator entry
@@ -68,13 +72,34 @@ public class ErrorSimulator {
 		this.mForwardPort = fwdPort;
 		this.RECEIVE_PORT = recvPort;
 		this.INET_ADDRESS = host;
-		
+		this.printMainMenu();
+	}
+
+	/**
+	 * This public function will start up the error simulator server It will
+	 * take care of initializing ports and start the main traffic mediation
+	 * functionality
+	 */
+	public void initializeErrorSimulator() {
+		try {			
+			// Initialization tasks
+			initiateInetAddress();
+			initializeUDPSocket();
+			
+			// Start main functionality
+			startTrafficMediation();
+		} catch (Exception e) {
+			e.printStackTrace();
+		} finally {
+			this.mScan.close();
+			this.mUDPListenSocket.close();
+		}
+	}
+	
+	private void printMainMenu() {
 		int optionSelected = 0;
-		Scanner scan = new Scanner(System.in);
+		this.mScan = new Scanner(System.in);
 		boolean validInput = false;
-		
-		int errorCode;
-		int subErro;
 		
 		while(!validInput){
 			printSelectLogLevelMenu();
@@ -88,45 +113,24 @@ public class ErrorSimulator {
 			switch (optionSelected) {
 			case 1:
 				logger = Logger.VERBOSE;
+				getErrorCodeFromUser();
 				validInput = true;
 				break;
 			case 2:
 				logger = Logger.DEBUG;
+				getErrorCodeFromUser();
 				validInput = true;
 				break;
 			default:
 				System.out.println(Strings.ERROR_INPUT);
 				break;
-			}
-		}
-		//close scanner
-		scan.close();
-	}
-
-	/**
-	 * This public function will start up the error simulator server It will
-	 * take care of initializing ports and start the main traffic mediation
-	 * functionality
-	 */
-	public void initializeErrorSimulator() {
-		try {
-			// Initialization tasks
-			initiateInetAddress();
-			initializeUDPSocket();
-
-			getErrorCodeFromUser();
-			// Start main functionality
-			startTrafficMediation();
-		} catch (Exception e) {
-			e.printStackTrace();
-		} finally {
-			this.mUDPListenSocket.close();
+			}					
 		}
 	}
 	
+	
 	private void getErrorCodeFromUser() {
 		int optionSelected = 0;
-		Scanner scaner = new Scanner(System.in);
 		boolean validInput = false;
 		
 		while(!validInput){
@@ -139,40 +143,77 @@ public class ErrorSimulator {
 			
 			switch (optionSelected) {
 			case 1:
+				// file not found
+				this.mUserErrorOption = 1;
 				logger.print(Logger.DEBUG,Strings.OPERATION_NOT_SUPPORTED);
+				validInput = true;
+				this.printMainMenu();
 				break;
 			case 2:
+				// Access violation
+				this.mUserErrorOption = 2;
 				logger.print(Logger.DEBUG,Strings.OPERATION_NOT_SUPPORTED);
+				validInput = true;
+				this.printMainMenu();
 				break;
 			case 3:
+				// Disk full or allocation exceeded
+				this.mUserErrorOption = 3;
 				logger.print(Logger.DEBUG,Strings.OPERATION_NOT_SUPPORTED);
+				validInput = true;
+				this.printMainMenu();
 				break;
 			case 4:
 				// illegal TFTP operation option
-				
-				validInput = true;
+				this.mUserErrorOption = 4;
+				//printIllegalTFTPOperation();
+				this.getSubOption(UIManager.MENU_ERROR_SIMULATOR_ILLEGAL_TFTP_OPERATION, 5);
+				if (this.mUserErrorSubOption == 5) {
+					// go back to the previous level
+					this.mUserErrorSubOption = 0;
+					validInput = false;
+				}else{
+					validInput = true;
+				}
 				break;
 			case 5:
 				// unknown transfer ID operation option
-				// ErrorCodeSimulator constructor take three parameters
-				// first one is the datagram packet
-				// second parameter is error code
-				// third is the sub-error code
-				//ErrorCodeSimulator ER = new ErrorCodeSimulator()
+				this.mUserErrorOption = 5;
+				this.mUserErrorSubOption = 0;
 				validInput = true;
 				break;
 			case 6:
+				// File already exists
+				this.mUserErrorOption = 6;
 				logger.print(Logger.DEBUG,Strings.OPERATION_NOT_SUPPORTED);
+				validInput = true;
+				this.printMainMenu();
 				break;
 			case 7:
+				// No such user
+				this.mUserErrorOption = 7;
 				logger.print(Logger.DEBUG,Strings.OPERATION_NOT_SUPPORTED);
+				validInput = true;
+				this.printMainMenu();
+				break;
+			case 8:
+				// No error
+				this.mUserErrorOption = 8;
+				System.out.println(Strings.EXIT_BYE);
+				validInput = true;
+				this.printMainMenu();
+				break;
+			case 9:
+				// Go back to the previous menu
+				this.mUserErrorOption = 9;
+				this.printMainMenu();
+				validInput = true;
 				break;
 			default:
 				System.out.println(Strings.ERROR_INPUT);
 				break;
 			}
 		}
-		scaner.close();
 	}
 
 	/**
@@ -373,11 +414,34 @@ public class ErrorSimulator {
 	 * This function prints out error selections for client
 	 */
 	private void printErrorSelectMenu() {
-		logger.print(Logger.VERBOSE, UIManager.MENU_ERROR_SIMULATOR_ERROR_SELECTION);
-	}
-	
-	private void printIllegalTFTPOperation() {
-		logger.print(Logger.VERBOSE, UIManager.MENU_ERROR_SIMULATOR_ILLEGAL_TFTP_OPERATION);
+		System.out.println(UIManager.MENU_ERROR_SIMULATOR_ERROR_SELECTION);
 	}
 
+	/**
+	 * This function get user's sub-option for sub-error menu
+	 * @param s - the string you want to prompt user
+	 * @param max - the maximum valid input 
+	 */
+	private void getSubOption(String s, int max) {
+		int subOpt;
+		boolean validInput = false;
+			
+		while (!validInput) {
+			// print out the message
+			System.out.println(s);
+			try {
+				// get input
+				subOpt = Keyboard.getInteger();
+			} catch (NumberFormatException e) {
+				subOpt = 0;
+			}
+			for(int i=1; i<=max; i++) {
+				if(subOpt == i) {
+					// validate the input
+					validInput = true;
+					this.mUserErrorSubOption = subOpt;
+				}
+			}
+		}
+	}
 }
