@@ -1,6 +1,7 @@
 package types;
 
 public enum Logger {
+	
 	VERBOSE {
 		@Override
 		public short getLogLevelShort() {
@@ -9,8 +10,10 @@ public enum Logger {
 		@Override
 		public void print(Logger c, String s){
 			//print all the information of DEBUG 
-			if(c == VERBOSE || c == DEBUG || c == INFO || c == WARN || c == ERROR || c == FATAL){
-				System.out.println(s);
+			if(c == VERBOSE || c == DEBUG || c == INFO || c == WARN ){
+				System.out.println(this.classTag + s);
+			}else if(c == ERROR || c == FATAL){
+				System.err.println(this.classTag + s);
 			}
 		}
 	},
@@ -22,8 +25,10 @@ public enum Logger {
 		@Override
 		public void print(Logger c, String s){
 			// print all the debug level messages except VERBOSE messages
-			if(c == DEBUG || c == INFO || c == WARN || c == ERROR || c == FATAL){
-				System.out.println(s);
+			if(c == DEBUG || c == INFO || c == WARN){
+				System.out.println(this.classTag + s);
+			}else if(c == ERROR || c == FATAL){
+				System.err.println(this.classTag + s);
 			}
 		}
 	},
@@ -35,8 +40,10 @@ public enum Logger {
 		@Override
 		public void print(Logger c, String s){
 			// print all the debug level messages except VERBOSE and DEBUG level messages
-			if(c == INFO || c == WARN || c == ERROR || c == FATAL){
-				System.out.println(s);
+			if(c == INFO || c == WARN){
+				System.out.println(this.classTag + s);
+			}else if(c == ERROR || c == FATAL){
+				System.err.println(this.classTag + s);
 			}
 		}
 	},
@@ -48,8 +55,10 @@ public enum Logger {
 		@Override
 		public void print(Logger c, String s){
 			// print all the debug level messages except VERBOSE, DEBUG and INFO level messages
-			if(c == WARN || c == ERROR || c == FATAL){
-				System.out.println(s);
+			if(c == WARN){
+				System.out.println(this.classTag + s);
+			}else if(c == ERROR || c == FATAL){
+				System.err.println(this.classTag + s);
 			}
 		}
 	},
@@ -62,7 +71,7 @@ public enum Logger {
 		public void print(Logger c, String s){
 			// print all the debug level messages except VERBOSE, DEBUG,INFO and WARN level messages
 			if(c == ERROR || c == FATAL){
-				System.out.println(s);
+				System.err.println(this.classTag + s);
 			}
 		}
 	},
@@ -75,10 +84,16 @@ public enum Logger {
 		public void print(Logger c, String s){
 			// only print FATAL level messages 
 			if(c == FATAL){
-				System.out.println(s);
+				System.err.println(this.classTag + s);
 			}
 		}
 	};
+	
+	protected String classTag = " : ";
+	
+	public void setClassTag(String classTag){
+		this.classTag = classTag + " : ";
+	}
 
 	public abstract short getLogLevelShort();
 
