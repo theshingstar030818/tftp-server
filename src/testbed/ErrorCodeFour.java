@@ -8,7 +8,7 @@ import types.*;
 
 public class ErrorCodeFour extends ErrorCodeSimulator{
 	private int mSubcode;
-	private DatagramPacket mSendPacket;
+	public DatagramPacket mSendPacket;
 	private RequestType rt = super.receivePacketBuilder.getRequestType();
 	private boolean readWriteCheck = (rt==RequestType.RRQ || rt == RequestType.WRQ);
 	private byte[] readWriteBuffer = super.receivePacketBuilder.getReadWriteBuffer();

@@ -65,8 +65,8 @@ public class TFTPUserInterface {
 				// illegal TFTP operation option
 				this.mUserErrorOption = 4;
 				//printIllegalTFTPOperation();
-				this.getSubOption(UIStrings.MENU_ERROR_SIMULATOR_ILLEGAL_TFTP_OPERATION, 5);
-				if (this.mUserErrorSubOption == 5) {
+				this.getSubOption(UIStrings.MENU_ERROR_SIMULATOR_ILLEGAL_TFTP_OPERATION, 8);
+				if (this.mUserErrorSubOption == 8) {
 					// go back to the previous level
 					this.mUserErrorSubOption = 0;
 					validInput = false;
