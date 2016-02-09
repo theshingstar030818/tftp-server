@@ -75,6 +75,10 @@ public class ErrorSimulatorServer implements Callback {
 				// Create the packet for receiving.
 				this.mErrorOptionSettings = this.mErrorUI.getErrorCodeFromUser();
 				byte[] buffer = new byte[Configurations.MAX_MESSAGE_SIZE]; 
+				if(this.mErrorOptionSettings.first == ErrorType.EXIT) {
+					active.set(false);
+					break;
+				}
 				receivePacket = new DatagramPacket(buffer, buffer.length);
 				System.out.printf(Strings.ES_INITIALIZED, Configurations.ERROR_SIM_LISTEN_PORT);
 				logger.print(logger.VERBOSE, Strings.ES_START_LISTENING);
