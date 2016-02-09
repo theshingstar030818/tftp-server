@@ -15,7 +15,7 @@ import helpers.BufferPrinter;
 import helpers.Keyboard;
 import resource.Configurations;
 import resource.Strings;
-import resource.UIManager;
+import resource.UIStrings;
 import types.Logger;
 import types.RequestType;
 
@@ -29,7 +29,7 @@ import types.RequestType;
 public class ErrorSimulator {
 	
 	//by default set the log level to debug
-	private static Logger logger = Logger.DEBUG;
+	private static Logger logger = Logger.VERBOSE;
 
 	private final int MAX_BUFFER = 4096;
 	private final String CLASS_TAG = "Error Simulator";
@@ -47,7 +47,7 @@ public class ErrorSimulator {
 
 	private byte[] mBuffer = null;
 	
-	private Scanner mScan;
+
 
 	/**
 	 * Main Error Simulator entry
@@ -96,121 +96,7 @@ public class ErrorSimulator {
 		}
 	}
 	
-	private void printMainMenu() {
-		int optionSelected = 0;
-		this.mScan = new Scanner(System.in);
-		boolean validInput = false;
-		
-		int errorCode;
-		int subErro;
-		
-		while(!validInput){
-			printSelectLogLevelMenu();
-			
-			try {
-				optionSelected = Keyboard.getInteger();
-			} catch (NumberFormatException e) {
-				optionSelected = 0;
-			}
-			
-			switch (optionSelected) {
-			case 1:
-				logger = Logger.VERBOSE;
-				getErrorCodeFromUser();
-				validInput = true;
-				break;
-			case 2:
-				logger = Logger.DEBUG;
-				getErrorCodeFromUser();
-				validInput = true;
-				break;
-			default:
-				System.out.println(Strings.ERROR_INPUT);
-				break;
-			}					
-		}
-	}
-	
-	
-	private void getErrorCodeFromUser() {
-		int optionSelected = 0;
-		boolean validInput = false;
-		
-		while(!validInput){
-			System.out.println(UIManager.MENU_ERROR_SIMULATOR_ERROR_SELECTION);
-			try {
-				optionSelected = Keyboard.getInteger();
-			} catch (NumberFormatException e) {
-				optionSelected = 0;
-			}
-			
-			switch (optionSelected) {
-			case 1:
-				// file not found
-				logger.print(Logger.DEBUG,Strings.OPERATION_NOT_SUPPORTED);
-				validInput = true;
-				this.printMainMenu();
-				break;
-			case 2:
-				// Access violation
-				logger.print(Logger.DEBUG,Strings.OPERATION_NOT_SUPPORTED);
-				validInput = true;
-				this.printMainMenu();
-				break;
-			case 3:
-				// Disk full or allocation exceeded
-				logger.print(Logger.DEBUG,Strings.OPERATION_NOT_SUPPORTED);
-				validInput = true;
-				this.printMainMenu();
-				break;
-			case 4:
-				// illegal TFTP operation option
-				this.mUserErrorOption = 4;
-				//printIllegalTFTPOperation();
-				this.getSubOption(UIManager.MENU_ERROR_SIMULATOR_ILLEGAL_TFTP_OPERATION, 5);
-				if (this.mUserErrorSubOption == 5) {
-					// go back to the previous level
-					this.mUserErrorSubOption = 0;
-					validInput = false;
-				}else{
-					validInput = true;
-				}
-				break;
-			case 5:
-				// unknown transfer ID operation option
-				this.mUserErrorOption = 5;
-				this.mUserErrorSubOption = 0;
-				validInput = true;
-				break;
-			case 6:
-				// File already exists
-				logger.print(Logger.DEBUG,Strings.OPERATION_NOT_SUPPORTED);
-				validInput = true;
-				this.printMainMenu();
-				break;
-			case 7:
-				// No such user
-				logger.print(Logger.DEBUG,Strings.OPERATION_NOT_SUPPORTED);
-				validInput = true;
-				this.printMainMenu();
-				break;
-			case 8:
-				// No error
-				System.out.println(Strings.EXIT_BYE);
-				validInput = true;
-				this.printMainMenu();
-				break;
-			case 9:
-				// Go back to the previous menu
-				this.printMainMenu();
-				validInput = true;
-				break;
-			default:
-				System.out.println(Strings.ERROR_INPUT);
-				break;
-			}
-		}
-	}
+
 
 	/**
 	 * This function will mediate traffic between the client and the server In
@@ -400,44 +286,5 @@ public class ErrorSimulator {
 		}
 		
 		logger.print(Logger.DEBUG, CLASS_TAG + " initalized destination to host: " + this.mServerHostAddress + "\n");
-	}
-	
-	private static void printSelectLogLevelMenu() {
-		System.out.println(UIManager.MENU_ERROR_SIMULATOR_LOG_LEVEL);
-	}
-	
-	/**
-	 * This function prints out error selections for client
-	 */
-	private void printErrorSelectMenu() {
-		System.out.println(UIManager.MENU_ERROR_SIMULATOR_ERROR_SELECTION);
-	}
-
-	/**
-	 * This function get user's sub-option for sub-error menu
-	 * @param s - the string you want to prompt user
-	 * @param max - the maximum valid input 
-	 */
-	private void getSubOption(String s, int max) {
-		int subOpt;
-		boolean validInput = false;
-			
-		while (!validInput) {
-			// print out the message
-			System.out.println(s);
-			try {
-				// get input
-				subOpt = Keyboard.getInteger();
-			} catch (NumberFormatException e) {
-				subOpt = 0;
-			}
-			for(int i=1; i<=max; i++) {
-				if(subOpt == i) {
-					// validate the input
-					validInput = true;
-					this.mUserErrorSubOption = subOpt;
-				}
-			}
-		}
 	}
 }

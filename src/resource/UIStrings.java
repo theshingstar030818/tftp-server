@@ -1,6 +1,6 @@
 package resource;
 
-public class UIManager {
+public class UIStrings {
 
 	public static final String MENU_ERROR_SIMULATOR_ERROR_SELECTION 
 							   = "----------------------\n"

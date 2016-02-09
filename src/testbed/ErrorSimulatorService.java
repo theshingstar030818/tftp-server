@@ -15,7 +15,10 @@ import helpers.BufferPrinter;
 import helpers.Keyboard;
 import resource.Configurations;
 import resource.Strings;
-import resource.UIManager;
+import resource.Tuple;
+import resource.UIStrings;
+import server.Callback;
+import types.ErrorType;
 import types.Logger;
 import types.RequestType;
 
@@ -29,15 +32,20 @@ import types.RequestType;
 public class ErrorSimulatorService {
 	
 	//by default set the log level to debug
-	private static Logger logger = Logger.DEBUG;
+	private static Logger logger = Logger.VERBOSE;
 
 	private final int MAX_BUFFER = 4096;
 	private final String CLASS_TAG = "Error Simulator";
 
 	private int mForwardPort;
-	private final int RECEIVE_PORT;
-	private final String INET_ADDRESS;
+	private final int mClientPort;
+	private final InetAddress mClientAddress;
+	private final int mServerPort;
+	private final InetAddress mServerAddress;
 
+	private Callback mCallback;
+	private Tuple<ErrorType, Integer> mErrorSettings;
+	private DatagramPacket mLastPacket;
 	private DatagramSocket mSendReceiveSocket = null;
 	private InetAddress mServerHostAddress = null;
 
@@ -66,39 +74,15 @@ public class ErrorSimulatorService {
 		this.mForwardPort = fwdPort;
 		this.RECEIVE_PORT = recvPort;
 		this.INET_ADDRESS = host;
-		
-		int optionSelected = 0;
-		Scanner scan = new Scanner(System.in);
-		boolean validInput = false;
-		
-		int errorCode;
-		int subErro;
-		
-		while(!validInput){
-			printSelectLogLevelMenu();
-			
-			try {
-				optionSelected = Keyboard.getInteger();
-			} catch (NumberFormatException e) {
-				optionSelected = 0;
-			}
-			
-			switch (optionSelected) {
-			case 1:
-				logger = Logger.VERBOSE;
-				validInput = true;
-				break;
-			case 2:
-				logger = Logger.DEBUG;
-				validInput = true;
-				break;
-			default:
-				System.out.println(Strings.ERROR_INPUT);
-				break;
-			}
-		}
-		//close scanner
-		scan.close();
+	}
+	
+	public ErrorSimulatorService(DatagramPacket inDatagram, 
+			Callback cb, 
+			Tuple<ErrorType, Integer> errorSetting) {
+		this.mLastPacket = inDatagram;
+		this.mErrorSettings = errorSetting;
+		this.mCallback = cb;
+		this.E
 	}
 
 	/**
@@ -354,28 +338,15 @@ public class ErrorSimulatorService {
 	 * @throws UnknownHostException
 	 */
 	private void initiateInetAddress() throws UnknownHostException {
-		if (this.INET_ADDRESS == "localhost") {
+		if (Configurations.SERVER_INET_HOST == "localhost") {
 			this.mServerHostAddress = InetAddress.getLocalHost();
 		} else {
-			this.mServerHostAddress = InetAddress.getByName(this.INET_ADDRESS);
+			this.mServerHostAddress = InetAddress.getByName(Configurations.SERVER_INET_HOST);
 		}
 		
 		logger.print(Logger.DEBUG, CLASS_TAG + " initalized destination to host: " + this.mServerHostAddress + "\n");
 	}
 	
-	private static void printSelectLogLevelMenu() {
-		System.out.println(UIManager.MENU_ERROR_SIMULATOR_LOG_LEVEL);
-	}
-	
-	/**
-	 * This function prints out error selections for client
-	 */
-	private void printErrorSelectMenu() {
-		logger.print(Logger.VERBOSE, UIManager.MENU_ERROR_SIMULATOR_ERROR_SELECTION);
-	}
-	
-	private void printIllegalTFTPOperation() {
-		logger.print(Logger.VERBOSE, UIManager.MENU_ERROR_SIMULATOR_ILLEGAL_TFTP_OPERATION);
-	}
+
 
 }

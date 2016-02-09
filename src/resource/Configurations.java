@@ -3,6 +3,8 @@
  */
 package resource;
 
+import java.net.InetAddress;
+
 import types.ModeType;
 
 /**
@@ -21,4 +23,5 @@ public class Configurations {
 	public static final ModeType DEFAULT_RW_MODE = ModeType.OCTET;
 	public static final String DEFAULT_FILENAME = "file";
 	public static final int LEN_ACK_PACKET_BUFFET = 4;
+	public static final String SERVER_INET_HOST = "localhost";
 }

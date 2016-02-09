@@ -5,12 +5,17 @@ import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.SocketException;
 import java.net.SocketTimeoutException;
+import java.util.Scanner;
 import java.util.Vector;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import resource.Configurations;
 import resource.Strings;
+import resource.Tuple;
+import resource.UIStrings;
 import server.Callback;
+import types.ErrorType;
+import types.Logger;
 import helpers.BufferPrinter;
 import helpers.Keyboard;
 
@@ -45,6 +50,12 @@ class Console implements Runnable {
 
 public class ErrorSimulatorServer implements Callback {
 	
+	private static Logger logger = Logger.VERBOSE;
+	private int mProducedErrorCode = -1;
+	private int mProducedErrorSubCode = -1;
+	private TFTPUserInterface mErrorUI;
+	private Tuple<ErrorType, Integer> mErrorOptionSettings;
+	private final String CLASS_TAG = "Error Simulator Service";
 	/**
 	 * Main function that starts the server.
 	 */
@@ -65,16 +76,19 @@ public class ErrorSimulatorServer implements Callback {
 	 */
 	public ErrorSimulatorServer() {
 		threads = new Vector<Thread>();
+		this.mErrorUI = new TFTPUserInterface();
+		ErrorSimulatorServer.logger = this.mErrorUI.printLoggerSelection();
 	}
 	
 	/**
 	 * Handles operation of the error simulator server.
 	 */
 	public void start() {
+		
 		DatagramPacket receivePacket = null;
 		try {
-			errorSimulatorSock = new DatagramSocket(Configurations.SERVER_LISTEN_PORT);
-			System.out.println("Error simulator initiated on port " + Configurations.SERVER_LISTEN_PORT);
+			errorSimulatorSock = new DatagramSocket(Configurations.ERROR_SIM_LISTEN_PORT);
+			System.out.println("Error simulator initiated on port " + Configurations.ERROR_SIM_LISTEN_PORT);
 			errorSimulatorSock.setSoTimeout(30000);
 		} catch (SocketException e) {
 			e.printStackTrace();
@@ -93,6 +107,7 @@ public class ErrorSimulatorServer implements Callback {
 		while (active.get()) {
 			try {
 				// Create the packet for receiving.
+				this.mErrorOptionSettings = this.mErrorUI.getErrorCodeFromUser();
 				byte[] buffer = new byte[Configurations.MAX_MESSAGE_SIZE]; 
 				receivePacket = new DatagramPacket(buffer, buffer.length);
 				errorSimulatorSock.receive(receivePacket);
@@ -106,7 +121,7 @@ public class ErrorSimulatorServer implements Callback {
 			}
 			System.out.println(BufferPrinter.acceptConnectionMessage(Strings.SERVER_ACCEPT_CONNECTION, 
 					receivePacket.getSocketAddress().toString()));
-			Thread service = new Thread(new ErrorSimulatorService(receivePacket, this), "Service");
+			Thread service = new Thread(new ErrorSimulatorService(receivePacket, this, this.mErrorOptionSettings), CLASS_TAG);
 			threads.addElement(service);
 			service.start();
 		}

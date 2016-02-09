@@ -125,7 +125,7 @@ public class TFTPClient {
 			writeRequestFileStorageService = new FileStorageService(writeFileNameOrFilePath,InstanceType.CLIENT);
 			
 			String actualFileName = writeRequestFileStorageService.getFileName();
-			wpb = new WritePacketBuilder(InetAddress.getLocalHost(), Configurations.ERROR_SIM_LISTEN_PORT,
+			wpb = new WritePacketBuilder(InetAddress.getLocalHost(), Configurations.SERVER_LISTEN_PORT,
 					actualFileName, Configurations.DEFAULT_RW_MODE);
 			lastPacket = wpb.buildPacket();
 			sendReceiveSocket.send(lastPacket);
@@ -146,7 +146,7 @@ public class TFTPClient {
 				
 				// Overwrite last packet
 				lastPacket = dataPacket.buildPacket(fileData);
-				lastPacket.setPort(Configurations.ERROR_SIM_LISTEN_PORT);
+
 				sendReceiveSocket.send(lastPacket);
 			}
 			// Receive the last ACK. 
@@ -181,7 +181,7 @@ public class TFTPClient {
 		try {
 			readRequestFileStorageService = new FileStorageService(readFileName,InstanceType.CLIENT);
 			// build read request packet
-			ReadPacketBuilder rpb = new ReadPacketBuilder(InetAddress.getLocalHost(), Configurations.ERROR_SIM_LISTEN_PORT,
+			ReadPacketBuilder rpb = new ReadPacketBuilder(InetAddress.getLocalHost(), Configurations.SERVER_LISTEN_PORT,
 					readFileName, Configurations.DEFAULT_RW_MODE);
 
 			// now get the packet from the ReadPacketBuilder
@@ -212,7 +212,7 @@ public class TFTPClient {
 				// Always send the ACK back to the error sim (BAD)
 				
 				lastPacket = ackPacketBuilder.buildPacket();
-				lastPacket.setPort(Configurations.ERROR_SIM_LISTEN_PORT);
+	
 				sendReceiveSocket.send(lastPacket);
 			}
 		} catch (Exception e) {
