@@ -193,4 +193,13 @@ public abstract class PacketBuilder {
 			this.mRequestType = RequestType.ERROR;
 		}
 	}
+	
+	public byte[] getReadWriteBuffer(){
+		return (this.mBuffer);
+	}
+	
+	public void setReadWritetBuffer(byte[] buffer){
+		this.mBuffer = buffer;
+	}
+	
 }

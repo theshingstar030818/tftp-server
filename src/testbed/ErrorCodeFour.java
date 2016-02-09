@@ -7,38 +7,60 @@ import packet.PacketBuilder;
 import types.*;
 
 public class ErrorCodeFour extends ErrorCodeSimulator{
-	int mSubcode;
-	DatagramPacket mSendPacket;
+	private int mSubcode;
+	private DatagramPacket mSendPacket;
+	private RequestType rt = super.receivePacketBuilder.getRequestType();
+	private boolean readWriteCheck = (rt==RequestType.RRQ || rt == RequestType.WRQ);
+	private byte[] readWriteBuffer = super.receivePacketBuilder.getReadWriteBuffer();
+	private int packetCount = 0;
+	
 	
 	public ErrorCodeFour(DatagramPacket receivePacket,int subcode){
 		super(receivePacket);
+		this.packetCount++;
 		this.mSubcode = subcode;
 	}
 	
 	public DatagramPacket errorPacketCreator(){
 		this.mSendPacket = null;
-		RequestType rt = super.receivePacketBuilder.getRequestType();
+		
 		switch(this.mSubcode){
-			case 1: 
-				if(rt==RequestType.RRQ || rt == RequestType.WRQ){
+		
+			case 1: //Change filename
+				if(readWriteCheck){
 					super.receivePacketBuilder.setFilename("abcd.txt");
+					this.mSendPacket = super.receivePacketBuilder.getPacket();
+				}
+				break;
+			case 2: //Change mode
+				if(readWriteCheck){
 					super.receivePacketBuilder.setMode(switchMode());
 					this.mSendPacket = super.receivePacketBuilder.getPacket();
 				}
 				break;
-			
-			case 2: 
+			case 3: //Change number of 0s in the header
+				if(readWriteCheck){
+					super.receivePacketBuilder.setReadWritetBuffer(addZerosToBuffer());
+					this.mSendPacket = super.receivePacketBuilder.getPacket();
+				}
+			case 4: //Change block number
 				if(rt==RequestType.ACK || rt == RequestType.DATA){
 					super.receivePacketBuilder.setBlockNumber((short)(super.receivePacketBuilder.getBlockNumber()+ 1));
 					this.mSendPacket = super.receivePacketBuilder.getPacket();
 				}
 				break;
-			case 3:
+			case 5://Change header request type
 				this.changeHeader(super.receivePacketBuilder);
 				break;
-			case 4:
+			case 6://Change packet size 
 				this.invalidPacketSize(super.receivePacketBuilder);
 				break;
+			case 7: //changing header of first packet recieved from client
+				if(this.packetCount==1){
+					this.changeHeader(super.receivePacketBuilder);
+				}
+				break;	
+			
 			default:
 				// TODO: default action for error creator
 				break;
@@ -102,5 +124,16 @@ public class ErrorCodeFour extends ErrorCodeSimulator{
 		}
 		return ModeType.OCTET;
 	}
+	
+	private byte[] addZerosToBuffer(){
+		if(readWriteCheck){
+			for (int i =1; i<6; i++){
+				readWriteBuffer[readWriteBuffer.length + i] = 0;
+			}
+		}
+		return (readWriteBuffer);
+		
+	}
+
 
 }
