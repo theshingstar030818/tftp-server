@@ -47,16 +47,19 @@ public class TFTPUserInterface {
 				// file not found
 				logger.print(Logger.DEBUG,Strings.OPERATION_NOT_SUPPORTED);
 				validInput = true;
+				this.mUserErrorOption = 1;
 				break;
 			case 2:
 				// Access violation
 				logger.print(Logger.DEBUG,Strings.OPERATION_NOT_SUPPORTED);
 				validInput = true;
+				this.mUserErrorOption = 2;
 				break;
 			case 3:
 				// Disk full or allocation exceeded
 				logger.print(Logger.DEBUG,Strings.OPERATION_NOT_SUPPORTED);
 				validInput = true;
+				this.mUserErrorOption = 3;
 				break;
 			case 4:
 				// illegal TFTP operation option
@@ -81,26 +84,37 @@ public class TFTPUserInterface {
 				// File already exists
 				logger.print(Logger.DEBUG,Strings.OPERATION_NOT_SUPPORTED);
 				validInput = true;
+				this.mUserErrorOption = 6;
 				break;
 			case 7:
 				// No such user
 				logger.print(Logger.DEBUG,Strings.OPERATION_NOT_SUPPORTED);
 				validInput = true;
+				this.mUserErrorOption = 7;
 				break;
 			case 8:
 				// No error
+				System.out.println("Alright boss.");
+				validInput = true;
+				this.mUserErrorOption = 8;
+				break;
+			case 9:
+				// No error
 				System.out.println(Strings.EXIT_BYE);
 				validInput = true;
+				this.mUserErrorOption = -2;
 				break;
 			default:
 				System.out.println(Strings.ERROR_INPUT);
 				break;
 			}
-		}
+		} 
 		ErrorType errorTypeReturn;
 		if(this.mUserErrorOption == 0) {
 			errorTypeReturn = ErrorType.NO_ERROR;
-		} else {
+		} else if(this.mUserErrorOption == -2) {
+			errorTypeReturn = ErrorType.EXIT;
+		}else {
 			errorTypeReturn = ErrorType.matchErrorByNumber(this.mUserErrorOption);
 		}
 		return new Tuple<ErrorType, Integer>(

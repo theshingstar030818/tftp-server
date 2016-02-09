@@ -111,7 +111,18 @@ public enum ErrorType {
 		public String getErrorMessageString() {
 			return Strings.EXCEPTION_ERROR;
 		}
-	};
+	},
+	EXIT {
+		@Override
+		public short getErrorCodeShort() {
+			return -1;
+		}
+		@Override
+		public String getErrorMessageString() {
+			return Strings.EXIT_BYE;
+		}
+	}
+	;
 	
 	/**
 	 * Gets the ErrorType enum match the ordinal number 
