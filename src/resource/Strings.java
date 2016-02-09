@@ -42,7 +42,8 @@ public class Strings {
 	public static final String NO_SUCH_USER = "No such user.";
 	public static final String NO_ERROR = "No error.";
 	public static final String OPERATION_NOT_SUPPORTED = "This option is not supported right now.  Coming soon...";
-	
+	public static final String EXCEPTION_ERROR = "Exception Error please see console for details.";
+
 	// TFTP error message templates.
 	public static final String NON_ZERO_FIRST_BYTE = "First byte is not 0.";
 	public static final String NON_ZERO_LAST_BYTE = "Last byte is not 0.";
@@ -57,7 +58,4 @@ public class Strings {
 	public static final String INVALID_PACKET_SIZE = "Invalid packet size.";
 	public static final String UNKOWN_ERROR_CODE = "Unknown error code.";
 	public static final String INVALID_ERROR_CODE_FORMAT = "Error code does not begin with 0.";
-	
-	
-	
 }
