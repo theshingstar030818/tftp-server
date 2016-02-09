@@ -59,7 +59,7 @@ public class ErrorSimulatorServer implements Callback {
 		try {
 			errorSimulatorSock = new DatagramSocket(Configurations.ERROR_SIM_LISTEN_PORT);
 			
-			errorSimulatorSock.setSoTimeout(30000);
+			//errorSimulatorSock.setSoTimeout(30000);
 		} catch (SocketException e) {
 			e.printStackTrace();
 			System.exit(1);

@@ -81,13 +81,14 @@ public class ErrorSimulatorService implements Runnable {
 			} else {
 				this.mServerHostAddress = InetAddress.getByName(Configurations.SERVER_INET_HOST);
 			}
-			this.mSendReceiveSocket = new DatagramSocket(Configurations.ERROR_SIM_LISTEN_PORT);
+			this.mSendReceiveSocket = new DatagramSocket();
 		} catch (UnknownHostException e) {
 			e.printStackTrace();
 		} catch (SocketException e) {
 			e.printStackTrace();
 		}
-		logger.print(Logger.DEBUG, CLASS_TAG + " initalized destination to host: " + this.mServerHostAddress + "\n");
+		logger.setClassTag(CLASS_TAG);
+		logger.print(Logger.DEBUG, "Initalized destination to host: " + this.mServerHostAddress + "\n");
 	}
 
 	/**
@@ -117,7 +118,7 @@ public class ErrorSimulatorService implements Runnable {
 				// Send off this that is directed to the server
 				forwardPacketToSocket(this.mLastPacket);
 
-				logger.print(Logger.DEBUG, CLASS_TAG + " preparing to retrieve packet from server.");
+				logger.print(Logger.DEBUG, "Preparing to retrieve packet from server.");
 				// Wait/block for a server reply
 				serverPacket = retrievePacketFromSocket();
 
@@ -138,7 +139,7 @@ public class ErrorSimulatorService implements Runnable {
 					// Must test if this was the first transfer wrqPacketSize = 0
 					if (wrqPacketSize < Configurations.MAX_MESSAGE_SIZE) {
 						// We have finished the transfer
-						logger.print(Logger.DEBUG, CLASS_TAG + " got last write packet, fwding ACK to client");
+						logger.print(Logger.DEBUG, "Got last write packet, fwding ACK to client");
 						transferNotFinished = false;
 					}
 				}
@@ -150,12 +151,12 @@ public class ErrorSimulatorService implements Runnable {
 				// Redirect the packet back to the client address
 				this.mLastPacket.setPort(this.mClientPort);
 				this.mLastPacket.setAddress(this.mClientHostAddress);
-				logger.print(Logger.DEBUG, CLASS_TAG + " preparing to send packet to client.");
+				logger.print(Logger.DEBUG, "Preparing to send packet to client.");
 				// Send that packet back to the client
 				forwardPacketToSocket(this.mLastPacket);
 				
 				if (transferNotFinished) {
-					logger.print(Logger.DEBUG, CLASS_TAG + " preparing to retrieve packet from client.");
+					logger.print(Logger.DEBUG, "Preparing to retrieve packet from client.");
 					// Receiving from client
 					this.mLastPacket = retrievePacketFromSocket();
 					// Set the write packet size in order to determine the end
