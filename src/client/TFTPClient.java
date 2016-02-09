@@ -134,7 +134,8 @@ public class TFTPClient {
 
 		ReadWritePacketPacketBuilder wpb;
 		FileStorageService writeRequestFileStorageService;
-		DataPacketBuilder dataPacket; 
+		DataPacketBuilder dataPacket;
+		AckPacketBuilder ackPacket; 
 		DatagramPacket lastPacket;
 		byte[] fileData = new byte[Configurations.MAX_BUFFER];
 		byte[] ackBuff = new byte[Configurations.LEN_ACK_PACKET_BUFFET];
@@ -171,18 +172,21 @@ public class TFTPClient {
 				fileData = writeRequestFileStorageService.getFileByteBufferFromDisk();
 				
 				// Initialize DataPacket with block number n
-				dataPacket = new DataPacketBuilder(lastPacket);
+				ackPacket = new AckPacketBuilder(lastPacket);
 				
 				if(errorChecker == null){
-					errorChecker = new ErrorChecker(dataPacket);
+					errorChecker = new ErrorChecker(ackPacket);
+					//errorChecker.incrementexpectedBlockNumber();
 				}
 				
-				TFTPError currErrorType = errorChecker.check(dataPacket, RequestType.DATA);
+				TFTPError currErrorType = errorChecker.check(ackPacket, RequestType.ACK);
 				if(currErrorType.getType() != ErrorType.NO_ERROR){
+					errorChecker = null;
 					return currErrorType;
 				}
 				
 				// Overwrite last packet
+				dataPacket = new DataPacketBuilder(new DatagramPacket(fileData, fileData.length,lastPacket.getAddress(),lastPacket.getPort()));
 				lastPacket = dataPacket.buildPacket(fileData);
 				sendReceiveSocket.send(lastPacket);
 			}
@@ -192,8 +196,10 @@ public class TFTPClient {
 			
 		} catch (Exception e) {
 			e.printStackTrace();
+			errorChecker = null;
 			return new TFTPError(ErrorType.NOT_DEFINED, "Exception thrown");
 		}
+		errorChecker = null;
 		return new TFTPError(ErrorType.NO_ERROR, "no errors");
 	}
 
@@ -271,8 +277,10 @@ public class TFTPClient {
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
+			errorChecker = null;
 			return new TFTPError(ErrorType.NOT_DEFINED, "Exception thrown");
 		}
+		errorChecker = null;
 		return new TFTPError(ErrorType.NO_ERROR, "no errors");
 	}
 
