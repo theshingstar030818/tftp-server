@@ -15,6 +15,7 @@ import helpers.Keyboard;
 import packet.*;
 import resource.*;
 import testbed.ErrorChecker;
+import testbed.TFTPError;
 import types.*;
 
 /**
@@ -71,10 +72,10 @@ public class TFTPClient {
 					logger.print(Logger.DEBUG, Strings.PROMPT_ENTER_FILE_NAME);
 					String readFileName = Keyboard.getString();
 					try {
-						ErrorType result = readRequestHandler(readFileName);
-						if(!(result== ErrorType.NO_ERROR)) {
+						TFTPError result = readRequestHandler(readFileName);
+						if(!(result.getType() == ErrorType.NO_ERROR)) {
 							logger.print(Logger.DEBUG, Strings.TRANSFER_FAILED);
-							logger.print(Logger.VERBOSE, result.getErrorMessageString());
+							logger.print(Logger.VERBOSE, result.getString());
 						} else{
 							logger.print(Logger.DEBUG, Strings.TRANSFER_SUCCESSFUL);
 						}
@@ -94,10 +95,10 @@ public class TFTPClient {
 						logger.print(Logger.DEBUG, Strings.FILE_NOT_EXIST);
 					    break;
 					}
-					ErrorType result = writeRequestHandler(writeFileNameOrFilePath);
-					if(!(result== ErrorType.NO_ERROR)) {
+					TFTPError result = writeRequestHandler(writeFileNameOrFilePath);
+					if(!(result.getType() == ErrorType.NO_ERROR)) {
 						logger.print(Logger.DEBUG, Strings.TRANSFER_FAILED);
-						logger.print(Logger.VERBOSE, result.getErrorMessageString());
+						logger.print(Logger.VERBOSE, result.getString());
 					}else {
 						logger.print(Logger.DEBUG, Strings.TRANSFER_SUCCESSFUL);
 					}
@@ -129,7 +130,7 @@ public class TFTPClient {
 	 *            - the name of the file that the client requests to send to
 	 *            server
 	 */
-	private ErrorType writeRequestHandler(String writeFileNameOrFilePath) {
+	private TFTPError writeRequestHandler(String writeFileNameOrFilePath) {
 
 		ReadWritePacketPacketBuilder wpb;
 		FileStorageService writeRequestFileStorageService;
@@ -176,8 +177,8 @@ public class TFTPClient {
 					errorChecker = new ErrorChecker(dataPacket);
 				}
 				
-				ErrorType currErrorType = errorChecker.check(dataPacket, RequestType.DATA);
-				if(currErrorType != ErrorType.NO_ERROR){
+				TFTPError currErrorType = errorChecker.check(dataPacket, RequestType.DATA);
+				if(currErrorType.getType() != ErrorType.NO_ERROR){
 					return currErrorType;
 				}
 				
@@ -192,9 +193,9 @@ public class TFTPClient {
 			
 		} catch (Exception e) {
 			e.printStackTrace();
-			return ErrorType.EXCEPTION_ERROR;
+			return new TFTPError(ErrorType.NOT_DEFINED, "Exception thrown");
 		}
-		return ErrorType.NO_ERROR;
+		return new TFTPError(ErrorType.NO_ERROR, "no errors");
 	}
 
 	/**
@@ -204,7 +205,7 @@ public class TFTPClient {
 	 * @param readFileName
 	 *            - the name of the file that the client requests from server
 	 */
-	private ErrorType readRequestHandler(String readFileName) throws Exception {
+	private TFTPError readRequestHandler(String readFileName) throws Exception {
 
 		AckPacketBuilder ackPacketBuilder;
 		DatagramPacket lastPacket;
@@ -250,12 +251,11 @@ public class TFTPClient {
 					errorChecker = new ErrorChecker(dataPacketBuilder);
 				}
 				
-				ErrorType currErrorType = errorChecker.check(dataPacketBuilder, RequestType.DATA);
-				if(currErrorType != ErrorType.NO_ERROR){
+				TFTPError currErrorType = errorChecker.check(dataPacketBuilder, RequestType.DATA);
+				if(currErrorType.getType() != ErrorType.NO_ERROR){
 					errorChecker = null;
 					return currErrorType;
 				}
-				
 				
 				byte[] fileData = dataPacketBuilder.getDataBuffer();
 				// We need trim the byte array
@@ -273,9 +273,9 @@ public class TFTPClient {
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
-			return ErrorType.EXCEPTION_ERROR;
+			return new TFTPError(ErrorType.NOT_DEFINED, "Exception thrown");
 		}
-		return ErrorType.NO_ERROR;
+		return new TFTPError(ErrorType.NO_ERROR, "no errors");
 	}
 
 	private int getSendPort() {
