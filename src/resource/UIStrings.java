@@ -1,6 +1,6 @@
 package resource;
 
-public class UIManager {
+public class UIStrings {
 
 	public static final String MENU_ERROR_SIMULATOR_ERROR_SELECTION 
 							   = "----------------------\n"
@@ -16,7 +16,7 @@ public class UIManager {
 							   + "\t 6.File already exists \n"
 							   + "\t 7.No such user (obsolete) \n"
 							   + "\t 8.No errors please \n"
-							   + "\t 9.Go back to the previous menu \n"
+							   + "\t 9.Exit \n"
 							   + "Select option :";
 	public static final String MENU_ERROR_SIMULATOR_ILLEGAL_TFTP_OPERATION 
 							   = "----------------------\n"
