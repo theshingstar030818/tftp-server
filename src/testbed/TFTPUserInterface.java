@@ -1,7 +1,5 @@
 package testbed;
 
-import java.util.Scanner;
-
 import helpers.Keyboard;
 import resource.Strings;
 import resource.UIStrings;
@@ -13,12 +11,10 @@ public class TFTPUserInterface {
 
 	//by default set the log level to debug
 	private static Logger logger = Logger.VERBOSE;
-	private Scanner mScan;
 	private int mUserErrorOption = 0;
 	private int mUserErrorSubOption = 0;
 	
 	public TFTPUserInterface() {
-		this.mScan = new Scanner(System.in);
 		this.mUserErrorOption = 0;
 		this.mUserErrorSubOption = 0;
 	}
@@ -51,19 +47,16 @@ public class TFTPUserInterface {
 				// file not found
 				logger.print(Logger.DEBUG,Strings.OPERATION_NOT_SUPPORTED);
 				validInput = true;
-				this.printLoggerSelection();
 				break;
 			case 2:
 				// Access violation
 				logger.print(Logger.DEBUG,Strings.OPERATION_NOT_SUPPORTED);
 				validInput = true;
-				this.printLoggerSelection();
 				break;
 			case 3:
 				// Disk full or allocation exceeded
 				logger.print(Logger.DEBUG,Strings.OPERATION_NOT_SUPPORTED);
 				validInput = true;
-				this.printLoggerSelection();
 				break;
 			case 4:
 				// illegal TFTP operation option
@@ -88,23 +81,15 @@ public class TFTPUserInterface {
 				// File already exists
 				logger.print(Logger.DEBUG,Strings.OPERATION_NOT_SUPPORTED);
 				validInput = true;
-				this.printLoggerSelection();
 				break;
 			case 7:
 				// No such user
 				logger.print(Logger.DEBUG,Strings.OPERATION_NOT_SUPPORTED);
 				validInput = true;
-				this.printLoggerSelection();
 				break;
 			case 8:
 				// No error
 				System.out.println(Strings.EXIT_BYE);
-				validInput = true;
-				this.printLoggerSelection();
-				break;
-			case 9:
-				// Go back to the previous menu
-				this.printLoggerSelection();
 				validInput = true;
 				break;
 			default:
@@ -112,8 +97,14 @@ public class TFTPUserInterface {
 				break;
 			}
 		}
+		ErrorType errorTypeReturn;
+		if(this.mUserErrorOption == 0) {
+			errorTypeReturn = ErrorType.NO_ERROR;
+		} else {
+			errorTypeReturn = ErrorType.matchErrorByNumber(this.mUserErrorOption);
+		}
 		return new Tuple<ErrorType, Integer>(
-				ErrorType.matchErrorByNumber(this.mUserErrorOption), 
+				errorTypeReturn, 
 				this.mUserErrorSubOption);
 	}
 	

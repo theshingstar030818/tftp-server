@@ -19,40 +19,9 @@ import types.Logger;
 import helpers.BufferPrinter;
 import helpers.Keyboard;
 
-/**
- * The Console class will allow someone (presumably an admin) to manage the error simulator
- * from a local machine. Currently its only functionality is to close the error simulator,
- * but this can be expanded later.
- */
-class Console implements Runnable {
-
-	private ErrorSimulatorServer mMonitorServer;
-	
-	public Console(ErrorSimulatorServer monitorServer) {
-		this.mMonitorServer = monitorServer;
-	}
-	
-	/* (non-Javadoc)
-	 * @see java.lang.Runnable#run()
-	 */
-	public void run() {
-		
-		String quitCommand = Keyboard.getString();
-		while(!quitCommand.equalsIgnoreCase("q")) {
-			quitCommand = Keyboard.getString();
-		}
-		System.out.println(Strings.EXITING);
-		ErrorSimulatorServer.active.set(false);
-		this.mMonitorServer.interruptSocketAndShutdown();
-	}
-}
-
-
 public class ErrorSimulatorServer implements Callback {
 	
 	private static Logger logger = Logger.VERBOSE;
-	private int mProducedErrorCode = -1;
-	private int mProducedErrorSubCode = -1;
 	private TFTPUserInterface mErrorUI;
 	private Tuple<ErrorType, Integer> mErrorOptionSettings;
 	private final String CLASS_TAG = "Error Simulator Service";
@@ -78,6 +47,7 @@ public class ErrorSimulatorServer implements Callback {
 		threads = new Vector<Thread>();
 		this.mErrorUI = new TFTPUserInterface();
 		ErrorSimulatorServer.logger = this.mErrorUI.printLoggerSelection();
+		logger.setClassTag(CLASS_TAG);
 	}
 	
 	/**
@@ -88,16 +58,12 @@ public class ErrorSimulatorServer implements Callback {
 		DatagramPacket receivePacket = null;
 		try {
 			errorSimulatorSock = new DatagramSocket(Configurations.ERROR_SIM_LISTEN_PORT);
-			System.out.println("Error simulator initiated on port " + Configurations.ERROR_SIM_LISTEN_PORT);
+			
 			errorSimulatorSock.setSoTimeout(30000);
 		} catch (SocketException e) {
 			e.printStackTrace();
 			System.exit(1);
 		}
-		
-		// Create and start a thread for the command console.
-		Thread console = new Thread(new Console(this), "command console");
-		console.start();
 		
 		/*
 		 * - Receive packets until the admin console gives the shutdown signal.
@@ -110,6 +76,9 @@ public class ErrorSimulatorServer implements Callback {
 				this.mErrorOptionSettings = this.mErrorUI.getErrorCodeFromUser();
 				byte[] buffer = new byte[Configurations.MAX_MESSAGE_SIZE]; 
 				receivePacket = new DatagramPacket(buffer, buffer.length);
+				System.out.printf(Strings.ES_INITIALIZED, Configurations.ERROR_SIM_LISTEN_PORT);
+				logger.print(logger.VERBOSE, Strings.ES_START_LISTENING);
+				
 				errorSimulatorSock.receive(receivePacket);
 			} catch (SocketTimeoutException e) {
 				continue;

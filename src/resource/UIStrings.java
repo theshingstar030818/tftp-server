@@ -16,7 +16,6 @@ public class UIStrings {
 							   + "\t 6.File already exists \n"
 							   + "\t 7.No such user (obsolete) \n"
 							   + "\t 8.No errors please \n"
-							   + "\t 9.Go back to the previous menu \n"
 							   + "Select option :";
 	public static final String MENU_ERROR_SIMULATOR_ILLEGAL_TFTP_OPERATION 
 							   = "----------------------\n"
