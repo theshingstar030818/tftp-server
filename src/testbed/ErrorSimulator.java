@@ -95,8 +95,6 @@ public class ErrorSimulator {
 			this.mUDPListenSocket.close();
 		}
 	}
-	
-
 
 	/**
 	 * This function will mediate traffic between the client and the server In

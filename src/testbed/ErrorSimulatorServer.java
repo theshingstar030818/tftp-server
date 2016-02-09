@@ -121,6 +121,7 @@ public class ErrorSimulatorServer implements Callback {
 			}
 			System.out.println(BufferPrinter.acceptConnectionMessage(Strings.SERVER_ACCEPT_CONNECTION, 
 					receivePacket.getSocketAddress().toString()));
+			
 			Thread service = new Thread(new ErrorSimulatorService(receivePacket, this, this.mErrorOptionSettings), CLASS_TAG);
 			threads.addElement(service);
 			service.start();
