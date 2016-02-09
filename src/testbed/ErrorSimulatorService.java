@@ -108,6 +108,7 @@ public class ErrorSimulatorService implements Runnable {
 		
 		while (transferNotFinished) {
 			try {
+				this.ErrorCreator(this.mLastPacket);
 				// On first iteration mForwardPort = Server Listen port
 				// Proceeding iterations, mForwardPort will change to Server
 				// Thread Port
@@ -180,6 +181,31 @@ public class ErrorSimulatorService implements Runnable {
 		}
 		
 		this.mSendReceiveSocket.close();
+	}
+	
+	private void ErrorCreator( DatagramPacket inPacket ) {
+		ErrorType vErrType = this.mErrorSettings.first;
+		int subOpt = this.mErrorSettings.second;
+		switch(vErrType) {
+		case FILE_NOT_FOUND:
+			// error code 1
+			break;
+		case ACCESS_VIOLATION:
+			// error code 2
+			break;
+		case ALLOCATION_EXCEED:
+			// error code 3
+			break;
+		case ILLEGAL_OPERATION:
+			// error code 4
+			ErrorCodeFour vEPFour = new ErrorCodeFour(inPacket, subOpt);
+			this.mLastPacket = vEPFour.mSendPacket;
+			break;
+		case UNKNOWN_TRANSFER:
+			ErrorCodeFive vEPFive = new ErrorCodeFive(inPacket);
+			// error code 5
+			break;
+		}
 	}
 
 	/**
