@@ -18,10 +18,10 @@ import helpers.BufferPrinter;
 
 public class ErrorSimulatorServer implements Callback {
 	
-	private static Logger logger = Logger.VERBOSE;
+	private Logger logger = Logger.VERBOSE;
 	private TFTPUserInterface mErrorUI;
 	private Tuple<ErrorType, Integer> mErrorOptionSettings;
-	private final String CLASS_TAG = "Error Simulator Service";
+	private final String CLASS_TAG = "<Error Simulator Server>";
 	/**
 	 * Main function that starts the server.
 	 */
@@ -43,7 +43,7 @@ public class ErrorSimulatorServer implements Callback {
 	public ErrorSimulatorServer() {
 		threads = new Vector<Thread>();
 		this.mErrorUI = new TFTPUserInterface();
-		ErrorSimulatorServer.logger = this.mErrorUI.printLoggerSelection();
+		logger = this.mErrorUI.printLoggerSelection();
 		logger.setClassTag(CLASS_TAG);
 	}
 	
@@ -55,7 +55,6 @@ public class ErrorSimulatorServer implements Callback {
 		DatagramPacket receivePacket = null;
 		try {
 			errorSimulatorSock = new DatagramSocket(Configurations.ERROR_SIM_LISTEN_PORT);
-			
 			//errorSimulatorSock.setSoTimeout(30000);
 		} catch (SocketException e) {
 			e.printStackTrace();
@@ -70,15 +69,15 @@ public class ErrorSimulatorServer implements Callback {
 		while (active.get()) {
 			try {
 				// Create the packet for receiving.
-				this.mErrorOptionSettings = this.mErrorUI.getErrorCodeFromUser();
 				byte[] buffer = new byte[Configurations.MAX_MESSAGE_SIZE]; 
+				this.mErrorOptionSettings = this.mErrorUI.getErrorCodeFromUser();
 				if(this.mErrorOptionSettings.first == ErrorType.EXIT) {
 					active.set(false);
 					break;
 				}
 				receivePacket = new DatagramPacket(buffer, buffer.length);
-				System.out.printf(Strings.ES_INITIALIZED, Configurations.ERROR_SIM_LISTEN_PORT);
-				logger.print(logger.VERBOSE, Strings.ES_START_LISTENING);
+				logger.print(Logger.VERBOSE, String.format(Strings.ES_INITIALIZED, Configurations.ERROR_SIM_LISTEN_PORT));
+				logger.print(Logger.VERBOSE, Strings.ES_START_LISTENING);
 				
 				errorSimulatorSock.receive(receivePacket);
 			} catch (SocketTimeoutException e) {

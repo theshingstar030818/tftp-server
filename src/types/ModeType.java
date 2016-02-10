@@ -16,7 +16,13 @@ public enum ModeType {
 	OCTET {
 		@Override 
 		public byte[] getModeByteArray() {
-			return "octect".getBytes();
+			return "octet".getBytes();
+		}
+	},
+	INVALID {
+		@Override 
+		public byte[] getModeByteArray() {
+			return "invalid".getBytes();
 		}
 	};
 	

@@ -10,6 +10,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import resource.Configurations;
 import resource.Strings;
+import types.Logger;
 import helpers.BufferPrinter;
 import helpers.Keyboard;
 
@@ -54,16 +55,16 @@ public class TFTPServer implements Callback {
 	
 	// Some class attributes.
 	static AtomicBoolean active = new AtomicBoolean(true);
-	Vector<Thread> threads;
-	
-	DatagramSocket serverSock = null;
-
-	
+	private Vector<Thread> threads;
+	private DatagramSocket serverSock = null;
+	private Logger logger = Logger.VERBOSE;
+	private String CLASS_TAG = "<TFTP Server>";
 	/**
 	 * Constructor for TFTPServer that initializes the thread container 'threads'.
 	 */
 	public TFTPServer() {
 		threads = new Vector<Thread>();
+		logger.setClassTag(CLASS_TAG);
 	}
 	
 	/**

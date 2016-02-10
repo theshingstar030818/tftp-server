@@ -6,6 +6,7 @@ import java.util.regex.Pattern;
 
 import packet.AckPacketBuilder;
 import packet.DataPacketBuilder;
+import packet.ErrorPacketBuilder;
 import packet.PacketBuilder;
 import resource.Configurations;
 import resource.Strings;
@@ -14,24 +15,32 @@ import types.RequestType;
 
 public class ErrorChecker {
     
-    private InetAddress otherAddress; // Temporary name.
-    private int otherPort; // Temporary name.
-    private int expectedBlockNumber;
+    private InetAddress mPacketOriginatingAddress; // Temporary name.
+    private int mPacketOriginatingPort; // Temporary name.
+    private int mExpectedBlockNumber;
+    
     
     public ErrorChecker(PacketBuilder packet) {
-        otherAddress = packet.getPacket().getAddress();
-        otherPort = packet.getPacket().getPort();
-        expectedBlockNumber = 0;
+        mPacketOriginatingAddress = packet.getPacket().getAddress();
+        mPacketOriginatingPort = packet.getPacket().getPort();
+        mExpectedBlockNumber = 0;
+        
     }
     
-    public void incrementexpectedBlockNumber() {
-    	expectedBlockNumber++;
+    public void incrementExpectedBlockNumber() {
+    	mExpectedBlockNumber++;
     }
     
     public TFTPError check(PacketBuilder packet, RequestType expectedCommunicationType) {
-
+    	
+    	if(packet.getRequestType() == RequestType.ERROR) {
+    		// We found an error packet, now print out the message.
+    		ErrorPacketBuilder errorPacket = new ErrorPacketBuilder(packet.getPacket());
+    		return new TFTPError(errorPacket.getErrorType(), errorPacket.getCustomPackageErrorMessage());
+    	}
+    	
         // Check if address and port match the expected address and port.
-        if (!otherAddress.equals(packet.getPacket().getAddress()) || otherPort != packet.getPacket().getPort())
+        if (!mPacketOriginatingAddress.equals(packet.getPacket().getAddress()) || mPacketOriginatingPort != packet.getPacket().getPort())
             return new TFTPError(ErrorType.UNKNOWN_TRANSFER, Strings.UNKNOWN_TRANSFER);
                 
         // Check that the packet format is correct.
@@ -46,7 +55,7 @@ public class ErrorChecker {
     
     private String formatError(PacketBuilder packet, RequestType comType) {
     	
-    	byte[] data = packet.getPacket().getData();
+    	byte[] data = packet.getPacketBuffer();
     	if (data[0] != 0) return Strings.NON_ZERO_FIRST_BYTE;
     	if (RequestType.matchRequestByNumber(data[1]) != comType) 
     		return Strings.COMMUNICATION_TYPE_MISMATCH;
@@ -55,6 +64,7 @@ public class ErrorChecker {
     		case RRQ:
     		case WRQ:
     			if (data[2] == 0) return Strings.MISSING_FILENAME;
+    			if(data[data.length-1] != 0) return Strings.NON_ZERO_LAST_BYTE;
     			int secondZeroIndex = -1, thirdZeroIndex = -1;    			
     			
     			for (int i = 3; i < data.length; ++i) {
@@ -69,14 +79,16 @@ public class ErrorChecker {
     					
     				}
     			}
-    			byte[] filename = new byte[secondZeroIndex - 2];
-    			byte[] mode = new byte[thirdZeroIndex - secondZeroIndex];
-    			System.arraycopy(data, 2, filename, 0, filename.length);
-    			System.arraycopy(data, secondZeroIndex, mode, 0, mode.length);
-    			
-    			if (!mode.toString().equalsIgnoreCase("octet") && !mode.toString().equalsIgnoreCase("netascii"))
+    			if(data[secondZeroIndex] != 0) return Strings.NON_ZERO_PADDING;
+    			byte[] filenameBytes = new byte[secondZeroIndex - 2];
+    			byte[] modeBytes = new byte[thirdZeroIndex - secondZeroIndex - 1];
+    			System.arraycopy(data, 2, filenameBytes, 0, filenameBytes.length);
+    			System.arraycopy(data, secondZeroIndex + 1, modeBytes, 0, modeBytes.length);
+    			String filename = new String(filenameBytes);
+    			String mode = new String(modeBytes);
+    			if (!mode.equalsIgnoreCase("octet") && !mode.equalsIgnoreCase("netascii"))
     				return Strings.INVALID_MODE;
-    			if (!isValidFilename(filename.toString()))
+    			if (!isValidFilename(filename))
     				return Strings.INVALID_FILENAME;
     				
     			break;
@@ -84,15 +96,17 @@ public class ErrorChecker {
     		case DATA:
     			if (packet.getPacket().getData().length > Configurations.MAX_MESSAGE_SIZE) 
     				return Strings.PACKET_TOO_LARGE;
-    			if (expectedBlockNumber != ((DataPacketBuilder) packet).getBlockNumber()) 
+    			if (mExpectedBlockNumber != ((DataPacketBuilder) packet).getBlockNumber()) 
     				return Strings.BLOCK_NUMBER_MISMATCH; 
+    			incrementExpectedBlockNumber();
     			break;
     			
     		case ACK:
-    			if (packet.getPacket().getData().length != 4) 
+    			if (packet.getPacketLength() != 4) 
     				return Strings.INVALID_PACKET_SIZE;
-    			if (expectedBlockNumber != ((AckPacketBuilder) packet).getBlockNumber()) 
+    			if (mExpectedBlockNumber != ((AckPacketBuilder) packet).getBlockNumber()) 
     				return Strings.BLOCK_NUMBER_MISMATCH;
+    			incrementExpectedBlockNumber();
     			break;
     			
     		case ERROR:
