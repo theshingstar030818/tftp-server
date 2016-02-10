@@ -143,7 +143,7 @@ public class TFTPClient {
 		AckPacketBuilder ackPacket;
 		DatagramPacket lastPacket;
 		byte[] fileData = new byte[Configurations.MAX_BUFFER];
-		byte[] ackBuff;
+		byte[] packetBuffer;
 		try {
 			writeRequestFileStorageService = new FileStorageService(writeFileNameOrFilePath, InstanceType.CLIENT);
 
@@ -158,14 +158,11 @@ public class TFTPClient {
 
 			while (fileData != null && fileData.length >= Configurations.MAX_BUFFER) {
 				// This packet has the block number to start on!
-				ackBuff = new byte[Configurations.MAX_BUFFER];
-				lastPacket = new DatagramPacket(ackBuff, ackBuff.length);
+				packetBuffer = new byte[Configurations.MAX_BUFFER];
+				lastPacket = new DatagramPacket(packetBuffer, packetBuffer.length);
 
-				System.out.println("waiting on a ACK");
 				// receive a ACK packet
 				sendReceiveSocket.receive(lastPacket);
-
-				System.out.println("got a ACK");
 
 				// get the first block of file to transfer
 				fileData = writeRequestFileStorageService.getFileByteBufferFromDisk();
@@ -190,8 +187,8 @@ public class TFTPClient {
 				sendReceiveSocket.send(lastPacket);
 			}
 			// Receive the last ACK.
-			ackBuff = new byte[Configurations.LEN_ACK_PACKET_BUFFER];
-			lastPacket = new DatagramPacket(ackBuff, ackBuff.length);
+			packetBuffer = new byte[Configurations.LEN_ACK_PACKET_BUFFER];
+			lastPacket = new DatagramPacket(packetBuffer, packetBuffer.length);
 			sendReceiveSocket.receive(lastPacket);
 
 		} catch (Exception e) {
