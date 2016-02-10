@@ -12,6 +12,7 @@ public abstract class ErrorCodeSimulator {
 
 	/**
 	 * This function takes in a datagram packet and de-construct it
+	 * 
 	 * @param inPacket - passed in datagram packet
 	 * @return receivePacketBuilder - new constructed datagram packet depends
 	 * 		   different types of datagram packet passed in
