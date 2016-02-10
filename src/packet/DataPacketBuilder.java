@@ -94,16 +94,16 @@ public class DataPacketBuilder extends PacketBuilder {
 	@Override
 	public void deconstructPacket(DatagramPacket inDatagramPacket) {
 		setRequestTypeFromBuffer(this.mBuffer);
-		if(this.mRequestType == RequestType.ACK) {
+		if(this.mRequestType == RequestType.ACK || this.mRequestType == RequestType.DATA) {
 			byte[] byteBlockNumber = Arrays.copyOfRange(this.mBuffer, 2, 4);
 			this.mBlockNumber = Conversion.bytesToShort(byteBlockNumber);
 		} else {
 			this.mBlockNumber = 0;
 		}
 		
-		if(this.mBuffer.length > Configurations.LEN_ACK_PACKET_BUFFET) {
+		if(this.mBuffer.length > Configurations.LEN_ACK_PACKET_BUFFER) {
 			this.mDataBuffer = Arrays.copyOfRange(this.mBuffer, 
-					Configurations.LEN_ACK_PACKET_BUFFET, this.mBuffer.length);
+					Configurations.LEN_ACK_PACKET_BUFFER, this.mBuffer.length);
 		} else {
 			this.mDataBuffer = null;
 		}

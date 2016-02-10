@@ -15,6 +15,7 @@ import types.RequestType;
 public class ErrorPacketBuilder extends PacketBuilder {
 
 	private ErrorType mErrorType;
+	private String mErrorMessage;
 	
 	public ErrorPacketBuilder(InetAddress addressOfHost, int destPort) {
 		super(addressOfHost, destPort, RequestType.ERROR);
@@ -46,19 +47,52 @@ public class ErrorPacketBuilder extends PacketBuilder {
 		this.mBuffer[bufferLength - 1] = 0; // Null terminating zero
 		return new DatagramPacket(this.mBuffer, this.mBuffer.length, this.mInetAddress, this.mDestinationPort);
 	}
+	
+	public DatagramPacket buildPacket(ErrorType errorType, String customMessage) {
+		this.mErrorType = errorType;
+		byte[] errorHeaderBytes = RequestType.ERROR.getHeaderByteArray();
+		byte[] errorCodeBytes = Conversion.shortToBytes(errorType.getErrorCodeShort());
+		byte[] errorMessageBytes = customMessage.getBytes();
+		int bufferLength = errorHeaderBytes.length + 
+						   errorCodeBytes.length + 
+						   errorMessageBytes.length + 1;
+		this.mBuffer = new byte[bufferLength];
+		System.arraycopy(errorHeaderBytes, 0, this.mBuffer, 0, errorHeaderBytes.length);
+		System.arraycopy(errorCodeBytes, 0, this.mBuffer, errorHeaderBytes.length, errorCodeBytes.length);
+		System.arraycopy(errorMessageBytes, 0, this.mBuffer, errorHeaderBytes.length + errorCodeBytes.length, errorMessageBytes.length);
+		this.mBuffer[bufferLength - 1] = 0; // Null terminating zero
+		return new DatagramPacket(this.mBuffer, this.mBuffer.length, this.mInetAddress, this.mDestinationPort);
+	}
+
 
 	@Override
 	public void deconstructPacket(DatagramPacket inDatagramPacket) {
 		// Only using this to deconstruct to send back to sender
 		setRequestTypeFromBuffer(this.mBuffer);
 		if(this.mRequestType == RequestType.ERROR) {
-			this.mErrorType = ErrorType.matchErrorByNumber(this.mBuffer[3]);
+			byte[] errorOpCode = new byte[2];
+			System.arraycopy(this.mBuffer, 2, errorOpCode, 0, 2);
+			int errorOpInt = Conversion.bytesToShort(errorOpCode);
+			this.mErrorType = ErrorType.matchErrorByNumber(errorOpInt);
 		}
+		StringBuilder errorMessageExtractor = new StringBuilder();
+		// Extract the error message
+		byte[] errorMessageByte = new byte[this.mBuffer.length - 5];
+		System.arraycopy(this.mBuffer, 4, errorMessageByte, 0, errorMessageByte.length);
+		this.mErrorMessage = new String(errorMessageByte);
 	}
 	
 	@Override 
 	protected byte[] getRequestTypeHeaderByteArray() {
 		return RequestType.ERROR.getHeaderByteArray();
+	}
+	
+	public ErrorType getErrorType() {
+		return this.mErrorType;
+	}
+	
+	public String getCustomPackageErrorMessage() {
+		return this.mErrorMessage;
 	}
 	
 	/* (non-Javadoc)

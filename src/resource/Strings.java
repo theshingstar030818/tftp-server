@@ -19,6 +19,7 @@ public class Strings {
 	public static final String SERVER_RECEIVE_ERROR = "Failed to receive packet on main thread.";
 	public static final String SERVER_ACCEPT_CONNECTION = "Server has accepted a connection!";
 	public static final String EXITING = "Server listening port is closing, connected threads ending after transfer completes.";
+	public static final String SS_TRANSFER_FINISHED = "Service thread finished work, exiting.";
 	
 	// Client messages.
 	public static final String PROMPT_ENTER_FILE_NAME = "Please enter file name:";
@@ -44,6 +45,7 @@ public class Strings {
 	// TFTP error message templates.
 	public static final String NON_ZERO_FIRST_BYTE = "First byte is not 0.";
 	public static final String NON_ZERO_LAST_BYTE = "Last byte is not 0.";
+	public static final String NON_ZERO_PADDING = "Filename and mode did not have a 0 padding.";
 	public static final String COMMUNICATION_TYPE_MISMATCH = "Unexpected communication type.";
 	public static final String MISSING_FILENAME = "Missing filename.";
 	public static final String INVALID_FILENAME = "Invalid filename.";
@@ -59,4 +61,11 @@ public class Strings {
 	// Error simulator messages 
 	public static final String ES_START_LISTENING = "Starting to listen for traffic";
 	public static final String ES_INITIALIZED = "Error simulator initiated on port %d.\n";
+	public static final String ES_TRANSFER_ERROR = "Transfered an unrecoverable error packet, shutting down.";
+	public static final String ES_TRANSFER_SUCCESS =  "Finished transfer and shutting down";
+	public static final String ES_RETRIEVE_PACKET_CLIENT = "Preparing to retrieve packet from client.";
+	public static final String ES_SEND_PACKET_CLIENT = "Preparing to send packet to client.";
+	public static final String ES_GOT_LAST_PACKET_WRQ = "Got last write packet, fwding ACK to client";
+	public static final String ES_RETRIEVE_PACKET_SERVER = "Preparing to retrieve packet from server.";
+	
 }

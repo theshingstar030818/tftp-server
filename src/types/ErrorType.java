@@ -131,7 +131,6 @@ public enum ErrorType {
 	 * @return
 	 */
 	public static ErrorType matchErrorByNumber(int num) {
-		num -= 1;
 		switch(num) {
 			case 0:
 				return ErrorType.NOT_DEFINED;

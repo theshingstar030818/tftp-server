@@ -53,7 +53,7 @@ public class AckPacketBuilder extends PacketBuilder {
 	 */
 	@Override
 	public DatagramPacket buildPacket() {
-		this.mBuffer = new byte[Configurations.LEN_ACK_PACKET_BUFFET];
+		this.mBuffer = new byte[Configurations.LEN_ACK_PACKET_BUFFER];
 		byte[] udpHeader = getRequestTypeHeaderByteArray();
 		byte[] blockNumber = Conversion.shortToBytes(this.mBlockNumber);
 		
@@ -70,7 +70,7 @@ public class AckPacketBuilder extends PacketBuilder {
 	@Override
 	public void deconstructPacket(DatagramPacket inDatagramPacket) {
 		setRequestTypeFromBuffer(this.mBuffer);
-		if(this.mRequestType == RequestType.DATA) {
+		if(this.mRequestType == RequestType.DATA || this.mRequestType == RequestType.ACK) {
 			byte[] byteBlockNumber = Arrays.copyOfRange(this.mBuffer, 2, 4);
 			this.mBlockNumber = Conversion.bytesToShort(byteBlockNumber);
 		} else if(this.mRequestType == RequestType.RRQ) {

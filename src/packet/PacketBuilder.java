@@ -85,11 +85,22 @@ public abstract class PacketBuilder {
 
 	/**
 	 * Gets the file segment of the packet. This function will return the actual
-	 * file bytes, retrieved from the packet
+	 * file bytes, retrieved from the packet. 
+	 * 
+	 * ***WARNING*** 
+	 * Do not use this method if you are using DataPacketBuilder.
+	 * That class has overridden this method to return the payload 
+	 * for file transferring. Please use getPacketBuffer()
 	 * 
 	 * @return byte[] buffer
 	 */
-	public abstract byte[] getDataBuffer();
+	public byte[] getDataBuffer() {
+		return this.mBuffer;
+	}
+	
+	public byte[] getPacketBuffer() {
+		return this.mBuffer;
+	}
 	
 	/**
 	 * Returns the length of the packet buffer
@@ -194,11 +205,7 @@ public abstract class PacketBuilder {
 		}
 	}
 	
-	public byte[] getReadWriteBuffer(){
-		return (this.mBuffer);
-	}
-	
-	public void setReadWritetBuffer(byte[] buffer){
+	public void setDataBuffer(byte[] buffer){
 		this.mBuffer = buffer;
 	}
 	

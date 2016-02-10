@@ -11,11 +11,11 @@ public class TFTPUserInterface {
 
 	//by default set the log level to debug
 	private static Logger logger = Logger.VERBOSE;
-	private int mUserErrorOption = 0;
+	private ErrorType mUserErrorOption;
 	private int mUserErrorSubOption = 0;
 	
 	public TFTPUserInterface() {
-		this.mUserErrorOption = 0;
+		this.mUserErrorOption = ErrorType.NO_ERROR;
 		this.mUserErrorSubOption = 0;
 	}
 	
@@ -47,23 +47,23 @@ public class TFTPUserInterface {
 				// file not found
 				logger.print(Logger.DEBUG,Strings.OPERATION_NOT_SUPPORTED);
 				validInput = true;
-				this.mUserErrorOption = 1;
+				this.mUserErrorOption = ErrorType.FILE_NOT_FOUND;
 				break;
 			case 2:
 				// Access violation
 				logger.print(Logger.DEBUG,Strings.OPERATION_NOT_SUPPORTED);
 				validInput = true;
-				this.mUserErrorOption = 2;
+				this.mUserErrorOption = ErrorType.ACCESS_VIOLATION;
 				break;
 			case 3:
 				// Disk full or allocation exceeded
 				logger.print(Logger.DEBUG,Strings.OPERATION_NOT_SUPPORTED);
 				validInput = true;
-				this.mUserErrorOption = 3;
+				this.mUserErrorOption = ErrorType.ALLOCATION_EXCEED;
 				break;
 			case 4:
 				// illegal TFTP operation option
-				this.mUserErrorOption = 4;
+				this.mUserErrorOption = ErrorType.ILLEGAL_OPERATION;
 				//printIllegalTFTPOperation();
 				this.getSubOption(UIStrings.MENU_ERROR_SIMULATOR_ILLEGAL_TFTP_OPERATION, 8);
 				if (this.mUserErrorSubOption == 8) {
@@ -76,7 +76,7 @@ public class TFTPUserInterface {
 				break;
 			case 5:
 				// unknown transfer ID operation option
-				this.mUserErrorOption = 5;
+				this.mUserErrorOption = ErrorType.UNKNOWN_TRANSFER;
 				this.mUserErrorSubOption = 0;
 				validInput = true;
 				break;
@@ -84,41 +84,33 @@ public class TFTPUserInterface {
 				// File already exists
 				logger.print(Logger.DEBUG,Strings.OPERATION_NOT_SUPPORTED);
 				validInput = true;
-				this.mUserErrorOption = 6;
+				this.mUserErrorOption = ErrorType.FILE_EXISTS;
 				break;
 			case 7:
 				// No such user
 				logger.print(Logger.DEBUG,Strings.OPERATION_NOT_SUPPORTED);
 				validInput = true;
-				this.mUserErrorOption = 7;
+				this.mUserErrorOption = ErrorType.NO_SUCH_USER;
 				break;
 			case 8:
 				// No error
 				System.out.println("Alright boss.");
 				validInput = true;
-				this.mUserErrorOption = 8;
+				this.mUserErrorOption = ErrorType.NO_ERROR;
 				break;
 			case 9:
 				// No error
 				System.out.println(Strings.EXIT_BYE);
 				validInput = true;
-				this.mUserErrorOption = -2;
+				this.mUserErrorOption = ErrorType.EXIT;
 				break;
 			default:
 				System.out.println(Strings.ERROR_INPUT);
 				break;
 			}
 		} 
-		ErrorType errorTypeReturn;
-		if(this.mUserErrorOption == 0) {
-			errorTypeReturn = ErrorType.NO_ERROR;
-		} else if(this.mUserErrorOption == -2) {
-			errorTypeReturn = ErrorType.EXIT;
-		}else {
-			errorTypeReturn = ErrorType.matchErrorByNumber(this.mUserErrorOption);
-		}
 		return new Tuple<ErrorType, Integer>(
-				errorTypeReturn, 
+				this.mUserErrorOption, 
 				this.mUserErrorSubOption);
 	}
 	
