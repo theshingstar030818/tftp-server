@@ -269,6 +269,7 @@ public class TFTPClient {
 				
 				if (errorChecker == null) {
 					errorChecker = new ErrorChecker(dataPacketBuilder);
+					errorChecker.incrementExpectedBlockNumber();
 				}
 
 				TFTPError currErrorType = errorChecker.check(dataPacketBuilder, RequestType.DATA);

@@ -1,9 +1,13 @@
 package testbed;
 
+import java.util.HashSet;
+import java.util.Set;
+
 import helpers.Keyboard;
 import resource.Strings;
 import resource.UIStrings;
 import types.ErrorType;
+import types.InstanceType;
 import types.Logger;
 import resource.Tuple;
 
@@ -30,7 +34,7 @@ public class TFTPUserInterface {
 		logger.print(Logger.VERBOSE, UIStrings.MENU_ERROR_SIMULATOR_ILLEGAL_TFTP_OPERATION);
 	}
 	
-	public Tuple<ErrorType,Integer> getErrorCodeFromUser() {
+	public Tuple<ErrorType,Integer> getErrorCodeFromUser(InstanceType instance) {
 		int optionSelected = 0;
 		boolean validInput = false;
 		
@@ -41,6 +45,7 @@ public class TFTPUserInterface {
 			} catch (NumberFormatException e) {
 				optionSelected = 0;
 			}
+			
 			
 			switch (optionSelected) {
 			case 1:
@@ -65,7 +70,7 @@ public class TFTPUserInterface {
 				// illegal TFTP operation option
 				this.mUserErrorOption = ErrorType.ILLEGAL_OPERATION;
 				//printIllegalTFTPOperation();
-				this.getSubOption(UIStrings.MENU_ERROR_SIMULATOR_ILLEGAL_TFTP_OPERATION, 8);
+				this.getSubOption(UIStrings.MENU_ERROR_SIMULATOR_ILLEGAL_TFTP_OPERATION, 8, instance);
 				if (this.mUserErrorSubOption == 8) {
 					// go back to the previous level
 					this.mUserErrorSubOption = 0;
@@ -143,6 +148,32 @@ public class TFTPUserInterface {
 		}
 		return logger;
 	}
+	
+	public InstanceType printTestableProcess() {
+		int optionSelected = 0;
+		boolean validInput = false;
+		while(!validInput){
+			printSelectLogLevelMenu();
+			
+			try {
+				optionSelected = Keyboard.getInteger();
+			} catch (NumberFormatException e) {
+				optionSelected = 0;
+			}
+			
+			switch (optionSelected) {
+			case 1:
+				return InstanceType.CLIENT;
+			case 2:
+				return InstanceType.SERVER;
+			default:
+				System.out.println(Strings.ERROR_INPUT);
+				break;
+			}					
+		}
+		return InstanceType.SERVER;
+	}
+	
 	private static void printSelectLogLevelMenu() {
 		System.out.println(UIStrings.MENU_ERROR_SIMULATOR_LOG_LEVEL);
 	}
@@ -152,10 +183,13 @@ public class TFTPUserInterface {
 	 * @param s - the string you want to prompt user
 	 * @param max - the maximum valid input 
 	 */
-	private void getSubOption(String s, int max) {
+	private void getSubOption(String s, int max, InstanceType instance) {
 		int subOpt;
 		boolean validInput = false;
-			
+//		Set<Integer> nonValidChoices = new HashSet<>();
+//		if(instance == InstanceType.CLIENT) {
+//			nonValidChoices = Sets.mutable.with("Buenos Aires", "Córdoba", "La Plata");
+//		}
 		while (!validInput) {
 			// print out the message
 			System.out.println(s);
