@@ -33,6 +33,7 @@ public class Strings {
 	public static final String CLIENT_INITIATING_FIE_STORAGE_SERVICE = "Client initiating file storage service . . .";
 	public static final String FILE_NAME = "File name : ";
 	public static final String SENDING = "Sending : ";	
+	public static final String CLIENT_INITIATE_READ_REQUEST = "Client initiating read request . . .";
 	
 	// TFTP error messages.
 	public static final String NOT_DEFINED = "Not defined, see error message (if any).";
@@ -79,6 +80,7 @@ public class Strings {
 	public static final String WRQ = "WRITE PACKET";
 	public static final String ERROR = "ERROR PACKET";
 	public static final String NONE = "PACKET NOT DEFINED !! ";
+	
 	
 	
 }

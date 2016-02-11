@@ -8,7 +8,6 @@ public class ErrorCodeFive {
 	private DatagramPacket receivePacket;
 	private DatagramSocket errorSocket;
 	private InetAddress clientAddress;
-	private InetAddress serverAddress;
 	
 	
 	public ErrorCodeFive (DatagramPacket receivePacket){
@@ -20,9 +19,6 @@ public class ErrorCodeFive {
 		if(packetCount == 1){
 			clientAddress = receivePacket.getAddress();
 		}
-		if(packetCount == 2){
-			serverAddress = receivePacket.getAddress();
-		}
 	}
 		
 	private boolean checkToCreatErrorSocket(){
@@ -33,7 +29,7 @@ public class ErrorCodeFive {
 	}
 	
 	private DatagramSocket createErrorSocket(){
-		DatagramSocket errorSocket = null;
+		 errorSocket = null;
 		try{
 			errorSocket = new DatagramSocket();
 		}

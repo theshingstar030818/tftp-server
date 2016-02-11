@@ -44,7 +44,7 @@ public class TFTPClient {
 	}
 
 	public TFTPClient() {
-		logger.setClassTag(this.CLASS_TAG);
+		
 	}
 
 	/**
@@ -52,9 +52,10 @@ public class TFTPClient {
 	 * of the program from running until a exit command was given.
 	 */
 	public void initialize() {
+		logger.setClassTag(this.CLASS_TAG);
 		Scanner scan = new Scanner(System.in);
 		try {
-			int mode = getSendPort();
+			mode = getSendPort();
 			if (mode == 1) {
 				this.mPortToSendTo = Configurations.SERVER_LISTEN_PORT;
 			} else {
@@ -161,8 +162,8 @@ public class TFTPClient {
 					Configurations.DEFAULT_RW_MODE);
 
 			lastPacket = wpb.buildPacket();
-			logger.print(Logger.VERBOSE, Strings.SENDING);
-			BufferPrinter.printPacket(wpb,logger);
+			Logger.VERBOSE.print(Logger.VERBOSE, Strings.SENDING);
+			BufferPrinter.printPacket(wpb,Logger.VERBOSE);
 			sendReceiveSocket.send(lastPacket);
 
 			while (fileData != null && fileData.length >= Configurations.MAX_PAYLOAD_BUFFER) {
@@ -203,8 +204,8 @@ public class TFTPClient {
 			packetBuffer = new byte[Configurations.MAX_BUFFER];
 			lastPacket = new DatagramPacket(packetBuffer, packetBuffer.length);
 			sendReceiveSocket.receive(lastPacket);
-			logger.print(Logger.VERBOSE, "Recevied last packet : ");
-			BufferPrinter.printPacket(new AckPacketBuilder(lastPacket),logger);
+			Logger.VERBOSE.print(Logger.VERBOSE, "Recevied last packet : ");
+			BufferPrinter.printPacket(new AckPacketBuilder(lastPacket),Logger.VERBOSE);
 
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -219,10 +220,12 @@ public class TFTPClient {
 	 * This function create a read request for the client and stores the file
 	 * retrieved from the server on to the file system
 	 * 
-	 * @param readFileName
+	 * @param readFileName	
 	 *            - the name of the file that the client requests from server
 	 */
 	private TFTPError readRequestHandler(String readFileName) throws Exception {
+		
+		logger.print(Logger.VERBOSE, Strings.CLIENT_INITIATE_READ_REQUEST);
 
 		AckPacketBuilder ackPacketBuilder;
 		DatagramPacket lastPacket;
@@ -234,6 +237,7 @@ public class TFTPClient {
 		byte[] dataBuf = new byte[Configurations.MAX_MESSAGE_SIZE];
 
 		try {
+			logger.print(Logger.VERBOSE, Strings.CLIENT_INITIATING_FIE_STORAGE_SERVICE);
 			readRequestFileStorageService = new FileStorageService(readFileName, InstanceType.CLIENT);
 			// build read request packet
 
@@ -241,10 +245,12 @@ public class TFTPClient {
 
 			rpb = new ReadPacketBuilder(InetAddress.getLocalHost(), this.mPortToSendTo, readFileName,
 					Configurations.DEFAULT_RW_MODE);
-
+			
 			// now get the packet from the ReadPacketBuilder
 			lastPacket = rpb.buildPacket();
-
+			
+			Logger.VERBOSE.print(Logger.VERBOSE, Strings.SENDING);
+			BufferPrinter.printPacket(rpb,Logger.VERBOSE);
 			// send the read packet over sendReceiveSocket
 			sendReceiveSocket.send(lastPacket);
 
@@ -255,10 +261,12 @@ public class TFTPClient {
 
 				// receive a data packet
 				sendReceiveSocket.receive(lastPacket);
+				logger.print(Logger.VERBOSE, "Recevied : ");
 				
 				// Use the packet builder class to manage and extract the data
 				dataPacketBuilder = new DataPacketBuilder(lastPacket);
-
+				BufferPrinter.printPacket(dataPacketBuilder, logger);
+				
 				if (errorChecker == null) {
 					errorChecker = new ErrorChecker(dataPacketBuilder);
 					errorChecker.incrementExpectedBlockNumber();
@@ -269,7 +277,7 @@ public class TFTPClient {
 					errorChecker = null;
 					return currErrorType;
 				}
-
+				
 				byte[] fileData = dataPacketBuilder.getDataBuffer();
 				// We need trim the byte array
 
@@ -279,8 +287,12 @@ public class TFTPClient {
 				// Prepare to ACK the data packet
 				ackPacketBuilder = new AckPacketBuilder(lastPacket);
 				// Always send the ACK back to the error sim (BAD)
-
+				
 				lastPacket = ackPacketBuilder.buildPacket();
+				
+				logger.print(Logger.VERBOSE, Strings.SENDING);
+				BufferPrinter.printPacket(ackPacketBuilder, logger);
+				
 				sendReceiveSocket.send(lastPacket);
 			}
 		} catch (Exception e) {
