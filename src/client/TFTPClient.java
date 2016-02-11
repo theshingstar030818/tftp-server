@@ -55,7 +55,7 @@ public class TFTPClient {
 		logger.setClassTag(this.CLASS_TAG);
 		Scanner scan = new Scanner(System.in);
 		try {
-			int mode = getSendPort();
+			mode = getSendPort();
 			if (mode == 1) {
 				this.mPortToSendTo = Configurations.SERVER_LISTEN_PORT;
 			} else {
@@ -269,6 +269,7 @@ public class TFTPClient {
 				
 				if (errorChecker == null) {
 					errorChecker = new ErrorChecker(dataPacketBuilder);
+					errorChecker.incrementExpectedBlockNumber();
 				}
 
 				TFTPError currErrorType = errorChecker.check(dataPacketBuilder, RequestType.DATA);

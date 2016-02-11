@@ -145,6 +145,7 @@ public class TFTPService implements Runnable {
 		BufferPrinter.printPacket(readRequest, Logger.VERBOSE, RequestType.RRQ);
 		
 		String vFileName = readRequest.getFilename();
+		AckPacketBuilder ackPacket;
 		try {
 			// First check for formatting errors and IO errors 
 			TFTPError error = errorChecker.check(readRequest, RequestType.RRQ);
@@ -155,6 +156,9 @@ public class TFTPService implements Runnable {
 					return;
 				}
 			}
+			
+			errorChecker.incrementExpectedBlockNumber();
+			
 			FileStorageService vFileStorageService = new FileStorageService( vFileName );
 			byte[] vEmptyData = new byte[Configurations.MAX_BUFFER];
 
@@ -172,7 +176,8 @@ public class TFTPService implements Runnable {
 				byte[] data = new byte[Configurations.MAX_BUFFER];
 				DatagramPacket vReceivePacket = new DatagramPacket(data, data.length);
 				mSendReceiveSocket.receive(vReceivePacket);
-				error = errorChecker.check(new AckPacketBuilder(vReceivePacket), RequestType.ACK);
+				ackPacket = new AckPacketBuilder(vReceivePacket);
+				error = errorChecker.check(ackPacket, RequestType.ACK);
 				if (error.getType() != ErrorType.NO_ERROR) {
 					if(errorHandle(error, vReceivePacket)) {
 						return;

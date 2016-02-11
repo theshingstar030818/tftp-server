@@ -25,4 +25,5 @@ public class Configurations {
 	public static final String DEFAULT_FILENAME = "file";
 	public static final int LEN_ACK_PACKET_BUFFER = 4;
 	public static final String SERVER_INET_HOST = "localhost";
+	public static final int ERROR_PACKET_USELESS_VALUES = 5;
 }

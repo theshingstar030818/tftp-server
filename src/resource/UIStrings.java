@@ -35,12 +35,12 @@ public class UIStrings {
 			   				   + "Select option : ";
 	 public static final String MENU_ERROR_SIMULATOR_LOG_LEVEL 
 							   = "----------------------------------\n"
-			   				   + "| Error Simulator Log Level Menu |\n"
+			   				   + "|    Error Simulator Test Menu    |\n"
 			   				   + "----------------------------------\n"
 			   				   +"Please select logging level for this session\n"
 			   				   + "Options : \n"
-			   				   + "\t 1. VERBOSE\n"
-			   				   + "\t 2. NORMAL\n"
+			   				   + "\t 1. Interfere with Client Packets\n"
+			   				   + "\t 2. Interfere with Server Packets\n"
 			   				   + "Select option : ";
 	 public static final String MENU_CLIENT_SELECTION 
 							   = "----------------------\n"
