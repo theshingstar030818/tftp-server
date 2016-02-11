@@ -96,6 +96,7 @@ public class TFTPServer implements Callback {
 				byte[] buffer = new byte[Configurations.MAX_BUFFER]; 
 				receivePacket = new DatagramPacket(buffer, buffer.length);
 				serverSock.receive(receivePacket);
+				System.out.println("Received packet from server (right socket)");
 			} catch (SocketTimeoutException e) {
 				continue;
 			} catch (SocketException e) {

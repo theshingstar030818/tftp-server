@@ -3,26 +3,27 @@ package testbed;
 import java.io.IOException;
 import java.net.*;
 
+import resource.Configurations;
+
 public class ErrorCodeFive {
 	private int packetCount = 0;
-	private DatagramPacket receivePacket;
+	private DatagramPacket sendPacket;
 	private DatagramSocket errorSocket;
-	private InetAddress clientAddress;
+	private InetAddress clientAddress;	
 	
-	
-	public ErrorCodeFive (DatagramPacket receivePacket){
-		this.receivePacket = receivePacket;
+	public ErrorCodeFive (DatagramPacket sendPacket){
+		this.sendPacket = sendPacket;
 		packetCount++;
 		setClientAddress();
 	}
 	private void setClientAddress(){
 		if(packetCount == 1){
-			clientAddress = receivePacket.getAddress();
+			clientAddress = sendPacket.getAddress();
 		}
 	}
 		
 	private boolean checkToCreatErrorSocket(){
-		if(receivePacket.getAddress() == clientAddress && packetCount==3){
+		if(sendPacket.getAddress() == clientAddress && packetCount>=3){
 			return true;
 		}
 		return false;
@@ -41,18 +42,29 @@ public class ErrorCodeFive {
 	}
 	
 	public void sendThroughErrorSocket(){
-		if(checkToCreatErrorSocket()){
+		while(checkToCreatErrorSocket()){
+			DatagramSocket newSocket = createErrorSocket();
 			 try {
-				 createErrorSocket().send(receivePacket);
+				 newSocket.send(sendPacket);
 		      } 
 		     catch (IOException e) {
 		         e.printStackTrace();
 		         System.exit(1);
 		      }
+			 //receive error message from server
+			 byte data[] = new byte[Configurations.MAX_BUFFER];
+		      DatagramPacket receivePacket = new DatagramPacket(data, data.length);
+		      try { 
+		    	  newSocket.receive(receivePacket);
+		       } 
+		      catch(IOException e) { 
+		          e.printStackTrace();
+		          System.exit(1);
+		       }
 		}
-		else{
-			System.out.println("The recieved packet is not sent through an error socket");
-		}
+		if(!checkToCreatErrorSocket()){
+			System.out.println("The recieved packet is not sent through an error socket");}
+		
 	}
 
 }
