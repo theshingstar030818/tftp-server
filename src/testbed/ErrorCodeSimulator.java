@@ -17,7 +17,7 @@ public abstract class ErrorCodeSimulator {
 	 * @return receivePacketBuilder - new constructed datagram packet depends
 	 * 		   different types of datagram packet passed in
 	 */
-	private PacketBuilder constructPacketBuilder(DatagramPacket inPacket) {
+	public void constructPacketBuilder(DatagramPacket inPacket) {
 		byte[] buffer = inPacket.getData();
 
 		switch (buffer[1]) {
@@ -37,7 +37,6 @@ public abstract class ErrorCodeSimulator {
 			this.receivePacketBuilder = new ErrorPacketBuilder(inPacket);
 			break;
 		}
-		return this.receivePacketBuilder;
 	}
 	
 

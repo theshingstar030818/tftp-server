@@ -142,7 +142,7 @@ public class TFTPClient {
 		DataPacketBuilder dataPacket;
 		AckPacketBuilder ackPacket;
 		DatagramPacket lastPacket;
-		byte[] fileData = new byte[Configurations.MAX_BUFFER];
+		byte[] fileData = new byte[Configurations.MAX_PAYLOAD_BUFFER];
 		byte[] packetBuffer;
 		try {
 			writeRequestFileStorageService = new FileStorageService(writeFileNameOrFilePath, InstanceType.CLIENT);
@@ -156,7 +156,7 @@ public class TFTPClient {
 			lastPacket = wpb.buildPacket();
 			sendReceiveSocket.send(lastPacket);
 
-			while (fileData != null && fileData.length >= Configurations.MAX_BUFFER) {
+			while (fileData != null && fileData.length >= Configurations.MAX_PAYLOAD_BUFFER) {
 				// This packet has the block number to start on!
 				packetBuffer = new byte[Configurations.MAX_BUFFER];
 				lastPacket = new DatagramPacket(packetBuffer, packetBuffer.length);
@@ -187,7 +187,7 @@ public class TFTPClient {
 				sendReceiveSocket.send(lastPacket);
 			}
 			// Receive the last ACK.
-			packetBuffer = new byte[Configurations.LEN_ACK_PACKET_BUFFER];
+			packetBuffer = new byte[Configurations.MAX_BUFFER];
 			lastPacket = new DatagramPacket(packetBuffer, packetBuffer.length);
 			sendReceiveSocket.receive(lastPacket);
 
@@ -235,7 +235,7 @@ public class TFTPClient {
 
 			// loop until no more packets to receive
 			while (morePackets) {
-				dataBuf = new byte[Configurations.MAX_MESSAGE_SIZE];
+				dataBuf = new byte[Configurations.MAX_BUFFER];
 				lastPacket = new DatagramPacket(dataBuf, dataBuf.length);
 
 				// receive a data packet

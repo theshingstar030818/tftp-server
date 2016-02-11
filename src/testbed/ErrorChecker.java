@@ -59,7 +59,8 @@ public class ErrorChecker {
     	if (data[0] != 0) return Strings.NON_ZERO_FIRST_BYTE;
     	if (RequestType.matchRequestByNumber(data[1]) != comType) 
     		return Strings.COMMUNICATION_TYPE_MISMATCH;
-    	
+    	if (data.length > Configurations.MAX_MESSAGE_SIZE) 
+			return Strings.PACKET_TOO_LARGE;
     	switch (comType) {
     		case RRQ:
     		case WRQ:
@@ -94,8 +95,6 @@ public class ErrorChecker {
     			break;
     			
     		case DATA:
-    			if (packet.getPacket().getData().length > Configurations.MAX_MESSAGE_SIZE) 
-    				return Strings.PACKET_TOO_LARGE;
     			if (mExpectedBlockNumber != ((DataPacketBuilder) packet).getBlockNumber()) 
     				return Strings.BLOCK_NUMBER_MISMATCH; 
     			incrementExpectedBlockNumber();

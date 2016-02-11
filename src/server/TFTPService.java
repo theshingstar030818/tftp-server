@@ -77,7 +77,7 @@ public class TFTPService implements Runnable {
 			byte[] vEmptyData = new byte[Configurations.MAX_BUFFER];
 			boolean vHasMore = true;
 			while ( vHasMore ){
-				byte[] data = new byte[Configurations.MAX_MESSAGE_SIZE];
+				byte[] data = new byte[Configurations.MAX_BUFFER];
 				this.mLastPacket = new DatagramPacket(data, data.length);
 				
 				this.mSendReceiveSocket.receive(this.mLastPacket);
@@ -132,14 +132,14 @@ public class TFTPService implements Runnable {
 			FileStorageService vFileStorageService = new FileStorageService( vFileName );
 			byte[] vEmptyData = new byte[Configurations.MAX_BUFFER];
 
-			while (vEmptyData != null && vEmptyData.length >= Configurations.MAX_BUFFER ){
+			while (vEmptyData != null && vEmptyData.length >= Configurations.MAX_PAYLOAD_BUFFER ){
 				vEmptyData = vFileStorageService.getFileByteBufferFromDisk();
 				// Building a data packet from the last packet ie. will increment block number
 				DataPacketBuilder vDataPacket = new DataPacketBuilder(this.mLastPacket);
 				DatagramPacket vSendPacket = vDataPacket.buildPacket(vEmptyData);
 				mSendReceiveSocket.send(vSendPacket);
 				// Receive ACK packets from the client, then we can proceed to send more DATA
-				byte[] data = new byte[Configurations.LEN_ACK_PACKET_BUFFER];
+				byte[] data = new byte[Configurations.MAX_BUFFER];
 				DatagramPacket vReceivePacket = new DatagramPacket(data, data.length);
 				mSendReceiveSocket.receive(vReceivePacket);
 				error = errorChecker.check(new AckPacketBuilder(vReceivePacket), RequestType.ACK);
@@ -151,7 +151,7 @@ public class TFTPService implements Runnable {
 
 				this.mLastPacket = vReceivePacket;
 			}
-			byte[] data = new byte[Configurations.LEN_ACK_PACKET_BUFFER];
+			byte[] data = new byte[Configurations.MAX_BUFFER];
 			DatagramPacket vReceivePacket = new DatagramPacket(data, data.length);
 			this.mSendReceiveSocket.receive(vReceivePacket);
 			System.err.println("If the code reached here, the bug was fixed. Make sure the last ack packet was acked");
@@ -213,6 +213,9 @@ public class TFTPService implements Runnable {
 				handleFileReadOperation(vReadPacket);
 				break;
 			default:
+				logger.print(Logger.ERROR, Strings.SS_WRONG_PACKET);
+				TFTPError error = new TFTPError(ErrorType.ILLEGAL_OPERATION, Strings.SS_WRONG_PACKET);
+				errorHandle(error, vClientRequestPacket.getPacket());
 				break;
 		}
 		

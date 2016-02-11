@@ -150,7 +150,7 @@ public class FileStorageService {
 		this.mBytesProcessed += bytesWritten;
 		
 		// Check if we received a length zero
-		if(bytesWritten < Configurations.MAX_BUFFER) {
+		if(bytesWritten < Configurations.MAX_PAYLOAD_BUFFER) {
 			System.out.println(Strings.FILE_WRITE_COMPLETE);
 			try {
 				// Force the changes into disk, without force(false) we would write 
@@ -177,7 +177,7 @@ public class FileStorageService {
 	 * @return boolean - if there is or is not any more file content to buffer 
 	 */
 	public byte[] getFileByteBufferFromDisk() {
-		ByteBuffer fileBuffer = ByteBuffer.allocate(Configurations.MAX_BUFFER);
+		ByteBuffer fileBuffer = ByteBuffer.allocate(Configurations.MAX_PAYLOAD_BUFFER);
 		int bytesRead = 0;
 		try {
 			bytesRead = this.mFileChannel.read(fileBuffer, this.mBytesProcessed);
@@ -191,7 +191,7 @@ public class FileStorageService {
 		// Increment the total number number of bytes processed
 		this.mBytesProcessed += bytesRead;
 		// We determine if we reached the end of the file
-		if(bytesRead < Configurations.MAX_BUFFER) {
+		if(bytesRead < Configurations.MAX_PAYLOAD_BUFFER) {
 			// We found the end of the file, or something bad happened where we cannot
 			// read anymore of the file
 			System.out.println(Strings.FILE_WRITE_COMPLETE);
