@@ -171,13 +171,16 @@ public class TFTPClient {
 			sendReceiveSocket.send(lastPacket);
 
 			while (fileData != null && fileData.length >= Configurations.MAX_PAYLOAD_BUFFER) {
-				// This packet has the block number to start on!
-				packetBuffer = new byte[Configurations.MAX_BUFFER];
-				lastPacket = new DatagramPacket(packetBuffer, packetBuffer.length);
+				
 
 				boolean legalTransferID = false;
 				
 				do {
+					
+					// This packet has the block number to start on!
+					packetBuffer = new byte[Configurations.MAX_BUFFER];
+					lastPacket = new DatagramPacket(packetBuffer, packetBuffer.length);
+					
 					sendReceiveSocket.receive(lastPacket);
 					logger.print(Logger.VERBOSE, "Recevied : ");
 					
@@ -268,13 +271,15 @@ public class TFTPClient {
 
 			// loop until no more packets to receive
 			while (morePackets) {
-				dataBuf = new byte[Configurations.MAX_BUFFER];
-				lastPacket = new DatagramPacket(dataBuf, dataBuf.length);
-
-				// receive a data packet
+				
 				boolean legalTransferID = false;
 				
 				do{
+					
+					dataBuf = new byte[Configurations.MAX_BUFFER];
+					lastPacket = new DatagramPacket(dataBuf, dataBuf.length);
+
+					// receive a data packet
 					sendReceiveSocket.receive(lastPacket);
 					logger.print(Logger.VERBOSE, "Recevied : ");
 					
