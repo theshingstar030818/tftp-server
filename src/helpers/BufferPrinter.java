@@ -27,9 +27,8 @@ public class BufferPrinter {
 		logLevel.print(Logger.VERBOSE, strBuilder.toString());
 	}
 	
-	public static void printPacket(PacketBuilder pb,Logger logger){
+	public static void printPacket(PacketBuilder pb,Logger logger, RequestType requestType){
 		
-		RequestType requestType = pb.getRequestType();
 		PacketBuilderFactory pbf;
 		
 		switch (requestType) {
@@ -70,7 +69,11 @@ public class BufferPrinter {
 		
 		logger.print(Logger.VERBOSE, "IP Address : " + pb.getPacket().getAddress());
 		logger.print(Logger.VERBOSE, "Port : " + pb.getPacket().getPort());
-		logger.print(Logger.VERBOSE, "Block # : " + pb.getBlockNumber());
+		
+		if(pb.getBlockNumber() >= 0){
+			logger.print(Logger.VERBOSE, "Block # : " + pb.getBlockNumber());
+		}
+		
 		logger.print(Logger.VERBOSE, "Packet length : " + pb.getPacketLength());
 		logger.print(Logger.VERBOSE, "Raw packet value : " + Arrays.toString(pb.getPacketBuffer()) );
 		logger.print(Logger.VERBOSE, "String value : " + bufferToString(pb.getPacketBuffer()) );
