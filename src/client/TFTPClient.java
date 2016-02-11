@@ -10,6 +10,7 @@ import java.net.InetAddress;
 import java.net.SocketException;
 import java.util.Scanner;
 
+import helpers.BufferPrinter;
 import helpers.FileStorageService;
 import helpers.Keyboard;
 import packet.*;
@@ -155,10 +156,13 @@ public class TFTPClient {
 			String actualFileName;
 
 			actualFileName = writeRequestFileStorageService.getFileName();
+			
 			wpb = new WritePacketBuilder(InetAddress.getLocalHost(), this.mPortToSendTo, actualFileName,
 					Configurations.DEFAULT_RW_MODE);
 
 			lastPacket = wpb.buildPacket();
+			logger.print(Logger.VERBOSE, Strings.SENDING);
+			BufferPrinter.printPacket(wpb,logger);
 			sendReceiveSocket.send(lastPacket);
 
 			while (fileData != null && fileData.length >= Configurations.MAX_PAYLOAD_BUFFER) {
@@ -166,18 +170,19 @@ public class TFTPClient {
 				packetBuffer = new byte[Configurations.MAX_BUFFER];
 				lastPacket = new DatagramPacket(packetBuffer, packetBuffer.length);
 
-				// receive a ACK packet
+				
 				sendReceiveSocket.receive(lastPacket);
-
+				logger.print(Logger.VERBOSE, "Recevied : ");
+				
 				// get the first block of file to transfer
 				fileData = writeRequestFileStorageService.getFileByteBufferFromDisk();
 
 				// Initialize DataPacket with block number n
 				ackPacket = new AckPacketBuilder(lastPacket);
-
+				BufferPrinter.printPacket(ackPacket,logger);
+				
 				if (errorChecker == null) {
 					errorChecker = new ErrorChecker(ackPacket);
-					// errorChecker.incrementexpectedBlockNumber();
 				}
 
 				TFTPError currErrorType = errorChecker.check(ackPacket, RequestType.ACK);
@@ -189,12 +194,17 @@ public class TFTPClient {
 				// Overwrite last packet
 				dataPacket = new DataPacketBuilder(lastPacket);
 				lastPacket = dataPacket.buildPacket(fileData);
+				
+				logger.print(Logger.VERBOSE, Strings.SENDING);
+				BufferPrinter.printPacket(dataPacket, logger);
 				sendReceiveSocket.send(lastPacket);
 			}
 			// Receive the last ACK.
 			packetBuffer = new byte[Configurations.MAX_BUFFER];
 			lastPacket = new DatagramPacket(packetBuffer, packetBuffer.length);
 			sendReceiveSocket.receive(lastPacket);
+			logger.print(Logger.VERBOSE, "Recevied last packet : ");
+			BufferPrinter.printPacket(new AckPacketBuilder(lastPacket),logger);
 
 		} catch (Exception e) {
 			e.printStackTrace();
