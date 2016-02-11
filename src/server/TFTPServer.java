@@ -93,7 +93,7 @@ public class TFTPServer implements Callback {
 		while (active.get()) {
 			try {
 				// Create the packet for receiving.
-				byte[] buffer = new byte[Configurations.MAX_MESSAGE_SIZE]; 
+				byte[] buffer = new byte[Configurations.MAX_BUFFER]; 
 				receivePacket = new DatagramPacket(buffer, buffer.length);
 				serverSock.receive(receivePacket);
 			} catch (SocketTimeoutException e) {

@@ -69,7 +69,7 @@ public class ErrorSimulatorServer implements Callback {
 		while (active.get()) {
 			try {
 				// Create the packet for receiving.
-				byte[] buffer = new byte[Configurations.MAX_MESSAGE_SIZE]; 
+				byte[] buffer = new byte[Configurations.MAX_BUFFER]; 
 				this.mErrorOptionSettings = this.mErrorUI.getErrorCodeFromUser();
 				if(this.mErrorOptionSettings.first == ErrorType.EXIT) {
 					active.set(false);

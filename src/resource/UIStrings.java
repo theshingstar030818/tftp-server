@@ -28,9 +28,9 @@ public class UIStrings {
 			   				   + "\t 2.Invalid mode \n"
 			   				   + "\t 3.Invalid zero bytes \n"
 			   				   + "\t 4.Invalid block number \n"
-			   				   + "\t 5.Invalid packet header \n"
+			   				   + "\t 5.Invalid packet header during transfer \n"
 			   				   + "\t 6.Invalid packet size \n"
-			   				   + "\t 7.Invalid packet\n"
+			   				   + "\t 7.Invalid initialiting packet\n"
 			   				   + "\t 8.Go back to the previous menu \n"
 			   				   + "Select option : ";
 	 public static final String MENU_ERROR_SIMULATOR_LOG_LEVEL 

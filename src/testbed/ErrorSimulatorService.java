@@ -49,6 +49,11 @@ public class ErrorSimulatorService implements Runnable {
 	private RequestType mInitialRequestType;
 
 	private byte[] mBuffer = null;
+	
+	/* Section of uninitialized Error Producers */
+	private ErrorCodeFour vEPFour = null;
+	private ErrorCodeFive vEPFive = null;
+	/* Lazy initialization for Error Producers */
 
 	/**
 	 * This thread manages the facilitation of packets from the client to the
@@ -214,11 +219,17 @@ public class ErrorSimulatorService implements Runnable {
 			break;
 		case ILLEGAL_OPERATION:
 			// error code 4
-			ErrorCodeFour vEPFour = new ErrorCodeFour(inPacket, subOpt);
+			if(this.vEPFour == null) {
+				this.vEPFour = new ErrorCodeFour(inPacket, subOpt);
+			} else {
+				this.vEPFour.constructPacketBuilder(inPacket);
+			}
 			this.mLastPacket = vEPFour.errorPacketCreator();
 			break;
 		case UNKNOWN_TRANSFER:
-			ErrorCodeFive vEPFive = new ErrorCodeFive(inPacket);
+			if(this.vEPFive == null) {
+				this.vEPFive = new ErrorCodeFive(inPacket);
+			}
 			// error code 5
 			break;
 		case FILE_EXISTS:
@@ -304,7 +315,7 @@ public class ErrorSimulatorService implements Runnable {
 	 * @throws IOException
 	 */
 	private DatagramPacket retrievePacketFromSocket() throws IOException {
-		mBuffer = new byte[Configurations.MAX_MESSAGE_SIZE];
+		mBuffer = new byte[Configurations.MAX_BUFFER];
 		DatagramPacket receivePacket = new DatagramPacket(mBuffer, mBuffer.length);
 		this.mSendReceiveSocket.receive(receivePacket);
 
