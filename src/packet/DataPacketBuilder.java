@@ -101,7 +101,7 @@ public class DataPacketBuilder extends PacketBuilder {
 			this.mBlockNumber = 0;
 		}
 		
-		if(this.mBuffer.length > Configurations.LEN_ACK_PACKET_BUFFER) {
+		if(this.mBuffer.length >= Configurations.LEN_ACK_PACKET_BUFFER) {
 			this.mDataBuffer = Arrays.copyOfRange(this.mBuffer, 
 					Configurations.LEN_ACK_PACKET_BUFFER, this.mBuffer.length);
 		} else {
