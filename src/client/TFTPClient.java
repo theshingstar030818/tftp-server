@@ -205,7 +205,6 @@ public class TFTPClient {
 						legalTransferID = true;
 					}
 				} while (legalTransferID);
-				
 
 				// Overwrite last packet
 				dataPacket = new DataPacketBuilder(lastPacket);
@@ -303,7 +302,7 @@ public class TFTPClient {
 					}
 
 				}while(legalTransferID);
-				
+
 								
 				byte[] fileData = dataPacketBuilder.getDataBuffer();
 				// We need trim the byte array

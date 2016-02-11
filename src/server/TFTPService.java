@@ -86,22 +86,22 @@ public class TFTPService implements Runnable {
 			byte[] vEmptyData = new byte[Configurations.MAX_BUFFER];
 			boolean vHasMore = true;
 			while ( vHasMore ){
-				byte[] data = new byte[Configurations.MAX_BUFFER];
-				this.mLastPacket = new DatagramPacket(data, data.length);
-				
-				
-				this.mSendReceiveSocket.receive(this.mLastPacket);
-				DataPacketBuilder receivedPacket = new DataPacketBuilder(this.mLastPacket);
-				
-				logger.print(Logger.VERBOSE, Strings.RECEIVED);
-				BufferPrinter.printPacket(receivedPacket, logger, RequestType.DATA);
-				
-				error = errorChecker.check(receivedPacket, RequestType.DATA);
-				if (error.getType() != ErrorType.NO_ERROR) {
-					if(errorHandle(error, this.mLastPacket)) {
-						return;
+				boolean unknownHostFound = false;
+				do {
+					byte[] data = new byte[Configurations.MAX_BUFFER];
+					this.mLastPacket = new DatagramPacket(data, data.length);
+					this.mSendReceiveSocket.receive(this.mLastPacket);
+					DataPacketBuilder receivedPacket = new DataPacketBuilder(this.mLastPacket);
+					logger.print(Logger.VERBOSE, Strings.RECEIVED);
+					BufferPrinter.printPacket(receivedPacket, logger, RequestType.DATA);
+					error = errorChecker.check(receivedPacket, RequestType.DATA);
+					if (error.getType() != ErrorType.NO_ERROR) {
+						if(errorHandle(error, this.mLastPacket)) {
+							return;
+						}
+						unknownHostFound = true;
 					}
-				}
+				}while(unknownHostFound);
 				// Extract the data from the received packet with packet builder
 				if(this.mLastPacket.getLength() < Configurations.MAX_MESSAGE_SIZE) {
 					int realPacketSize = this.mLastPacket.getLength();
@@ -143,7 +143,7 @@ public class TFTPService implements Runnable {
 		
 		logger.print(Logger.DEBUG, Strings.RECEIVED);
 		BufferPrinter.printPacket(readRequest, Logger.VERBOSE, RequestType.RRQ);
-		
+		DatagramPacket vReceivePacket;
 		String vFileName = readRequest.getFilename();
 		AckPacketBuilder ackPacket;
 		try {
@@ -163,31 +163,35 @@ public class TFTPService implements Runnable {
 			byte[] vEmptyData = new byte[Configurations.MAX_BUFFER];
 
 			while (vEmptyData != null && vEmptyData.length >= Configurations.MAX_PAYLOAD_BUFFER ){
+				
+				boolean receivedFromUnknownHost = false;
 				vEmptyData = vFileStorageService.getFileByteBufferFromDisk();
 				// Building a data packet from the last packet ie. will increment block number
 				DataPacketBuilder vDataPacket = new DataPacketBuilder(this.mLastPacket);
 				DatagramPacket vSendPacket = vDataPacket.buildPacket(vEmptyData);
-				
 				logger.print(Logger.DEBUG, Strings.SENDING);
 				BufferPrinter.printPacket(vDataPacket, Logger.VERBOSE, RequestType.ACK);
-				
 				mSendReceiveSocket.send(vSendPacket);
-				// Receive ACK packets from the client, then we can proceed to send more DATA
-				byte[] data = new byte[Configurations.MAX_BUFFER];
-				DatagramPacket vReceivePacket = new DatagramPacket(data, data.length);
-				mSendReceiveSocket.receive(vReceivePacket);
-				ackPacket = new AckPacketBuilder(vReceivePacket);
-				error = errorChecker.check(ackPacket, RequestType.ACK);
-				if (error.getType() != ErrorType.NO_ERROR) {
-					if(errorHandle(error, vReceivePacket)) {
-						return;
+					
+				do {
+					// Receive ACK packets from the client, then we can proceed to send more DATA
+					byte[] data = new byte[Configurations.MAX_BUFFER];
+					vReceivePacket = new DatagramPacket(data, data.length);
+					mSendReceiveSocket.receive(vReceivePacket);
+					ackPacket = new AckPacketBuilder(vReceivePacket);
+					error = errorChecker.check(ackPacket, RequestType.ACK);
+					if (error.getType() != ErrorType.NO_ERROR) {
+						if(errorHandle(error, vReceivePacket)) {
+							return;
+						}
+						receivedFromUnknownHost = true;
 					}
-				}
-
+				} while(receivedFromUnknownHost);
 				this.mLastPacket = vReceivePacket;
+				
 			}
 			byte[] data = new byte[Configurations.MAX_BUFFER];
-			DatagramPacket vReceivePacket = new DatagramPacket(data, data.length);
+			vReceivePacket = new DatagramPacket(data, data.length);
 			this.mSendReceiveSocket.receive(vReceivePacket);
 			
 			logger.print(Logger.DEBUG, Strings.RECEIVED);
@@ -221,9 +225,10 @@ public class TFTPService implements Runnable {
 			System.err.println("Illegal operation caught, shutting down");
 			return true;
 		case UNKNOWN_TRANSFER:
-			errorPacket = new ErrorPacketBuilder(packet);
+			DatagramPacket unknownError = errorPacket.buildPacket(ErrorType.ILLEGAL_OPERATION,
+					error.getString());
 			try {
-				mSendReceiveSocket.send(errorPacket.getPacket());
+				mSendReceiveSocket.send(unknownError);
 			} catch (IOException e) { e.printStackTrace(); }
 			return false;
 		default:
