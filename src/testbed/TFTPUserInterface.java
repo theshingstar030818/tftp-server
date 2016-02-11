@@ -186,10 +186,13 @@ public class TFTPUserInterface {
 	private void getSubOption(String s, int max, InstanceType instance) {
 		int subOpt;
 		boolean validInput = false;
-//		Set<Integer> nonValidChoices = new HashSet<>();
-//		if(instance == InstanceType.CLIENT) {
-//			nonValidChoices = Sets.mutable.with("Buenos Aires", "Córdoba", "La Plata");
-//		}
+		Set<Integer> nonValidChoices = new HashSet<>();
+		if(instance == InstanceType.CLIENT) {
+			nonValidChoices.add(1);
+			nonValidChoices.add(2);
+			nonValidChoices.add(3);
+			nonValidChoices.add(7);
+		}
 		while (!validInput) {
 			// print out the message
 			System.out.println(s);
@@ -202,7 +205,11 @@ public class TFTPUserInterface {
 			for(int i=1; i<=max; i++) {
 				if(subOpt == i) {
 					// validate the input
-					validInput = true;
+					validInput = nonValidChoices.contains(subOpt) ? false : true;
+					// FLAG ERROR if non valid choice
+					if(!validInput) {
+						System.err.println("Sorry but the client doesn't support that.");
+					}
 					this.mUserErrorSubOption = subOpt;
 				}
 			}

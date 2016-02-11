@@ -30,7 +30,7 @@ public class UIStrings {
 			   				   + "\t 4.Invalid block number \n"
 			   				   + "\t 5.Invalid packet header during transfer \n"
 			   				   + "\t 6.Invalid packet size \n"
-			   				   + "\t 7.Invalid initialiting packet\n"
+			   				   + "\t 7.Invalid initiating packet\n"
 			   				   + "\t 8.Go back to the previous menu \n"
 			   				   + "Select option : ";
 	 public static final String MENU_ERROR_SIMULATOR_LOG_LEVEL 
@@ -39,8 +39,8 @@ public class UIStrings {
 			   				   + "----------------------------------\n"
 			   				   +"Please select logging level for this session\n"
 			   				   + "Options : \n"
-			   				   + "\t 1. Interfere with Client Packets\n"
-			   				   + "\t 2. Interfere with Server Packets\n"
+			   				   + "\t 1. Interfere with packets going to the Client Packets\n"
+			   				   + "\t 2. Interfere with packets going to the Server Packets\n"
 			   				   + "Select option : ";
 	 public static final String MENU_CLIENT_SELECTION 
 							   = "----------------------\n"
