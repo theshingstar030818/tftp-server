@@ -56,7 +56,7 @@ public class ErrorCodeFive implements Runnable{
 		      DatagramPacket receivePacket = new DatagramPacket(data, data.length);
 		      try { 
 		    	  newSocket.receive(receivePacket);
-		    	  System.err.println("Error packet received from server");
+		    	  System.err.println("Error packet received from server \n");
 		       } 
 		      catch(IOException e) { 
 		          e.printStackTrace();
@@ -64,9 +64,9 @@ public class ErrorCodeFive implements Runnable{
 		       }
 		}
 		if(!checkToCreatErrorSocket()){
-			System.out.println("The recieved packet is not sent through an error socket");}
+			System.out.println("The recieved packet is not sent through an error socket \n");}
 		
 	}
 	
-
+ 
 }

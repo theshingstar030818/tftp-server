@@ -236,7 +236,7 @@ public class ErrorSimulatorService implements Runnable {
 		case UNKNOWN_TRANSFER:
 			Thread errorCodeFive = new Thread(new ErrorCodeFive(inPacket));
 			errorCodeFive.start();
-			// error code 5
+			// error code 5 thread
 			break;
 		case FILE_EXISTS:
 			// error code 6
