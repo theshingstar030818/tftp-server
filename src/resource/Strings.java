@@ -20,6 +20,7 @@ public class Strings {
 	public static final String SERVER_ACCEPT_CONNECTION = "Server has accepted a connection!";
 	public static final String EXITING = "Server listening port is closing, connected threads ending after transfer completes.";
 	public static final String SS_TRANSFER_FINISHED = "Service thread finished work, exiting.";
+	public static final String SS_WRONG_PACKET = "Server cannot cannot accept a service other than write or read request.";
 	
 	// Client messages.
 	public static final String PROMPT_ENTER_FILE_NAME = "Please enter file name:";

@@ -5,6 +5,7 @@ import java.net.*;
 import helpers.Conversion;
 import packet.AckPacketBuilder;
 import packet.PacketBuilder;
+import resource.Configurations;
 import packet.DataPacketBuilder;
 import types.*;
 
@@ -48,14 +49,17 @@ public class ErrorCodeFour extends ErrorCodeSimulator {
 			}
 		case 4: // Change block number
 			if (rt == RequestType.ACK || rt == RequestType.DATA) {
-				// The following build packet will automatically increment block number by 1, which
+				// The following build packet will automatically increment block
+				// number by 1, which
 				// effectively mismatches the block number
-				this.mSendPacket = ((DataPacketBuilder)receivePacketBuilder).buildPacket(receivePacketBuilder.getDataBuffer());
+				this.mSendPacket = ((DataPacketBuilder) receivePacketBuilder)
+						.buildPacket(receivePacketBuilder.getDataBuffer());
 			} else {
 				this.mSendPacket = super.receivePacketBuilder.getPacket();
 			}
 			break;
-		case 5:// Change header request type
+		case 5:// Change header request type on the first expected DATA/ACK to
+				// a WRQ or RRQ
 			this.changeHeader(super.receivePacketBuilder);
 			break;
 		case 6:// Change packet size
@@ -64,6 +68,8 @@ public class ErrorCodeFour extends ErrorCodeSimulator {
 		case 7: // changing header of first packet received from client
 			if (this.packetCount == 1) {
 				this.changeHeader(super.receivePacketBuilder);
+			} else {
+				this.mSendPacket = super.receivePacketBuilder.getPacket();
 			}
 			break;
 
@@ -71,6 +77,7 @@ public class ErrorCodeFour extends ErrorCodeSimulator {
 			// TODO: default action for error creator
 			break;
 		}
+		this.packetCount++;
 		return this.mSendPacket;
 	}
 
@@ -82,35 +89,59 @@ public class ErrorCodeFour extends ErrorCodeSimulator {
 	 */
 	private void changeHeader(PacketBuilder inPacket) {
 		byte[] header = inPacket.getRequestType().getHeaderByteArray();
-		byte[] data = inPacket.getDataBuffer();
+		byte[] data = inPacket.getPacketBuffer();
 		DatagramPacket packet = inPacket.getPacket();
 		switch (header[1]) {
 		case 1:
-			// read request with hearder[0,1]
-			data[1] = 4;
-			this.mSendPacket = new DatagramPacket(data, data.length, packet.getAddress(), packet.getPort());
+			// read request with header[0,1]
+			if (this.packetCount == 2) {
+				data[1] = 3;
+				this.mSendPacket = new DatagramPacket(data, data.length, packet.getAddress(), packet.getPort());
+			} else {
+				this.mSendPacket = inPacket.getPacket();
+			}
 			break;
 		case 2:
 			// write request with header [0,2]
-			data[1] = 3;
-			this.mSendPacket = new DatagramPacket(data, data.length, packet.getAddress(), packet.getPort());
+			if (this.packetCount == 2) {
+				data[1] = 3;
+				this.mSendPacket = new DatagramPacket(data, data.length, packet.getAddress(), packet.getPort());
+			} else {
+				this.mSendPacket = inPacket.getPacket();
+			}
 			break;
 		case 3:
 			// data datagram packet with header [0,3]
-			data[1] = 4;
-			this.mSendPacket = new DatagramPacket(data, data.length, packet.getAddress(), packet.getPort());
+			if (this.packetCount == 2) {
+				data[1] = 4;
+				this.mSendPacket = new DatagramPacket(data, data.length, packet.getAddress(), packet.getPort());
+			} else {
+				this.mSendPacket = inPacket.getPacket();
+			}
 			break;
 		case 4:
 			// ack packet with [0,4]
-			data[1] = 1;
-			this.mSendPacket = new DatagramPacket(data, data.length, packet.getAddress(), packet.getPort());
+			data[1] = 3;
+			if (this.packetCount == 2) {
+				data[1] = 4;
+				this.mSendPacket = new DatagramPacket(data, data.length, packet.getAddress(), packet.getPort());
+			} else {
+				this.mSendPacket = inPacket.getPacket();
+			}
 			break;
 		case 5:
 			// error packet
 			// should not do anything
+			data[1] = 3;
+			if (this.packetCount > 2) {
+				data[1] = 4;
+				this.mSendPacket = new DatagramPacket(data, data.length, packet.getAddress(), packet.getPort());
+			} else {
+				this.mSendPacket = inPacket.getPacket();
+			}
 			break;
 		default:
-			// TODO:
+			this.mSendPacket = inPacket.getPacket();
 			break;
 		}
 	}
@@ -122,8 +153,18 @@ public class ErrorCodeFour extends ErrorCodeSimulator {
 	 * @param inPacket
 	 */
 	private void invalidPacketSize(PacketBuilder inPacket) {
-		byte[] data = inPacket.getDataBuffer();
-		this.mSendPacket = new DatagramPacket(data, data.length * 2);
+		int length = inPacket.getPacketLength();
+		int maxMultipleLengthGreaterThanMessageSize = (Configurations.MAX_MESSAGE_SIZE / length) + 1;
+		int blowMaxMessageBuffer = maxMultipleLengthGreaterThanMessageSize * length;
+		byte[] data = new byte[blowMaxMessageBuffer];
+		int currentLength = 0;
+		do {
+			System.arraycopy(inPacket.getPacketBuffer(), 0, data, currentLength, length);
+			currentLength += length;
+		} while(currentLength < blowMaxMessageBuffer);
+		
+		this.mSendPacket = new DatagramPacket(data, data.length, inPacket.getPacket().getAddress(),
+				inPacket.getPacket().getPort());
 	}
 
 	private ModeType switchMode() {
@@ -135,7 +176,6 @@ public class ErrorCodeFour extends ErrorCodeSimulator {
 			readWriteBuffer[readWriteBuffer.length - 1] = 65;
 		}
 		return (readWriteBuffer);
-
 	}
 
 }
