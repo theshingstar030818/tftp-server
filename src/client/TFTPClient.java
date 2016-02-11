@@ -85,6 +85,7 @@ public class TFTPClient {
 						if (!(result.getType() == ErrorType.NO_ERROR)) {
 							logger.print(Logger.ERROR, Strings.TRANSFER_FAILED);
 							logger.print(Logger.ERROR, result.getString());
+							isClientAlive = !isClientAlive;
 						} else {
 							logger.print(Logger.DEBUG, Strings.TRANSFER_SUCCESSFUL);
 						}
@@ -94,6 +95,7 @@ public class TFTPClient {
 							e.printStackTrace();
 
 						logger.print(Logger.ERROR, Strings.TRANSFER_FAILED);
+						isClientAlive = !isClientAlive;
 					}
 					break;
 				case 2:
@@ -109,13 +111,14 @@ public class TFTPClient {
 					if (!(result.getType() == ErrorType.NO_ERROR)) {
 						logger.print(Logger.ERROR, Strings.TRANSFER_FAILED);
 						logger.print(Logger.ERROR, result.getString());
+						isClientAlive = !isClientAlive;
 					} else {
 						logger.print(Logger.DEBUG, Strings.TRANSFER_SUCCESSFUL);
 					}
 					break;
 				case 3:
 					// shutdown client
-					isClientAlive = false;
+					isClientAlive = !isClientAlive;
 					logger.print(Logger.DEBUG, Strings.EXIT_BYE);
 					break;
 
@@ -168,32 +171,40 @@ public class TFTPClient {
 			sendReceiveSocket.send(lastPacket);
 
 			while (fileData != null && fileData.length >= Configurations.MAX_PAYLOAD_BUFFER) {
-				// This packet has the block number to start on!
-				packetBuffer = new byte[Configurations.MAX_BUFFER];
-				lastPacket = new DatagramPacket(packetBuffer, packetBuffer.length);
-
 				
-				sendReceiveSocket.receive(lastPacket);
-				logger.print(Logger.VERBOSE, "Recevied : ");
-				
-				// get the first block of file to transfer
-				fileData = writeRequestFileStorageService.getFileByteBufferFromDisk();
 
-				// Initialize DataPacket with block number n
-				ackPacket = new AckPacketBuilder(lastPacket);
-				BufferPrinter.printPacket(ackPacket,logger, RequestType.ACK);
+				boolean legalTransferID = false;
 				
-				if (errorChecker == null) {
-					errorChecker = new ErrorChecker(ackPacket);
-				}
+				do {
+					
+					// This packet has the block number to start on!
+					packetBuffer = new byte[Configurations.MAX_BUFFER];
+					lastPacket = new DatagramPacket(packetBuffer, packetBuffer.length);
+					
+					sendReceiveSocket.receive(lastPacket);
+					logger.print(Logger.VERBOSE, "Recevied : ");
+					
+					// get the first block of file to transfer
+					fileData = writeRequestFileStorageService.getFileByteBufferFromDisk();
 
-				TFTPError currErrorType = errorChecker.check(ackPacket, RequestType.ACK);
-				if (currErrorType.getType() != ErrorType.NO_ERROR) {
-					if(errorHandle(currErrorType, ackPacket.getPacket())) {
-						errorChecker = null;
-						return currErrorType;
+					// Initialize DataPacket with block number n
+					ackPacket = new AckPacketBuilder(lastPacket);
+					BufferPrinter.printPacket(ackPacket,logger, RequestType.ACK);
+					
+					if (errorChecker == null) {
+						errorChecker = new ErrorChecker(ackPacket);
 					}
-				}
+
+					TFTPError currErrorType = errorChecker.check(ackPacket, RequestType.ACK);
+					if (currErrorType.getType() != ErrorType.NO_ERROR) {
+						
+						if(errorHandle(currErrorType, ackPacket.getPacket())){
+							errorChecker = null;
+							return currErrorType;
+						}
+						legalTransferID = true;
+					}
+				} while (legalTransferID);
 
 				// Overwrite last packet
 				dataPacket = new DataPacketBuilder(lastPacket);
@@ -259,41 +270,40 @@ public class TFTPClient {
 
 			// loop until no more packets to receive
 			while (morePackets) {
-				dataBuf = new byte[Configurations.MAX_BUFFER];
-				lastPacket = new DatagramPacket(dataBuf, dataBuf.length);
-
-				// receive a data packet
-				sendReceiveSocket.receive(lastPacket);
-				logger.print(Logger.VERBOSE, "Recevied : ");
 				
-				// Use the packet builder class to manage and extract the data
-				dataPacketBuilder = new DataPacketBuilder(lastPacket);
-				BufferPrinter.printPacket(dataPacketBuilder, logger, RequestType.DATA);
+				boolean legalTransferID = false;
 				
-				if (errorChecker == null) {
-					errorChecker = new ErrorChecker(dataPacketBuilder);
-					errorChecker.incrementExpectedBlockNumber();
-				}
-
-				TFTPError currErrorType = errorChecker.check(dataPacketBuilder, RequestType.DATA);
-				if (currErrorType.getType() != ErrorType.NO_ERROR) {
+				do{
 					
-					if(errorHandle(currErrorType, dataPacketBuilder.getPacket())) {
-						errorChecker = null;
-						return currErrorType;
-					}
 					dataBuf = new byte[Configurations.MAX_BUFFER];
 					lastPacket = new DatagramPacket(dataBuf, dataBuf.length);
+
+					// receive a data packet
 					sendReceiveSocket.receive(lastPacket);
 					logger.print(Logger.VERBOSE, "Recevied : ");
 					
 					// Use the packet builder class to manage and extract the data
 					dataPacketBuilder = new DataPacketBuilder(lastPacket);
 					BufferPrinter.printPacket(dataPacketBuilder, logger, RequestType.DATA);
-					// FUCK We need to check again if this was an error THIS needs to be in a FUCKING functions
-					// I AM SWEARING BECAUSE WE NEED TO REMEMBER TO IMPLEMENT THIS
-				}
-				
+					
+					if (errorChecker == null) {
+						errorChecker = new ErrorChecker(dataPacketBuilder);
+						errorChecker.incrementExpectedBlockNumber();
+					}
+
+					TFTPError currErrorType = errorChecker.check(dataPacketBuilder, RequestType.DATA);
+					if (currErrorType.getType() != ErrorType.NO_ERROR) {
+						
+						if(errorHandle(currErrorType, dataPacketBuilder.getPacket())){
+							errorChecker = null;
+							return currErrorType;
+						}
+						legalTransferID = true;
+					}
+
+				}while(legalTransferID);
+
+								
 				byte[] fileData = dataPacketBuilder.getDataBuffer();
 				// We need trim the byte array
 
@@ -344,38 +354,6 @@ public class TFTPClient {
 
 		}
 	}
-	
-	/**
-	 * Handle the error cases. Will return boolean to indicate whether to terminate
-	 * thread or carry on.
-	 * 
-	 * @param error
-	 * @param packet
-	 * @return
-	 */
-	public boolean errorHandle(TFTPError error, DatagramPacket packet) {
-		ErrorPacketBuilder errorPacket = new ErrorPacketBuilder(packet);
-		switch (error.getType()) {
-		case ILLEGAL_OPERATION:
-			DatagramPacket illegalOpsError = errorPacket.buildPacket(ErrorType.ILLEGAL_OPERATION,
-					error.getString());
-			try {
-				this.sendReceiveSocket.send(illegalOpsError);
-			} catch (IOException e) { e.printStackTrace(); }
-			System.err.println("Illegal operation caught, shutting down");
-			return true;
-		case UNKNOWN_TRANSFER:
-			errorPacket = new ErrorPacketBuilder(packet);
-			try {
-				this.sendReceiveSocket.send(errorPacket.getPacket());
-			} catch (IOException e) { e.printStackTrace(); }
-			return false;
-		default:
-			System.out.println("Unhandled Exception.");
-			break;
-		}			
-		return true;
-	}
 
 	/**
 	 * This function only prints the client side selection menu
@@ -420,6 +398,39 @@ public class TFTPClient {
 				logger.print(Logger.ERROR, Strings.ERROR_INPUT);
 			}
 		}
+	}
+	
+	/**
+	 * Handle the error cases. Will return boolean to indicate whether to terminate
+	 * thread or carry on.
+	 * 
+	 * @param error
+	 * @param packet
+	 * @return
+	 */
+	public boolean errorHandle(TFTPError error, DatagramPacket packet) {
+		ErrorPacketBuilder errorPacket = new ErrorPacketBuilder(packet);
+		switch (error.getType()) {
+		case ILLEGAL_OPERATION:
+			DatagramPacket illegalOpsError = errorPacket.buildPacket(ErrorType.ILLEGAL_OPERATION,
+					error.getString());
+			try {
+				sendReceiveSocket.send(illegalOpsError);
+			} catch (IOException e) { e.printStackTrace(); }
+			System.err.println("Illegal operation caught, shutting down");
+			return true;
+		case UNKNOWN_TRANSFER:
+			try {
+				DatagramPacket unknownTransferID = errorPacket.buildPacket(ErrorType.UNKNOWN_TRANSFER,
+						error.getString());
+				sendReceiveSocket.send(unknownTransferID);
+			} catch (IOException e) { e.printStackTrace(); }
+			return false;
+		default:
+			System.out.println("Unhandled Exception.");
+			break;
+		}			
+		return true;
 	}
 	
 	
