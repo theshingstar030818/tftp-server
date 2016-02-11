@@ -5,7 +5,7 @@ import java.net.*;
 
 import resource.Configurations;
 
-public class ErrorCodeFive {
+public class ErrorCodeFive implements Runnable{
 	private int packetCount = 0;
 	private DatagramPacket sendPacket;
 	private DatagramSocket errorSocket;
@@ -41,7 +41,7 @@ public class ErrorCodeFive {
 		 return errorSocket;
 	}
 	
-	public void sendThroughErrorSocket(){
+	public void run(){
 		while(checkToCreatErrorSocket()){
 			DatagramSocket newSocket = createErrorSocket();
 			 try {
@@ -56,6 +56,7 @@ public class ErrorCodeFive {
 		      DatagramPacket receivePacket = new DatagramPacket(data, data.length);
 		      try { 
 		    	  newSocket.receive(receivePacket);
+		    	  System.err.println("Error packet received from server");
 		       } 
 		      catch(IOException e) { 
 		          e.printStackTrace();
@@ -66,5 +67,6 @@ public class ErrorCodeFive {
 			System.out.println("The recieved packet is not sent through an error socket");}
 		
 	}
+	
 
 }

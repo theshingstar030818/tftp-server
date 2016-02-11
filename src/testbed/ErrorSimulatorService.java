@@ -234,9 +234,8 @@ public class ErrorSimulatorService implements Runnable {
 			this.mLastPacket = vEPFour.errorPacketCreator();
 			break;
 		case UNKNOWN_TRANSFER:
-			if(this.vEPFive == null) {
-				this.vEPFive = new ErrorCodeFive(inPacket);
-			}
+			Thread errorCodeFive = new Thread(new ErrorCodeFive(inPacket));
+			errorCodeFive.start();
 			// error code 5
 			break;
 		case FILE_EXISTS:
