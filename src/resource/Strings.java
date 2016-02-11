@@ -32,7 +32,8 @@ public class Strings {
 	public static final String CLIENT_INITIATE_WRITE_REQUEST = "Client initiating write request . . .";
 	public static final String CLIENT_INITIATING_FIE_STORAGE_SERVICE = "Client initiating file storage service . . .";
 	public static final String FILE_NAME = "File name : ";
-	public static final String SENDING = "Sending : ";	
+	public static final String SENDING = "Sending : ";
+	public static final String RECEIVED = "Received : ";
 	public static final String CLIENT_INITIATE_READ_REQUEST = "Client initiating read request . . .";
 	
 	// TFTP error messages.

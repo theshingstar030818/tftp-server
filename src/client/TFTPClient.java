@@ -163,7 +163,7 @@ public class TFTPClient {
 
 			lastPacket = wpb.buildPacket();
 			Logger.VERBOSE.print(Logger.VERBOSE, Strings.SENDING);
-			BufferPrinter.printPacket(wpb,Logger.VERBOSE);
+			BufferPrinter.printPacket(wpb,Logger.VERBOSE, RequestType.WRQ);
 			sendReceiveSocket.send(lastPacket);
 
 			while (fileData != null && fileData.length >= Configurations.MAX_PAYLOAD_BUFFER) {
@@ -180,7 +180,7 @@ public class TFTPClient {
 
 				// Initialize DataPacket with block number n
 				ackPacket = new AckPacketBuilder(lastPacket);
-				BufferPrinter.printPacket(ackPacket,logger);
+				BufferPrinter.printPacket(ackPacket,logger, RequestType.ACK);
 				
 				if (errorChecker == null) {
 					errorChecker = new ErrorChecker(ackPacket);
@@ -197,7 +197,7 @@ public class TFTPClient {
 				lastPacket = dataPacket.buildPacket(fileData);
 				
 				logger.print(Logger.VERBOSE, Strings.SENDING);
-				BufferPrinter.printPacket(dataPacket, logger);
+				BufferPrinter.printPacket(dataPacket, logger, RequestType.DATA);
 				sendReceiveSocket.send(lastPacket);
 			}
 			// Receive the last ACK.
@@ -205,7 +205,7 @@ public class TFTPClient {
 			lastPacket = new DatagramPacket(packetBuffer, packetBuffer.length);
 			sendReceiveSocket.receive(lastPacket);
 			Logger.VERBOSE.print(Logger.VERBOSE, "Recevied last packet : ");
-			BufferPrinter.printPacket(new AckPacketBuilder(lastPacket),Logger.VERBOSE);
+			BufferPrinter.printPacket(new AckPacketBuilder(lastPacket),Logger.VERBOSE, RequestType.ACK);
 
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -250,7 +250,7 @@ public class TFTPClient {
 			lastPacket = rpb.buildPacket();
 			
 			Logger.VERBOSE.print(Logger.VERBOSE, Strings.SENDING);
-			BufferPrinter.printPacket(rpb,Logger.VERBOSE);
+			BufferPrinter.printPacket(rpb,Logger.VERBOSE, RequestType.RRQ);
 			// send the read packet over sendReceiveSocket
 			sendReceiveSocket.send(lastPacket);
 
@@ -265,7 +265,7 @@ public class TFTPClient {
 				
 				// Use the packet builder class to manage and extract the data
 				dataPacketBuilder = new DataPacketBuilder(lastPacket);
-				BufferPrinter.printPacket(dataPacketBuilder, logger);
+				BufferPrinter.printPacket(dataPacketBuilder, logger, RequestType.DATA);
 				
 				if (errorChecker == null) {
 					errorChecker = new ErrorChecker(dataPacketBuilder);
@@ -291,7 +291,7 @@ public class TFTPClient {
 				lastPacket = ackPacketBuilder.buildPacket();
 				
 				logger.print(Logger.VERBOSE, Strings.SENDING);
-				BufferPrinter.printPacket(ackPacketBuilder, logger);
+				BufferPrinter.printPacket(ackPacketBuilder, logger, RequestType.ACK);
 				
 				sendReceiveSocket.send(lastPacket);
 			}
