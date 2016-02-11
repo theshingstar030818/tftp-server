@@ -29,7 +29,9 @@ public class TFTPClient {
 	private final String CLASS_TAG = "<TFTP Client>";
 	private int mPortToSendTo;
 
-	// by default the logger is set to DEBUG level
+	private int mode;
+	
+	//by default the logger is set to VERBOSE level
 	private Logger logger = Logger.VERBOSE;
 
 	// Error checker
@@ -51,13 +53,13 @@ public class TFTPClient {
 	public void initialize() {
 		Scanner scan = new Scanner(System.in);
 		try {
-
 			int mode = getSendPort();
 			if (mode == 1) {
 				this.mPortToSendTo = Configurations.SERVER_LISTEN_PORT;
 			} else {
 				this.mPortToSendTo = Configurations.ERROR_SIM_LISTEN_PORT;
 			}
+			setLogLevel();
 			sendReceiveSocket = new DatagramSocket();
 			int optionSelected = 0;
 
@@ -136,7 +138,9 @@ public class TFTPClient {
 	 *            server
 	 */
 	private TFTPError writeRequestHandler(String writeFileNameOrFilePath) {
-
+		
+		logger.print(Logger.VERBOSE, Strings.CLIENT_INITIATE_WRITE_REQUEST);
+		
 		ReadWritePacketPacketBuilder wpb;
 		FileStorageService writeRequestFileStorageService;
 		DataPacketBuilder dataPacket;
@@ -145,8 +149,9 @@ public class TFTPClient {
 		byte[] fileData = new byte[Configurations.MAX_BUFFER];
 		byte[] packetBuffer;
 		try {
-			writeRequestFileStorageService = new FileStorageService(writeFileNameOrFilePath, InstanceType.CLIENT);
-
+			logger.print(Logger.VERBOSE, Strings.CLIENT_INITIATING_FIE_STORAGE_SERVICE);
+			writeRequestFileStorageService = new FileStorageService(writeFileNameOrFilePath,InstanceType.CLIENT);
+			
 			String actualFileName;
 
 			actualFileName = writeRequestFileStorageService.getFileName();
@@ -194,7 +199,7 @@ public class TFTPClient {
 		} catch (Exception e) {
 			e.printStackTrace();
 			errorChecker = null;
-			return new TFTPError(ErrorType.NOT_DEFINED, "Exception thrown");
+			return new TFTPError(ErrorType.NOT_DEFINED, e.getMessage());
 		}
 		errorChecker = null;
 		return new TFTPError(ErrorType.NO_ERROR, "no errors");
@@ -304,7 +309,7 @@ public class TFTPClient {
 	/**
 	 * This function only prints the client side selection menu
 	 */
-	public void printSelectMenu() {
+	private void printSelectMenu() {
 		System.out.println("----------------------");
 		System.out.println("| Client Select Menu |");
 		System.out.println("----------------------");
@@ -314,4 +319,37 @@ public class TFTPClient {
 		System.out.println("\t 3. Exit File\n\n");
 		System.out.println("Select option : ");
 	}
+	
+	private void setLogLevel(){
+		
+		int optionSelected;
+		
+		while(true){
+			System.out.println("-------------------------------");
+			System.out.println("| Client Select Logging Level |");
+			System.out.println("-------------------------------");
+			System.out.println("Options : ");
+			System.out.println("\t 1. Verbose");
+			System.out.println("\t 2. Debug");
+			System.out.println("Select option : ");
+			
+			try {
+				optionSelected = Keyboard.getInteger();
+			} catch (NumberFormatException e) {
+				optionSelected = 0;
+			}
+			
+			if(optionSelected == 1){
+				this.logger = Logger.VERBOSE;
+				break;
+			}else if(optionSelected == 2){
+				this.logger = Logger.DEBUG;
+				break;
+			}else{
+				logger.print(Logger.ERROR, Strings.ERROR_INPUT);
+			}
+		}
+	}
+	
+	
 }

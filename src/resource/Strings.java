@@ -28,6 +28,9 @@ public class Strings {
 	public static final String EXIT_BYE = "Bye bye.";
 	public static final String TRANSFER_SUCCESSFUL = "File transfer was successful.";
 	public static final String TRANSFER_FAILED = "File transfer failed.";
+	public static final String CLIENT_INITIATE_WRITE_REQUEST = "Client initiating write request . . .";
+	public static final String CLIENT_INITIATING_FIE_STORAGE_SERVICE = "Client initiating file storage service . . .";
+	
 	
 	// TFTP error messages.
 	public static final String NOT_DEFINED = "Not defined, see error message (if any).";
