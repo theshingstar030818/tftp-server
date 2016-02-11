@@ -11,7 +11,7 @@ public class Strings {
 	public static final String FILE_WRITE_ERROR = "An error occurred while writing the file.";
 	public static final String FILE_READ_ERROR = "An error occurred while reading the file.";
 	public static final String DIRECTORY_MAKE_ERROR = "An error occured while making a new directory.";
-	public static final String FILE_WRITE_COMPLETE = "Server received a block size zero, terminating write procedure.";
+	public static final String FILE_WRITE_COMPLETE = "Received a block size zero, terminating write procedure.";
 	public static final String FILE_CHANNEL_CLOSE_ERROR = "Closing file channel failed.";
 	public static final String FILE_NOT_EXIST = "File does not exist.";
 	
@@ -29,6 +29,10 @@ public class Strings {
 	public static final String EXIT_BYE = "Bye bye.";
 	public static final String TRANSFER_SUCCESSFUL = "File transfer was successful.";
 	public static final String TRANSFER_FAILED = "File transfer failed.";
+	public static final String CLIENT_INITIATE_WRITE_REQUEST = "Client initiating write request . . .";
+	public static final String CLIENT_INITIATING_FIE_STORAGE_SERVICE = "Client initiating file storage service . . .";
+	public static final String FILE_NAME = "File name : ";
+	public static final String SENDING = "Sending : ";	
 	
 	// TFTP error messages.
 	public static final String NOT_DEFINED = "Not defined, see error message (if any).";
@@ -68,5 +72,13 @@ public class Strings {
 	public static final String ES_SEND_PACKET_CLIENT = "Preparing to send packet to client.";
 	public static final String ES_GOT_LAST_PACKET_WRQ = "Got last write packet, fwding ACK to client";
 	public static final String ES_RETRIEVE_PACKET_SERVER = "Preparing to retrieve packet from server.";
+	
+	public static final String ACK_PACKET = "ACK PACKET";
+	public static final String DATA_PACKET = "DATA PACKET";
+	public static final String RRQ = "READ PACKET";
+	public static final String WRQ = "WRITE PACKET";
+	public static final String ERROR = "ERROR PACKET";
+	public static final String NONE = "PACKET NOT DEFINED !! ";
+	
 	
 }

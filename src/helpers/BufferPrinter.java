@@ -1,7 +1,14 @@
 package helpers;
 
 import java.util.Arrays;
+
+import packet.PacketBuilder;
+import packet.PacketBuilderFactory;
+import packet.ReadPacketBuilder;
+import packet.WritePacketBuilder;
+import resource.Strings;
 import types.Logger;
+import types.RequestType;
 /**
  * @author Team 3
  *
@@ -20,7 +27,57 @@ public class BufferPrinter {
 		logLevel.print(Logger.VERBOSE, strBuilder.toString());
 	}
 	
-	public static String bufferToString(byte[] buffer) {
+	public static void printPacket(PacketBuilder pb,Logger logger){
+		
+		RequestType requestType = pb.getRequestType();
+		PacketBuilderFactory pbf;
+		
+		switch (requestType) {
+		case ACK:
+			logger.print(Logger.VERBOSE, Strings.ACK_PACKET);
+			
+			break;
+					
+		case DATA:
+			logger.print(Logger.VERBOSE, Strings.DATA_PACKET);
+			
+			break;
+					
+		case RRQ:
+			logger.print(Logger.VERBOSE, Strings.RRQ);
+			logger.print(Logger.VERBOSE, "File Name : " +  ((ReadPacketBuilder)pb).getFilename());
+			break;
+			
+		case WRQ:
+			logger.print(Logger.VERBOSE, Strings.WRQ);
+			logger.print(Logger.VERBOSE, "File Name : " +  ((WritePacketBuilder)pb).getFilename());
+			break;
+			
+		case ERROR:
+			logger.print(Logger.VERBOSE, Strings.ERROR);
+			
+			break;
+			
+		case NONE:
+			logger.print(Logger.VERBOSE, Strings.NONE);
+			
+			break;
+
+		default:
+			logger.print(Logger.FATAL, Strings.INVALID_PACKET_NONE_TYPE);
+			break;
+		}
+		
+		logger.print(Logger.VERBOSE, "IP Address : " + pb.getPacket().getAddress());
+		logger.print(Logger.VERBOSE, "Port : " + pb.getPacket().getPort());
+		logger.print(Logger.VERBOSE, "Block # : " + pb.getBlockNumber());
+		logger.print(Logger.VERBOSE, "Packet length : " + pb.getPacketLength());
+		logger.print(Logger.VERBOSE, "Raw packet value : " + Arrays.toString(pb.getPacketBuffer()) );
+		logger.print(Logger.VERBOSE, "String value : " + bufferToString(pb.getPacketBuffer()) );
+		
+	}
+	
+	private static String bufferToString(byte[] buffer) {
 		StringBuilder strBuilder = new StringBuilder();
 		for(int i = 0; i< buffer.length; i++) {
 			char value = (char)buffer[i];
