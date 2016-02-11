@@ -19,6 +19,7 @@ import resource.Tuple;
 import resource.UIStrings;
 import server.Callback;
 import types.ErrorType;
+import types.InstanceType;
 import types.Logger;
 import types.RequestType;
 
@@ -47,6 +48,7 @@ public class ErrorSimulatorService implements Runnable {
 	private DatagramPacket mLastPacket;
 	private DatagramSocket mSendReceiveSocket;
 	private RequestType mInitialRequestType;
+	private InstanceType mMessUpThisTransfer;
 
 	private byte[] mBuffer = null;
 	
@@ -71,7 +73,7 @@ public class ErrorSimulatorService implements Runnable {
 	 *            thread
 	 */
 	@SuppressWarnings("unused")
-	public ErrorSimulatorService(DatagramPacket inDatagram, Callback cb, Tuple<ErrorType, Integer> errorSetting) {
+	public ErrorSimulatorService(DatagramPacket inDatagram, Callback cb, Tuple<ErrorType, Integer> errorSetting, InstanceType instance) {
 		this.mLastPacket = inDatagram;
 		this.mErrorSettings = errorSetting;
 		this.mCallback = cb;
@@ -92,6 +94,7 @@ public class ErrorSimulatorService implements Runnable {
 		} catch (SocketException e) {
 			e.printStackTrace();
 		}
+		this.mMessUpThisTransfer = instance;
 		logger.setClassTag(CLASS_TAG);
 		logger.print(Logger.DEBUG, "Initalized destination to host: " + this.mServerHostAddress + "\n");
 	}
@@ -114,9 +117,10 @@ public class ErrorSimulatorService implements Runnable {
 		
 		while (transferNotFinished) {
 			try {
-				// TODO: Have an option to trigger Errors for Server or Client. T
-				// 		 Currently, only errors are drawn to server. 
-				this.createSpecifiedError(this.mLastPacket);
+				
+				if(this.mMessUpThisTransfer == InstanceType.SERVER) {
+					this.createSpecifiedError(this.mLastPacket);
+				}
 				// On first iteration mForwardPort = Server Listen port
 				// Proceeding iterations, mForwardPort will change to Server
 				// Thread Port
@@ -158,11 +162,14 @@ public class ErrorSimulatorService implements Runnable {
 				// Set the mForwardPort to the Server's Thread Port
 				this.mForwardPort = serverPacket.getPort();
 
-
-				
 				// Redirect the packet back to the client address
 				this.mLastPacket.setPort(this.mClientPort);
 				this.mLastPacket.setAddress(this.mClientHostAddress);
+				
+				if(this.mMessUpThisTransfer == InstanceType.CLIENT) {
+					this.createSpecifiedError(this.mLastPacket);
+				}
+				
 				logger.print(Logger.DEBUG, Strings.ES_SEND_PACKET_CLIENT);
 				// Send that packet back to the client
 				forwardPacketToSocket(this.mLastPacket);

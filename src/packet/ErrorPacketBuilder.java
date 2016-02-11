@@ -3,6 +3,7 @@ package packet;
 import java.net.DatagramPacket;
 import java.net.InetAddress;
 import helpers.Conversion;
+import resource.Configurations;
 import types.ErrorType;
 import types.ModeType;
 import types.RequestType;
@@ -75,11 +76,13 @@ public class ErrorPacketBuilder extends PacketBuilder {
 			int errorOpInt = Conversion.bytesToShort(errorOpCode);
 			this.mErrorType = ErrorType.matchErrorByNumber(errorOpInt);
 		}
-		StringBuilder errorMessageExtractor = new StringBuilder();
 		// Extract the error message
-		byte[] errorMessageByte = new byte[this.mBuffer.length - 5];
-		System.arraycopy(this.mBuffer, 4, errorMessageByte, 0, errorMessageByte.length);
-		this.mErrorMessage = new String(errorMessageByte);
+		byte[] errorMessageByte;
+		if(this.mBuffer.length > Configurations.ERROR_PACKET_USELESS_VALUES) {
+			errorMessageByte = new byte[this.mBuffer.length - Configurations.ERROR_PACKET_USELESS_VALUES];
+			System.arraycopy(this.mBuffer, 4, errorMessageByte, 0, errorMessageByte.length);
+			this.mErrorMessage = new String(errorMessageByte);
+		}
 	}
 	
 	@Override 

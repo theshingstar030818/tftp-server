@@ -13,15 +13,12 @@ import resource.Strings;
 import resource.Tuple;
 import server.Callback;
 import types.ErrorType;
+import types.InstanceType;
 import types.Logger;
 import helpers.BufferPrinter;
 
 public class ErrorSimulatorServer implements Callback {
 	
-	private Logger logger = Logger.VERBOSE;
-	private TFTPUserInterface mErrorUI;
-	private Tuple<ErrorType, Integer> mErrorOptionSettings;
-	private final String CLASS_TAG = "<Error Simulator Server>";
 	/**
 	 * Main function that starts the server.
 	 */
@@ -30,8 +27,13 @@ public class ErrorSimulatorServer implements Callback {
 		listener.start();
 	}
 	
-	// Some class attributes.
-	static AtomicBoolean active = new AtomicBoolean(true);
+	private Logger logger = Logger.VERBOSE;
+	private TFTPUserInterface mErrorUI;
+	private Tuple<ErrorType, Integer> mErrorOptionSettings;
+	private final String CLASS_TAG = "<Error Simulator Server>";
+	private InstanceType testInstance; 
+	
+	public static AtomicBoolean active = new AtomicBoolean(true);
 	Vector<Thread> threads;
 	
 	DatagramSocket errorSimulatorSock = null;
@@ -43,7 +45,7 @@ public class ErrorSimulatorServer implements Callback {
 	public ErrorSimulatorServer() {
 		threads = new Vector<Thread>();
 		this.mErrorUI = new TFTPUserInterface();
-		logger = this.mErrorUI.printLoggerSelection();
+		testInstance = this.mErrorUI.printTestableProcess();
 		logger.setClassTag(CLASS_TAG);
 	}
 	
@@ -70,7 +72,7 @@ public class ErrorSimulatorServer implements Callback {
 			try {
 				// Create the packet for receiving.
 				byte[] buffer = new byte[Configurations.MAX_BUFFER]; 
-				this.mErrorOptionSettings = this.mErrorUI.getErrorCodeFromUser();
+				this.mErrorOptionSettings = this.mErrorUI.getErrorCodeFromUser(instanceType);
 				if(this.mErrorOptionSettings.first == ErrorType.EXIT) {
 					active.set(false);
 					break;
@@ -91,7 +93,7 @@ public class ErrorSimulatorServer implements Callback {
 			System.out.println(BufferPrinter.acceptConnectionMessage(Strings.SERVER_ACCEPT_CONNECTION, 
 					receivePacket.getSocketAddress().toString()));
 			
-			Thread service = new Thread(new ErrorSimulatorService(receivePacket, this, this.mErrorOptionSettings), CLASS_TAG);
+			Thread service = new Thread(new ErrorSimulatorService(receivePacket, this, this.mErrorOptionSettings, testInstance), CLASS_TAG);
 			threads.addElement(service);
 			service.start();
 		}
