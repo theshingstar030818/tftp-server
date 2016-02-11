@@ -203,6 +203,8 @@ public class TFTPClient {
 							return currErrorType;
 						}
 						legalTransferID = true;
+					} else {
+						legalTransferID = false;
 					}
 				} while (legalTransferID);
 
@@ -299,6 +301,8 @@ public class TFTPClient {
 							return currErrorType;
 						}
 						legalTransferID = true;
+					} else {
+						legalTransferID = false;
 					}
 
 				}while(legalTransferID);

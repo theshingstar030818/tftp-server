@@ -100,6 +100,8 @@ public class TFTPService implements Runnable {
 							return;
 						}
 						unknownHostFound = true;
+					} else {
+						unknownHostFound = false;
 					}
 				}while(unknownHostFound);
 				// Extract the data from the received packet with packet builder
@@ -185,6 +187,8 @@ public class TFTPService implements Runnable {
 							return;
 						}
 						receivedFromUnknownHost = true;
+					} else {
+						receivedFromUnknownHost = false;
 					}
 				} while(receivedFromUnknownHost);
 				this.mLastPacket = vReceivePacket;
