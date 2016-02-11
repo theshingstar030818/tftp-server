@@ -4,6 +4,7 @@
 package client;
 
 import java.io.File;
+import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
@@ -188,8 +189,10 @@ public class TFTPClient {
 
 				TFTPError currErrorType = errorChecker.check(ackPacket, RequestType.ACK);
 				if (currErrorType.getType() != ErrorType.NO_ERROR) {
-					errorChecker = null;
-					return currErrorType;
+					if(errorHandle(currErrorType, ackPacket.getPacket())) {
+						errorChecker = null;
+						return currErrorType;
+					}
 				}
 
 				// Overwrite last packet
@@ -274,8 +277,21 @@ public class TFTPClient {
 
 				TFTPError currErrorType = errorChecker.check(dataPacketBuilder, RequestType.DATA);
 				if (currErrorType.getType() != ErrorType.NO_ERROR) {
-					errorChecker = null;
-					return currErrorType;
+					
+					if(errorHandle(currErrorType, dataPacketBuilder.getPacket())) {
+						errorChecker = null;
+						return currErrorType;
+					}
+					dataBuf = new byte[Configurations.MAX_BUFFER];
+					lastPacket = new DatagramPacket(dataBuf, dataBuf.length);
+					sendReceiveSocket.receive(lastPacket);
+					logger.print(Logger.VERBOSE, "Recevied : ");
+					
+					// Use the packet builder class to manage and extract the data
+					dataPacketBuilder = new DataPacketBuilder(lastPacket);
+					BufferPrinter.printPacket(dataPacketBuilder, logger, RequestType.DATA);
+					// FUCK We need to check again if this was an error THIS needs to be in a FUCKING functions
+					// I AM SWEARING BECAUSE WE NEED TO REMEMBER TO IMPLEMENT THIS
 				}
 				
 				byte[] fileData = dataPacketBuilder.getDataBuffer();
@@ -327,6 +343,38 @@ public class TFTPClient {
 			}
 
 		}
+	}
+	
+	/**
+	 * Handle the error cases. Will return boolean to indicate whether to terminate
+	 * thread or carry on.
+	 * 
+	 * @param error
+	 * @param packet
+	 * @return
+	 */
+	public boolean errorHandle(TFTPError error, DatagramPacket packet) {
+		ErrorPacketBuilder errorPacket = new ErrorPacketBuilder(packet);
+		switch (error.getType()) {
+		case ILLEGAL_OPERATION:
+			DatagramPacket illegalOpsError = errorPacket.buildPacket(ErrorType.ILLEGAL_OPERATION,
+					error.getString());
+			try {
+				this.sendReceiveSocket.send(illegalOpsError);
+			} catch (IOException e) { e.printStackTrace(); }
+			System.err.println("Illegal operation caught, shutting down");
+			return true;
+		case UNKNOWN_TRANSFER:
+			errorPacket = new ErrorPacketBuilder(packet);
+			try {
+				this.sendReceiveSocket.send(errorPacket.getPacket());
+			} catch (IOException e) { e.printStackTrace(); }
+			return false;
+		default:
+			System.out.println("Unhandled Exception.");
+			break;
+		}			
+		return true;
 	}
 
 	/**
