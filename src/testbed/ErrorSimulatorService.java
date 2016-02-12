@@ -117,15 +117,15 @@ public class ErrorSimulatorService implements Runnable {
 		
 		while (transferNotFinished) {
 			try {
-				
-				if(this.mMessUpThisTransfer == InstanceType.SERVER) {
-					this.createSpecifiedError(this.mLastPacket);
-				}
 				// On first iteration mForwardPort = Server Listen port
 				// Proceeding iterations, mForwardPort will change to Server
 				// Thread Port
 				this.mLastPacket.setPort(this.mForwardPort);
 				this.mLastPacket.setAddress(this.mServerHostAddress);
+				if(this.mMessUpThisTransfer == InstanceType.SERVER) {
+					this.createSpecifiedError(this.mLastPacket);
+				}
+				
 				logger.print(Logger.DEBUG,"Preparing to send packet to server at port " + this.mForwardPort);
 				// Send off this that is directed to the server
 				forwardPacketToSocket(this.mLastPacket);
@@ -234,8 +234,8 @@ public class ErrorSimulatorService implements Runnable {
 			this.mLastPacket = vEPFour.errorPacketCreator();
 			break;
 		case UNKNOWN_TRANSFER:
-			Thread errorCodeFive = new Thread(new ErrorCodeFive(inPacket));
-			errorCodeFive.start();
+			Thread codeFiveThread = new Thread(new ErrorCodeFive(inPacket), "Error Code 5 thread");
+			codeFiveThread.start();
 			// error code 5 thread
 			break;
 		case FILE_EXISTS:

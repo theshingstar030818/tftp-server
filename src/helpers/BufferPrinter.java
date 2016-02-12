@@ -2,10 +2,12 @@ package helpers;
 
 import java.util.Arrays;
 
-import packet.PacketBuilder;
-import packet.PacketBuilderFactory;
-import packet.ReadPacketBuilder;
-import packet.WritePacketBuilder;
+import packet.ErrorPacket;
+import packet.Packet;
+import packet.PacketFactory;
+import packet.ReadPacket;
+import packet.WritePacket;
+import resource.Configurations;
 import resource.Strings;
 import types.Logger;
 import types.RequestType;
@@ -16,20 +18,28 @@ import types.RequestType;
  */
 public class BufferPrinter {
 	
-	// this metthod now only prints if the client/Error simulator/server was initialized
+	// this method now only prints if the client/Error simulator/server was initialized
 	// with a LogLevel VERBOSE 
 	public static void printBuffer(byte[] buffer, String entity, Logger logLevel) {
 		StringBuilder strBuilder = new StringBuilder();
+		byte[] data = new byte[Configurations.MAX_MESSAGE_SIZE + 2];
+		int length = 0;
+		if(buffer.length < data.length) {
+			length = buffer.length;
+		} else {
+			length = data.length;
+		}
+		System.arraycopy(buffer, 0, data, 0, length);
 		strBuilder.append(entity + " prints contents of the UDP buffer:\n");
-		strBuilder.append(Arrays.toString(buffer) + "\n");
+		strBuilder.append(Arrays.toString(data) + "\n");
 		strBuilder.append(entity + " prints contents of UDP buffer as string: \n");
-		strBuilder.append(new String(buffer) + "\n");
+		strBuilder.append(new String(data) + "\n");
 		logLevel.print(Logger.VERBOSE, strBuilder.toString());
 	}
 	
-	public static void printPacket(PacketBuilder pb,Logger logger, RequestType requestType){
+	public static void printPacket(Packet pb,Logger logger, RequestType requestType){
 		
-		PacketBuilderFactory pbf;
+		PacketFactory pbf;
 		
 		switch (requestType) {
 		case ACK:
@@ -44,17 +54,17 @@ public class BufferPrinter {
 					
 		case RRQ:
 			logger.print(Logger.VERBOSE, Strings.RRQ);
-			logger.print(Logger.VERBOSE, "File Name : " +  ((ReadPacketBuilder)pb).getFilename());
+			logger.print(Logger.VERBOSE, "File Name : " +  ((ReadPacket)pb).getFilename());
 			break;
 			
 		case WRQ:
 			logger.print(Logger.VERBOSE, Strings.WRQ);
-			logger.print(Logger.VERBOSE, "File Name : " +  ((WritePacketBuilder)pb).getFilename());
+			logger.print(Logger.VERBOSE, "File Name : " +  ((WritePacket)pb).getFilename());
 			break;
 			
 		case ERROR:
 			logger.print(Logger.VERBOSE, Strings.ERROR);
-			
+			logger.print(Logger.VERBOSE, ((ErrorPacket)pb).getCustomPackageErrorMessage());
 			break;
 			
 		case NONE:

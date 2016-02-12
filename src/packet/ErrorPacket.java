@@ -13,16 +13,16 @@ import types.RequestType;
  *
  * This class is used to construct the Error packets used for the TFTP system.
  */
-public class ErrorPacketBuilder extends PacketBuilder {
+public class ErrorPacket extends Packet {
 
 	private ErrorType mErrorType;
 	private String mErrorMessage;
 	
-	public ErrorPacketBuilder(InetAddress addressOfHost, int destPort) {
+	public ErrorPacket(InetAddress addressOfHost, int destPort) {
 		super(addressOfHost, destPort, RequestType.ERROR);
 	}
 
-	public ErrorPacketBuilder(DatagramPacket inDatagramPacket) {
+	public ErrorPacket(DatagramPacket inDatagramPacket) {
 		super(inDatagramPacket);
 		
 		deconstructPacket(inDatagramPacket);
@@ -99,7 +99,7 @@ public class ErrorPacketBuilder extends PacketBuilder {
 	}
 	
 	/* (non-Javadoc)
-	 * @see packet.PacketBuilder#getDataBuffer()
+	 * @see packet.Packet#getDataBuffer()
 	 */
 	public byte[] getDataBuffer() {
 		return this.mBuffer;

@@ -39,8 +39,8 @@ public class UIStrings {
 			   				   + "----------------------------------\n"
 			   				   +"Please select logging level for this session\n"
 			   				   + "Options : \n"
-			   				   + "\t 1. Interfere with packets going to the Client Packets\n"
-			   				   + "\t 2. Interfere with packets going to the Server Packets\n"
+			   				   + "\t 1. Interfere with packets going to the Client\n"
+			   				   + "\t 2. Interfere with packets going to the Server\n"
 			   				   + "Select option : ";
 	 public static final String MENU_CLIENT_SELECTION 
 							   = "----------------------\n"

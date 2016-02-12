@@ -4,7 +4,7 @@ import java.net.*;
 import packet.*;
 
 public abstract class ErrorCodeSimulator {
-	protected PacketBuilder receivePacketBuilder;
+	protected Packet receivePacketBuilder;
 
 	public ErrorCodeSimulator(DatagramPacket inPacket) {
 		this.constructPacketBuilder(inPacket);
@@ -22,19 +22,19 @@ public abstract class ErrorCodeSimulator {
 
 		switch (buffer[1]) {
 		case 1:
-			this.receivePacketBuilder = new ReadPacketBuilder(inPacket);
+			this.receivePacketBuilder = new ReadPacket(inPacket);
 			break;
 		case 2: 
-			this.receivePacketBuilder = new WritePacketBuilder(inPacket);
+			this.receivePacketBuilder = new WritePacket(inPacket);
 			break;
 		case 3: 
-			this.receivePacketBuilder = new DataPacketBuilder(inPacket);
+			this.receivePacketBuilder = new DataPacket(inPacket);
 			break;
 		case 4: 
-			this.receivePacketBuilder = new AckPacketBuilder(inPacket);
+			this.receivePacketBuilder = new AckPacket(inPacket);
 			break;
 		case 5: 
-			this.receivePacketBuilder = new ErrorPacketBuilder(inPacket);
+			this.receivePacketBuilder = new ErrorPacket(inPacket);
 			break;
 		}
 	}

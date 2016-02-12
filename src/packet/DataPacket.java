@@ -15,7 +15,7 @@ import types.RequestType;
  *	This class facilitates building of DATA packets by determining which
  *	block number it should be encapsulated in the Datagram with
  */
-public class DataPacketBuilder extends PacketBuilder {
+public class DataPacket extends Packet {
 	
 	private short mBlockNumber;
 	private byte[] mDataBuffer;
@@ -27,7 +27,7 @@ public class DataPacketBuilder extends PacketBuilder {
 	 * @param addressOfHost - InetAddress of the host
 	 * @param destPort 		- Destination port number
 	 */
-	public DataPacketBuilder(InetAddress addressOfHost, int destPort) {
+	public DataPacket(InetAddress addressOfHost, int destPort) {
 		super(addressOfHost, destPort, RequestType.DATA);
 		this.mBlockNumber = 0;
 	}
@@ -45,13 +45,13 @@ public class DataPacketBuilder extends PacketBuilder {
 	 * 
 	 * @param inDatagramPacket - the packet to reply to (or load info from)
 	 */
-	public DataPacketBuilder(DatagramPacket inDatagramPacket) {
+	public DataPacket(DatagramPacket inDatagramPacket) {
 		super(inDatagramPacket);
 		deconstructPacket(inDatagramPacket);
 	}
 
 	/* (non-Javadoc)
-	 * @see packet.PacketBuilder#buildPacket()
+	 * @see packet.Packet#buildPacket()
 	 */
 	@Override
 	public DatagramPacket buildPacket() {
@@ -89,7 +89,7 @@ public class DataPacketBuilder extends PacketBuilder {
 	}
 
 	/* (non-Javadoc)
-	 * @see packet.PacketBuilder#decontructPacket(java.net.DatagramPacket)
+	 * @see packet.Packet#decontructPacket(java.net.DatagramPacket)
 	 */
 	@Override
 	public void deconstructPacket(DatagramPacket inDatagramPacket) {
@@ -111,7 +111,7 @@ public class DataPacketBuilder extends PacketBuilder {
 	}
 	
 	/* (non-Javadoc)
-	 * @see packet.PacketBuilder#getRequestTypeHeaderByteArray()
+	 * @see packet.Packet#getRequestTypeHeaderByteArray()
 	 */
 	@Override 
 	protected byte[] getRequestTypeHeaderByteArray() {
@@ -154,7 +154,7 @@ public class DataPacketBuilder extends PacketBuilder {
 	}
 	
 	/* (non-Javadoc)
-	 * @see packet.PacketBuilder#getDataBuffer()
+	 * @see packet.Packet#getDataBuffer()
 	 */
 	public byte[] getDataBuffer() {
 		return this.mDataBuffer;
