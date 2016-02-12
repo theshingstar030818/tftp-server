@@ -168,11 +168,9 @@ public class TFTPClient {
 
 			while (fileData != null && fileData.length >= Configurations.MAX_PAYLOAD_BUFFER) {
 				
-
 				boolean legalTransferID = false;
 				
 				do {
-					
 					// This packet has the block number to start on!
 					packetBuffer = new byte[Configurations.MAX_BUFFER];
 					lastPacket = new DatagramPacket(packetBuffer, packetBuffer.length);
@@ -418,6 +416,23 @@ public class TFTPClient {
 				sendReceiveSocket.send(illegalOpsError);
 			} catch (IOException e) { e.printStackTrace(); }
 			System.err.println("Illegal operation caught, shutting down");
+			byte[] string = error.getString().getBytes();
+			if(string.length > Configurations.MAX_MESSAGE_SIZE) {
+				int i = 0;
+				for(i =0; i < string.length; ++i) {
+					if(string[i] == 0) {
+						break;
+					}
+				}
+				if(i != 0) {
+					String message = "";
+					byte[] trimmedString = new byte[i];
+					
+					System.arraycopy(string, 0, trimmedString, 0, i);
+					message = new String(trimmedString);
+					error.setString(message);
+				}
+			}
 			return true;
 		case UNKNOWN_TRANSFER:
 			try {

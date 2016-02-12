@@ -18,4 +18,8 @@ public class TFTPError {
 	public String getString() {
 		return message;
 	}
+	
+	public void setString(String s) {
+		this.message = s;
+	}
 }
