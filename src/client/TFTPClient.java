@@ -63,7 +63,7 @@ public class TFTPClient {
 				this.mPortToSendTo = Configurations.ERROR_SIM_LISTEN_PORT;
 			}
 			setLogLevel();
-			sendReceiveSocket = new DatagramSocket();
+			
 			int optionSelected = 0;
 
 			while (isClientAlive) {
@@ -85,6 +85,9 @@ public class TFTPClient {
 						if (result.getType() != ErrorType.NO_ERROR) {
 							logger.print(Logger.ERROR, Strings.TRANSFER_FAILED);
 							logger.print(Logger.ERROR, result.getString());
+							if(!sendReceiveSocket.isClosed()) {
+								sendReceiveSocket.close();
+							}
 						} else {
 							logger.print(Logger.DEBUG, Strings.TRANSFER_SUCCESSFUL);
 						}
@@ -124,8 +127,8 @@ public class TFTPClient {
 				}
 			}
 		} catch (SocketException e) {
+			// TODO Auto-generated catch block
 			e.printStackTrace();
-			scan.close();
 		} finally {
 			scan.close();
 		}
@@ -138,11 +141,12 @@ public class TFTPClient {
 	 * @param writeFileName
 	 *            - the name of the file that the client requests to send to
 	 *            server
+	 * @throws SocketException 
 	 */
-	private TFTPError writeRequestHandler(String writeFileNameOrFilePath) {
+	private TFTPError writeRequestHandler(String writeFileNameOrFilePath) throws SocketException {
 		
 		logger.print(Logger.VERBOSE, Strings.CLIENT_INITIATE_WRITE_REQUEST);
-		
+		sendReceiveSocket = new DatagramSocket();
 		ReadWritePacketPacket wpb;
 		FileStorageService writeRequestFileStorageService;
 		DataPacket dataPacket;
@@ -218,6 +222,7 @@ public class TFTPClient {
 			sendReceiveSocket.receive(lastPacket);
 			Logger.VERBOSE.print(Logger.VERBOSE, "Recevied last packet : ");
 			BufferPrinter.printPacket(new AckPacket(lastPacket),Logger.VERBOSE, RequestType.ACK);
+			sendReceiveSocket.close();
 
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -238,7 +243,7 @@ public class TFTPClient {
 	private TFTPError readRequestHandler(String readFileName) throws Exception {
 		
 		logger.print(Logger.VERBOSE, Strings.CLIENT_INITIATE_READ_REQUEST);
-
+		sendReceiveSocket = new DatagramSocket();
 		AckPacket ackPacket;
 		DatagramPacket lastPacket;
 		DataPacket dataPacket;
@@ -294,7 +299,6 @@ public class TFTPClient {
 						return currErrorType;
 					
 				}
-
 								
 				byte[] fileData = dataPacket.getDataBuffer();
 				// We need trim the byte array
@@ -313,6 +317,7 @@ public class TFTPClient {
 				
 				sendReceiveSocket.send(lastPacket);
 			}
+			sendReceiveSocket.close();
 		} catch (Exception e) {
 			e.printStackTrace();
 			errorChecker = null;

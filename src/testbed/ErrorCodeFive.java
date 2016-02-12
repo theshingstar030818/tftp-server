@@ -48,7 +48,7 @@ public class ErrorCodeFive implements Runnable {
 			
 			try {
 				System.err.println("Creating an error packet for unknown host to sent to server.");
-				//newSocket.setSoTimeout(10000);
+				this.errorSocket.setSoTimeout(1000);
 				this.errorSocket.send(this.mSendPacket);
 			} catch (IOException e) {
 				e.printStackTrace();
