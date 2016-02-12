@@ -2,11 +2,11 @@ package helpers;
 
 import java.util.Arrays;
 
-import packet.ErrorPacketBuilder;
-import packet.PacketBuilder;
-import packet.PacketBuilderFactory;
-import packet.ReadPacketBuilder;
-import packet.WritePacketBuilder;
+import packet.ErrorPacket;
+import packet.Packet;
+import packet.PacketFactory;
+import packet.ReadPacket;
+import packet.WritePacket;
 import resource.Configurations;
 import resource.Strings;
 import types.Logger;
@@ -37,9 +37,9 @@ public class BufferPrinter {
 		logLevel.print(Logger.VERBOSE, strBuilder.toString());
 	}
 	
-	public static void printPacket(PacketBuilder pb,Logger logger, RequestType requestType){
+	public static void printPacket(Packet pb,Logger logger, RequestType requestType){
 		
-		PacketBuilderFactory pbf;
+		PacketFactory pbf;
 		
 		switch (requestType) {
 		case ACK:
@@ -54,17 +54,17 @@ public class BufferPrinter {
 					
 		case RRQ:
 			logger.print(Logger.VERBOSE, Strings.RRQ);
-			logger.print(Logger.VERBOSE, "File Name : " +  ((ReadPacketBuilder)pb).getFilename());
+			logger.print(Logger.VERBOSE, "File Name : " +  ((ReadPacket)pb).getFilename());
 			break;
 			
 		case WRQ:
 			logger.print(Logger.VERBOSE, Strings.WRQ);
-			logger.print(Logger.VERBOSE, "File Name : " +  ((WritePacketBuilder)pb).getFilename());
+			logger.print(Logger.VERBOSE, "File Name : " +  ((WritePacket)pb).getFilename());
 			break;
 			
 		case ERROR:
 			logger.print(Logger.VERBOSE, Strings.ERROR);
-			logger.print(Logger.VERBOSE, ((ErrorPacketBuilder)pb).getCustomPackageErrorMessage());
+			logger.print(Logger.VERBOSE, ((ErrorPacket)pb).getCustomPackageErrorMessage());
 			break;
 			
 		case NONE:

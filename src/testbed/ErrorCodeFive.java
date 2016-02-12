@@ -4,7 +4,7 @@ import java.io.IOException;
 import java.net.*;
 
 import helpers.BufferPrinter;
-import packet.ErrorPacketBuilder;
+import packet.ErrorPacket;
 import resource.Configurations;
 import types.Logger;
 import types.RequestType;
@@ -58,7 +58,7 @@ public class ErrorCodeFive implements Runnable {
 			DatagramPacket receivedPacket = new DatagramPacket(data, data.length);
 			try {
 				this.errorSocket.receive(receivedPacket);
-				ErrorPacketBuilder errorPacket = new ErrorPacketBuilder(receivedPacket);
+				ErrorPacket errorPacket = new ErrorPacket(receivedPacket);
 				BufferPrinter.printPacket(errorPacket, Logger.VERBOSE, RequestType.ERROR);
 				System.err.println("Uknown host error packet received from server \n");
 			} catch(SocketTimeoutException e) { 

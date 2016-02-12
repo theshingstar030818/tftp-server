@@ -10,12 +10,12 @@ import helpers.Conversion;
 /**
  * @author Team 3
  * 
- * This class is an abstract base class of the PacketBuilder design pattern
+ * This class is an abstract base class of the Packet design pattern
  * implementation. It's primary responsibility is to initialize DatagramPacket
  * attributes and de-construction of received packets. 
  */
 
-public abstract class PacketBuilder {
+public abstract class Packet {
 
 	protected RequestType mRequestType;
 	protected InetAddress mInetAddress;
@@ -34,7 +34,7 @@ public abstract class PacketBuilder {
 	 * @param destPort 		- Destination port number
 	 * @param requesType	- Request Type operation code
 	 */
-	public PacketBuilder(InetAddress addressOfHost, int destPort, RequestType requesType) {
+	public Packet(InetAddress addressOfHost, int destPort, RequestType requesType) {
 		this.mInetAddress = addressOfHost;
 		this.mDestinationPort = destPort;
 		this.mRequestType = requesType;
@@ -46,7 +46,7 @@ public abstract class PacketBuilder {
 	 * 
 	 * @param inDatagramPacket - packet that was received by the system
 	 */
-	public PacketBuilder(DatagramPacket inDatagramPacket) {
+	public Packet(DatagramPacket inDatagramPacket) {
 		this.mBlockNumber = -1;
 		this.mDatagramPacket = inDatagramPacket;
 		byte[] tempBuffer = new byte[inDatagramPacket.getLength()];
@@ -59,7 +59,7 @@ public abstract class PacketBuilder {
 
 	/**
 	 * This function takes care of building the DatagramPacket in its entirety.
-	 * Each subclass of PacketBuilder must override this method to provide
+	 * Each subclass of Packet must override this method to provide
 	 * each specific packet building instructions
 	 * 
 	 * @return the finished DatagramPacket, ready to be sent
@@ -68,7 +68,7 @@ public abstract class PacketBuilder {
 	
 	/**
 	 * This function de-constructs the primary parameters of the DatagramPacket.
-	 * The main use is to load the super class PacketBuilder, with essential packet 
+	 * The main use is to load the super class Packet, with essential packet 
 	 * destination information for constructing a reply
 	 * 
 	 * @param inDatagramPacket - packet to retrieve all information from
@@ -88,7 +88,7 @@ public abstract class PacketBuilder {
 	 * file bytes, retrieved from the packet. 
 	 * 
 	 * ***WARNING*** 
-	 * Do not use this method if you are using DataPacketBuilder.
+	 * Do not use this method if you are using DataPacket.
 	 * That class has overridden this method to return the payload 
 	 * for file transferring. Please use getPacketBuffer()
 	 * 
@@ -133,7 +133,7 @@ public abstract class PacketBuilder {
 	public abstract short getBlockNumber();
 	
 	/**
-	 * This function can be used to get the current packet that PacketBuilder
+	 * This function can be used to get the current packet that Packet
 	 * has been working on. 
 	 * If buildPacket() was not called before, a NullPointerException will be thrown
 	 * 
@@ -182,7 +182,7 @@ public abstract class PacketBuilder {
 	}
 	
 	/**
-	 * This function is used to set the current RequestType that the PacketBuilder
+	 * This function is used to set the current RequestType that the Packet
 	 * and it's subclasses are working on.
 	 * 
 	 * @param buffer - the recently received buffer from DatagramPacket.getData()

@@ -15,7 +15,7 @@ import resource.Configurations;
  *	This class facilitates building of ACK packets by determining which
  *	block number it should reply with
  */
-public class AckPacketBuilder extends PacketBuilder {
+public class AckPacket extends Packet {
 	
 	/**
 	 * Used to create a packet from scratch by inputing the required parameters of the
@@ -24,7 +24,7 @@ public class AckPacketBuilder extends PacketBuilder {
 	 * @param addressOfHost - InetAddress of the host
 	 * @param destPort 		- Destination port number
 	 */
-	public AckPacketBuilder(InetAddress addressOfHost, int destPort) {
+	public AckPacket(InetAddress addressOfHost, int destPort) {
 		super(addressOfHost, destPort, RequestType.ACK);
 		mBlockNumber = 0;
 	}
@@ -42,14 +42,14 @@ public class AckPacketBuilder extends PacketBuilder {
 	 * 
 	 * @param inDatagramPacket - the packet to reply to (or load info from)
 	 */
-	public AckPacketBuilder(DatagramPacket inDatagramPacket) {
+	public AckPacket(DatagramPacket inDatagramPacket) {
 		super(inDatagramPacket);
 		mBlockNumber = 0;
 		deconstructPacket(inDatagramPacket);
 	}
 
 	/* (non-Javadoc)
-	 * @see packet.PacketBuilder#buildPacket()
+	 * @see packet.Packet#buildPacket()
 	 */
 	@Override
 	public DatagramPacket buildPacket() {
@@ -65,7 +65,7 @@ public class AckPacketBuilder extends PacketBuilder {
 	}
 
 	/* (non-Javadoc)
-	 * @see packet.PacketBuilder#decontructPacket(java.net.DatagramPacket)
+	 * @see packet.Packet#decontructPacket(java.net.DatagramPacket)
 	 */
 	@Override
 	public void deconstructPacket(DatagramPacket inDatagramPacket) {
@@ -81,7 +81,7 @@ public class AckPacketBuilder extends PacketBuilder {
 	}
 	
 	/* (non-Javadoc)
-	 * @see packet.PacketBuilder#getRequestTypeHeaderByteArray()
+	 * @see packet.Packet#getRequestTypeHeaderByteArray()
 	 */
 	@Override 
 	protected byte[] getRequestTypeHeaderByteArray() {
@@ -109,7 +109,7 @@ public class AckPacketBuilder extends PacketBuilder {
 	}
 	
 	/* (non-Javadoc)
-	 * @see packet.PacketBuilder#getDataBuffer()
+	 * @see packet.Packet#getDataBuffer()
 	 */
 	public byte[] getDataBuffer() {
 		return this.mBuffer;

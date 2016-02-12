@@ -3,10 +3,10 @@ package testbed;
 import java.net.*;
 
 import helpers.Conversion;
-import packet.AckPacketBuilder;
-import packet.PacketBuilder;
+import packet.AckPacket;
+import packet.Packet;
 import resource.Configurations;
-import packet.DataPacketBuilder;
+import packet.DataPacket;
 import types.*;
 
 public class ErrorCodeFour extends ErrorCodeSimulator {
@@ -52,7 +52,7 @@ public class ErrorCodeFour extends ErrorCodeSimulator {
 				// The following build packet will automatically increment block
 				// number by 1, which
 				// effectively mismatches the block number
-				this.mSendPacket = ((DataPacketBuilder) receivePacketBuilder)
+				this.mSendPacket = ((DataPacket) receivePacketBuilder)
 						.buildPacket(receivePacketBuilder.getDataBuffer());
 			} else {
 				this.mSendPacket = super.receivePacketBuilder.getPacket();
@@ -87,7 +87,7 @@ public class ErrorCodeFour extends ErrorCodeSimulator {
 	 * 
 	 * @param inPacket
 	 */
-	private void changeHeader(PacketBuilder inPacket) {
+	private void changeHeader(Packet inPacket) {
 		byte[] header = inPacket.getRequestType().getHeaderByteArray();
 		byte[] data = inPacket.getPacketBuffer();
 		DatagramPacket packet = inPacket.getPacket();
@@ -152,7 +152,7 @@ public class ErrorCodeFour extends ErrorCodeSimulator {
 	 * 
 	 * @param inPacket
 	 */
-	private void invalidPacketSize(PacketBuilder inPacket) {
+	private void invalidPacketSize(Packet inPacket) {
 		int length = inPacket.getPacketLength();
 		int maxMultipleLengthGreaterThanMessageSize = (Configurations.MAX_MESSAGE_SIZE / length) + 1;
 		int blowMaxMessageBuffer = maxMultipleLengthGreaterThanMessageSize * length;

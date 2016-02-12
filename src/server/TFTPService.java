@@ -36,7 +36,7 @@ public class TFTPService implements Runnable {
 	 * @param packet
 	 */
 	public TFTPService(DatagramPacket packet, Callback finCallback) {
-		errorChecker = new ErrorChecker(new ReadWritePacketPacketBuilder(packet));
+		errorChecker = new ErrorChecker(new ReadWritePacketPacket(packet));
 		this.mLastPacket = packet;
 		this.mClientFinishedCallback = finCallback;
 		try {
@@ -53,7 +53,7 @@ public class TFTPService implements Runnable {
 	 * 
 	 * @param writeRequest - write request packet from client
 	 */
-	private void handleFileWriteOperation(WritePacketBuilder writeRequest) { // check data
+	private void handleFileWriteOperation(WritePacket writeRequest) { // check data
 		
 		logger.print(Logger.DEBUG, "Server initializing client's write request ... " + this.mSendReceiveSocket.getPort());
 		
@@ -61,7 +61,7 @@ public class TFTPService implements Runnable {
 		BufferPrinter.printPacket(writeRequest, Logger.VERBOSE, RequestType.WRQ);
 		
 		// when we get a write request, we need to acknowledge client first (block 0)
-		AckPacketBuilder vAckPacket = new AckPacketBuilder(this.mLastPacket);
+		AckPacket vAckPacket = new AckPacket(this.mLastPacket);
 		DatagramPacket vSendPacket = vAckPacket.buildPacket();
 		String v_sFileName = writeRequest.getFilename();
 		try {
@@ -75,7 +75,7 @@ public class TFTPService implements Runnable {
 				}
 			}
 			logger.print(Logger.DEBUG, Strings.SENDING);
-			BufferPrinter.printPacket(new AckPacketBuilder(vSendPacket), Logger.VERBOSE,RequestType.ACK);
+			BufferPrinter.printPacket(new AckPacket(vSendPacket), Logger.VERBOSE,RequestType.ACK);
 			
 			this.mSendReceiveSocket.send(vSendPacket);
 			// Open a channel to the file
@@ -91,7 +91,7 @@ public class TFTPService implements Runnable {
 					byte[] data = new byte[Configurations.MAX_BUFFER];
 					this.mLastPacket = new DatagramPacket(data, data.length);
 					this.mSendReceiveSocket.receive(this.mLastPacket);
-					DataPacketBuilder receivedPacket = new DataPacketBuilder(this.mLastPacket);
+					DataPacket receivedPacket = new DataPacket(this.mLastPacket);
 					logger.print(Logger.VERBOSE, Strings.RECEIVED);
 					BufferPrinter.printPacket(receivedPacket, logger, RequestType.DATA);
 					error = errorChecker.check(receivedPacket, RequestType.DATA);
@@ -112,13 +112,13 @@ public class TFTPService implements Runnable {
 					this.mLastPacket.setData(packetBuffer);
 				}
 				
-				DataPacketBuilder vDataPacketBuilder = new DataPacketBuilder(this.mLastPacket);
+				DataPacket vDataPacketBuilder = new DataPacket(this.mLastPacket);
 				vEmptyData = vDataPacketBuilder.getDataBuffer();
 
 				vHasMore = vFileStorageService.saveFileByteBufferToDisk(vEmptyData);
 				// ACK this bit of data
 				
-				vAckPacket = new AckPacketBuilder(this.mLastPacket);
+				vAckPacket = new AckPacket(this.mLastPacket);
 				vSendPacket = vAckPacket.buildPacket();
 				
 				logger.print(Logger.VERBOSE, Strings.SENDING);
@@ -139,7 +139,7 @@ public class TFTPService implements Runnable {
 	 * 
 	 * @param readRequest - the read request data gram packet getting from the client
 	 */
-	private void handleFileReadOperation(ReadPacketBuilder readRequest) { // check ack
+	private void handleFileReadOperation(ReadPacket readRequest) { // check ack
 		
 		logger.print(Logger.DEBUG, "Server initializing client's read request ...");
 		
@@ -147,7 +147,7 @@ public class TFTPService implements Runnable {
 		BufferPrinter.printPacket(readRequest, Logger.VERBOSE, RequestType.RRQ);
 		DatagramPacket vReceivePacket;
 		String vFileName = readRequest.getFilename();
-		AckPacketBuilder ackPacket;
+		AckPacket ackPacket;
 		try {
 			// First check for formatting errors and IO errors 
 			TFTPError error = errorChecker.check(readRequest, RequestType.RRQ);
@@ -169,7 +169,7 @@ public class TFTPService implements Runnable {
 				boolean receivedFromUnknownHost = false;
 				vEmptyData = vFileStorageService.getFileByteBufferFromDisk();
 				// Building a data packet from the last packet ie. will increment block number
-				DataPacketBuilder vDataPacket = new DataPacketBuilder(this.mLastPacket);
+				DataPacket vDataPacket = new DataPacket(this.mLastPacket);
 				DatagramPacket vSendPacket = vDataPacket.buildPacket(vEmptyData);
 				logger.print(Logger.DEBUG, Strings.SENDING);
 				BufferPrinter.printPacket(vDataPacket, Logger.VERBOSE, RequestType.ACK);
@@ -180,7 +180,7 @@ public class TFTPService implements Runnable {
 					byte[] data = new byte[Configurations.MAX_BUFFER];
 					vReceivePacket = new DatagramPacket(data, data.length);
 					mSendReceiveSocket.receive(vReceivePacket);
-					ackPacket = new AckPacketBuilder(vReceivePacket);
+					ackPacket = new AckPacket(vReceivePacket);
 					error = errorChecker.check(ackPacket, RequestType.ACK);
 					if (error.getType() != ErrorType.NO_ERROR) {
 						if(errorHandle(error, vReceivePacket)) {
@@ -199,7 +199,7 @@ public class TFTPService implements Runnable {
 			this.mSendReceiveSocket.receive(vReceivePacket);
 			
 			logger.print(Logger.DEBUG, Strings.RECEIVED);
-			BufferPrinter.printPacket(new AckPacketBuilder(vReceivePacket), Logger.VERBOSE, RequestType.ACK);
+			BufferPrinter.printPacket(new AckPacket(vReceivePacket), Logger.VERBOSE, RequestType.ACK);
 			
 			System.err.println("If the code reached here, the bug was fixed. Make sure the last ack packet was acked");
 		} catch (FileNotFoundException e) {
@@ -218,7 +218,7 @@ public class TFTPService implements Runnable {
 	 * @return
 	 */
 	public boolean errorHandle(TFTPError error, DatagramPacket packet) {
-		ErrorPacketBuilder errorPacket = new ErrorPacketBuilder(packet);
+		ErrorPacket errorPacket = new ErrorPacket(packet);
 		switch (error.getType()) {
 		case ILLEGAL_OPERATION:
 			DatagramPacket illegalOpsError = errorPacket.buildPacket(ErrorType.ILLEGAL_OPERATION,
@@ -248,17 +248,17 @@ public class TFTPService implements Runnable {
 	 */
 	public void run() {
 
-		ReadWritePacketPacketBuilder vClientRequestPacket = new ReadWritePacketPacketBuilder(this.mLastPacket);
+		ReadWritePacketPacket vClientRequestPacket = new ReadWritePacketPacket(this.mLastPacket);
 		
 		RequestType reqType = vClientRequestPacket.getRequestType();
 		switch(reqType) {
 			// handle each request type
 			case WRQ:
-				WritePacketBuilder vWritePacket = new WritePacketBuilder(this.mLastPacket);
+				WritePacket vWritePacket = new WritePacket(this.mLastPacket);
 				handleFileWriteOperation(vWritePacket);
 				break;
 			case RRQ:
-				ReadPacketBuilder vReadPacket = new ReadPacketBuilder(this.mLastPacket);
+				ReadPacket vReadPacket = new ReadPacket(this.mLastPacket);
 				handleFileReadOperation(vReadPacket);
 				break;
 			default:

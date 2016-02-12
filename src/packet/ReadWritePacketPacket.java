@@ -13,7 +13,7 @@ import resource.Configurations;
  * their specific respective classes. Using this class will require user 
  * definition of which specific class to initialize. 
  */
-public class ReadWritePacketPacketBuilder extends PacketBuilder {
+public class ReadWritePacketPacket extends Packet {
 
 	protected String mFilename;
 	protected ModeType mMode;
@@ -27,7 +27,7 @@ public class ReadWritePacketPacketBuilder extends PacketBuilder {
 	 * @param destPort 		- Destination port number
 	 * @param requestType	- The request type either RRQ or WRQ
 	 */
-	public ReadWritePacketPacketBuilder(InetAddress addressOfHost, int destPort, RequestType requestType) {
+	public ReadWritePacketPacket(InetAddress addressOfHost, int destPort, RequestType requestType) {
 		super(addressOfHost, destPort, requestType);
 		this.mFilename = Configurations.DEFAULT_FILENAME;
 		this.mMode = Configurations.DEFAULT_RW_MODE;
@@ -43,7 +43,7 @@ public class ReadWritePacketPacketBuilder extends PacketBuilder {
 	 * @param requestType	- The request type either RRQ or WRQ
 	 * @param fileName		- Filename to RRQ or WRQ
 	 */
-	public ReadWritePacketPacketBuilder(InetAddress addressOfHost, int destPort, RequestType requestType, String fileName) {
+	public ReadWritePacketPacket(InetAddress addressOfHost, int destPort, RequestType requestType, String fileName) {
 		super(addressOfHost, destPort, requestType);
 		this.mFilename = fileName;
 		this.mMode = Configurations.DEFAULT_RW_MODE;
@@ -60,7 +60,7 @@ public class ReadWritePacketPacketBuilder extends PacketBuilder {
 	 * @param fileName		- Filename to RRQ or WRQ
 	 * @param mode			- The encoding mode of the data
 	 */
-	public ReadWritePacketPacketBuilder(InetAddress addressOfHost, int destPort, RequestType requestType, String fileName, ModeType mode) {
+	public ReadWritePacketPacket(InetAddress addressOfHost, int destPort, RequestType requestType, String fileName, ModeType mode) {
 		super(addressOfHost, destPort, requestType);
 		this.mFilename = fileName;
 		this.mMode = mode;
@@ -71,7 +71,7 @@ public class ReadWritePacketPacketBuilder extends PacketBuilder {
 	 * 
 	 * @param inDatagramPacket
 	 */
-	public ReadWritePacketPacketBuilder(DatagramPacket inDatagramPacket) {
+	public ReadWritePacketPacket(DatagramPacket inDatagramPacket) {
 		super(inDatagramPacket);
 		deconstructPacket(inDatagramPacket);
 	}
@@ -115,7 +115,7 @@ public class ReadWritePacketPacketBuilder extends PacketBuilder {
 	}
 
 	/* (non-Javadoc)
-	 * @see packet.PacketBuilder#decontructPacket(java.net.DatagramPacket)
+	 * @see packet.Packet#decontructPacket(java.net.DatagramPacket)
 	 */
 	@Override
 	public void deconstructPacket(DatagramPacket inDatagramPacket) {
@@ -157,7 +157,7 @@ public class ReadWritePacketPacketBuilder extends PacketBuilder {
 	}
 	
 	/* (non-Javadoc)
-	 * @see packet.PacketBuilder#getRequestTypeHeaderByteArray()
+	 * @see packet.Packet#getRequestTypeHeaderByteArray()
 	 */
 	@Override 
 	protected byte[] getRequestTypeHeaderByteArray() {
@@ -207,7 +207,7 @@ public class ReadWritePacketPacketBuilder extends PacketBuilder {
 	}
 	
 	/* (non-Javadoc)
-	 * @see packet.PacketBuilder#getDataBuffer()
+	 * @see packet.Packet#getDataBuffer()
 	 */
 	public byte[] getDataBuffer() {
 		return this.mBuffer;

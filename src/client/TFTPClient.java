@@ -143,10 +143,10 @@ public class TFTPClient {
 		
 		logger.print(Logger.VERBOSE, Strings.CLIENT_INITIATE_WRITE_REQUEST);
 		
-		ReadWritePacketPacketBuilder wpb;
+		ReadWritePacketPacket wpb;
 		FileStorageService writeRequestFileStorageService;
-		DataPacketBuilder dataPacket;
-		AckPacketBuilder ackPacket;
+		DataPacket dataPacket;
+		AckPacket ackPacket;
 		DatagramPacket lastPacket;
 		byte[] fileData = new byte[Configurations.MAX_PAYLOAD_BUFFER];
 		byte[] packetBuffer;
@@ -158,7 +158,7 @@ public class TFTPClient {
 
 			actualFileName = writeRequestFileStorageService.getFileName();
 			
-			wpb = new WritePacketBuilder(InetAddress.getLocalHost(), this.mPortToSendTo, actualFileName,
+			wpb = new WritePacket(InetAddress.getLocalHost(), this.mPortToSendTo, actualFileName,
 					Configurations.DEFAULT_RW_MODE);
 
 			lastPacket = wpb.buildPacket();
@@ -184,7 +184,7 @@ public class TFTPClient {
 					fileData = writeRequestFileStorageService.getFileByteBufferFromDisk();
 
 					// Initialize DataPacket with block number n
-					ackPacket = new AckPacketBuilder(lastPacket);
+					ackPacket = new AckPacket(lastPacket);
 					BufferPrinter.printPacket(ackPacket,logger, RequestType.ACK);
 					
 					if (errorChecker == null) {
@@ -205,7 +205,7 @@ public class TFTPClient {
 				} while (legalTransferID);
 
 				// Overwrite last packet
-				dataPacket = new DataPacketBuilder(lastPacket);
+				dataPacket = new DataPacket(lastPacket);
 				lastPacket = dataPacket.buildPacket(fileData);
 				
 				logger.print(Logger.VERBOSE, Strings.SENDING);
@@ -217,7 +217,7 @@ public class TFTPClient {
 			lastPacket = new DatagramPacket(packetBuffer, packetBuffer.length);
 			sendReceiveSocket.receive(lastPacket);
 			Logger.VERBOSE.print(Logger.VERBOSE, "Recevied last packet : ");
-			BufferPrinter.printPacket(new AckPacketBuilder(lastPacket),Logger.VERBOSE, RequestType.ACK);
+			BufferPrinter.printPacket(new AckPacket(lastPacket),Logger.VERBOSE, RequestType.ACK);
 
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -239,9 +239,9 @@ public class TFTPClient {
 		
 		logger.print(Logger.VERBOSE, Strings.CLIENT_INITIATE_READ_REQUEST);
 
-		AckPacketBuilder ackPacketBuilder;
+		AckPacket ackPacket;
 		DatagramPacket lastPacket;
-		DataPacketBuilder dataPacketBuilder;
+		DataPacket dataPacket;
 		boolean morePackets = true;
 		FileStorageService readRequestFileStorageService;
 
@@ -253,12 +253,12 @@ public class TFTPClient {
 			readRequestFileStorageService = new FileStorageService(readFileName, InstanceType.CLIENT);
 			// build read request packet
 
-			ReadPacketBuilder rpb;
+			ReadPacket rpb;
 
-			rpb = new ReadPacketBuilder(InetAddress.getLocalHost(), this.mPortToSendTo, readFileName,
+			rpb = new ReadPacket(InetAddress.getLocalHost(), this.mPortToSendTo, readFileName,
 					Configurations.DEFAULT_RW_MODE);
 			
-			// now get the packet from the ReadPacketBuilder
+			// now get the packet from the ReadPacket
 			lastPacket = rpb.buildPacket();
 			
 			Logger.VERBOSE.print(Logger.VERBOSE, Strings.SENDING);
@@ -281,18 +281,18 @@ public class TFTPClient {
 					logger.print(Logger.VERBOSE, "Recevied : ");
 					
 					// Use the packet builder class to manage and extract the data
-					dataPacketBuilder = new DataPacketBuilder(lastPacket);
-					BufferPrinter.printPacket(dataPacketBuilder, logger, RequestType.DATA);
+					dataPacket = new DataPacket(lastPacket);
+					BufferPrinter.printPacket(dataPacket, logger, RequestType.DATA);
 					
 					if (errorChecker == null) {
-						errorChecker = new ErrorChecker(dataPacketBuilder);
+						errorChecker = new ErrorChecker(dataPacket);
 						errorChecker.incrementExpectedBlockNumber();
 					}
 
-					TFTPError currErrorType = errorChecker.check(dataPacketBuilder, RequestType.DATA);
+					TFTPError currErrorType = errorChecker.check(dataPacket, RequestType.DATA);
 					if (currErrorType.getType() != ErrorType.NO_ERROR) {
 						
-						if(errorHandle(currErrorType, dataPacketBuilder.getPacket())){
+						if(errorHandle(currErrorType, dataPacket.getPacket())){
 							errorChecker = null;
 							return currErrorType;
 						}
@@ -304,20 +304,20 @@ public class TFTPClient {
 				}while(legalTransferID);
 
 								
-				byte[] fileData = dataPacketBuilder.getDataBuffer();
+				byte[] fileData = dataPacket.getDataBuffer();
 				// We need trim the byte array
 
 				// Save the last packet file buffer
 				morePackets = readRequestFileStorageService.saveFileByteBufferToDisk(fileData);
 
 				// Prepare to ACK the data packet
-				ackPacketBuilder = new AckPacketBuilder(lastPacket);
+				ackPacket = new AckPacket(lastPacket);
 				// Always send the ACK back to the error sim (BAD)
 				
-				lastPacket = ackPacketBuilder.buildPacket();
+				lastPacket = ackPacket.buildPacket();
 				
 				logger.print(Logger.VERBOSE, Strings.SENDING);
-				BufferPrinter.printPacket(ackPacketBuilder, logger, RequestType.ACK);
+				BufferPrinter.printPacket(ackPacket, logger, RequestType.ACK);
 				
 				sendReceiveSocket.send(lastPacket);
 			}
@@ -409,7 +409,7 @@ public class TFTPClient {
 	 * @return
 	 */
 	public boolean errorHandle(TFTPError error, DatagramPacket packet) {
-		ErrorPacketBuilder errorPacket = new ErrorPacketBuilder(packet);
+		ErrorPacket errorPacket = new ErrorPacket(packet);
 		switch (error.getType()) {
 		case ILLEGAL_OPERATION:
 			DatagramPacket illegalOpsError = errorPacket.buildPacket(ErrorType.ILLEGAL_OPERATION,
