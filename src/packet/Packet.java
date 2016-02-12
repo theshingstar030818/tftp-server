@@ -102,6 +102,10 @@ public abstract class Packet {
 		return this.mBuffer;
 	}
 	
+	public void setRequestType(RequestType requestType) {
+		this.mRequestType = requestType;
+	}
+	
 	/**
 	 * Returns the length of the packet buffer
 	 * 
