@@ -85,17 +85,14 @@ public class TFTPClient {
 						if (!(result.getType() == ErrorType.NO_ERROR)) {
 							logger.print(Logger.ERROR, Strings.TRANSFER_FAILED);
 							logger.print(Logger.ERROR, result.getString());
-							isClientAlive = !isClientAlive;
 						} else {
 							logger.print(Logger.DEBUG, Strings.TRANSFER_SUCCESSFUL);
 						}
-
 					} catch (Exception e) {
 						if (logger == Logger.VERBOSE)
 							e.printStackTrace();
 
 						logger.print(Logger.ERROR, Strings.TRANSFER_FAILED);
-						isClientAlive = !isClientAlive;
 					}
 					break;
 				case 2:
@@ -111,7 +108,6 @@ public class TFTPClient {
 					if (!(result.getType() == ErrorType.NO_ERROR)) {
 						logger.print(Logger.ERROR, Strings.TRANSFER_FAILED);
 						logger.print(Logger.ERROR, result.getString());
-						isClientAlive = !isClientAlive;
 					} else {
 						logger.print(Logger.DEBUG, Strings.TRANSFER_SUCCESSFUL);
 					}

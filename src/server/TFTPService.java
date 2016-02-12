@@ -55,7 +55,7 @@ public class TFTPService implements Runnable {
 	 */
 	private void handleFileWriteOperation(WritePacketBuilder writeRequest) { // check data
 		
-		logger.print(Logger.DEBUG, "Server initializing client's write request ...");
+		logger.print(Logger.DEBUG, "Server initializing client's write request ... " + this.mSendReceiveSocket.getPort());
 		
 		logger.print(Logger.DEBUG, Strings.RECEIVED);
 		BufferPrinter.printPacket(writeRequest, Logger.VERBOSE, RequestType.WRQ);
@@ -226,12 +226,13 @@ public class TFTPService implements Runnable {
 			try {
 				mSendReceiveSocket.send(illegalOpsError);
 			} catch (IOException e) { e.printStackTrace(); }
-			System.err.println("Illegal operation caught, shutting down");
+			logger.print(Logger.ERROR, Strings.ILLEGAL_OPERATION_HELP_MESSAGE);
 			return true;
 		case UNKNOWN_TRANSFER:
 			DatagramPacket unknownError = errorPacket.buildPacket(ErrorType.ILLEGAL_OPERATION,
 					error.getString());
 			try {
+				logger.print(Logger.ERROR, Strings.UNKNOWN_TRANSFER_HELP_MESSAGE);
 				mSendReceiveSocket.send(unknownError);
 			} catch (IOException e) { e.printStackTrace(); }
 			return false;
