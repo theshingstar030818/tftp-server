@@ -48,12 +48,14 @@ public class ErrorCodeFour extends ErrorCodeSimulator {
 				this.mSendPacket = super.receivePacketBuilder.getPacket();
 			}
 		case 4: // Change block number
-			if (rt == RequestType.ACK || rt == RequestType.DATA) {
+			if ( rt == RequestType.DATA) {
 				// The following build packet will automatically increment block
 				// number by 1, which
 				// effectively mismatches the block number
-				this.mSendPacket = ((DataPacketBuilder) receivePacketBuilder)
-						.buildPacket(receivePacketBuilder.getDataBuffer());
+				
+				this.mSendPacket = ((DataPacketBuilder) receivePacketBuilder).buildPacket(receivePacketBuilder.getDataBuffer());
+			} else if(rt == RequestType.ACK) {
+				this.mSendPacket = ((AckPacketBuilder) receivePacketBuilder).buildPacket();
 			} else {
 				this.mSendPacket = super.receivePacketBuilder.getPacket();
 			}
