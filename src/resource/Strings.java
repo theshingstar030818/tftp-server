@@ -38,11 +38,14 @@ public class Strings {
 	
 	// TFTP error messages.
 	public static final String NOT_DEFINED = "Not defined, see error message (if any).";
+	
 	public static final String FILE_NOT_FOUND = "File not found.";
 	public static final String ACCESS_VIOLATION = "Access violation.";
 	public static final String ALLOCATION_EXCEED = "Disk full or allocation exceeded.";
 	public static final String ILLEGAL_OPERATION = "Illegal TFTP operation.";
+	public static final String ILLEGAL_OPERATION_HELP_MESSAGE = ILLEGAL_OPERATION + " Shutting down server thread.";
 	public static final String UNKNOWN_TRANSFER = "Unknown transfer ID.";
+	public static final String UNKNOWN_TRANSFER_HELP_MESSAGE = UNKNOWN_TRANSFER + " Sending error message to the unknown client.";
 	public static final String FILE_EXISTS = "File already exists.";
 	public static final String NO_SUCH_USER = "No such user.";
 	public static final String NO_ERROR = "No error.";
@@ -68,8 +71,8 @@ public class Strings {
 	// Error simulator messages 
 	public static final String ES_START_LISTENING = "Starting to listen for traffic";
 	public static final String ES_INITIALIZED = "Error simulator initiated on port %d.\n";
-	public static final String ES_TRANSFER_ERROR = "Transfered an unrecoverable error packet, shutting down.";
-	public static final String ES_TRANSFER_SUCCESS =  "Finished transfer and shutting down";
+	public static final String ES_TRANSFER_ERROR = "Transfered an unrecoverable error packet, shutting down. \n --- Press enter key to continue to menu ---";
+	public static final String ES_TRANSFER_SUCCESS =  "Finished transfer and shutting down. \n --- Press enter key to continue to menu ---";
 	public static final String ES_RETRIEVE_PACKET_CLIENT = "Preparing to retrieve packet from client.";
 	public static final String ES_SEND_PACKET_CLIENT = "Preparing to send packet to client.";
 	public static final String ES_GOT_LAST_PACKET_WRQ = "Got last write packet, fwding ACK to client";

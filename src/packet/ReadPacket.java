@@ -8,11 +8,11 @@ import types.*;
 /**
  * @author Team 3
  * 
- * This Builder class will enable building of entire DatagramPackets 
- * for the WRQ request type
+ * This class facilitates building of RRQ packets by determining which
+ *block number it should be encapsulated in the Datagram with
  */
 
-public class WritePacketBuilder extends ReadWritePacketPacketBuilder {
+public class ReadPacket extends ReadWritePacketPacket {
 
 	/**
 	 * Used to create a packet from scratch by inputing the required parameters of the
@@ -23,8 +23,8 @@ public class WritePacketBuilder extends ReadWritePacketPacketBuilder {
 	 * @param destPort 		- Destination port number
 	 * @param fileName		- Filename to RRQ or WRQ
 	 */
-	public WritePacketBuilder(InetAddress addressOfHost, int destPort, String fileName) {
-		super(addressOfHost, destPort, RequestType.WRQ, fileName);
+	public ReadPacket(InetAddress addressOfHost, int destPort, String fileName) {
+		super(addressOfHost, destPort, RequestType.RRQ, fileName);
 	}
 	
 	/**
@@ -37,8 +37,8 @@ public class WritePacketBuilder extends ReadWritePacketPacketBuilder {
 	 * @param fileName		- Filename to RRQ or WRQ
 	 * @param mode			- The encoding mode of the data
 	 */
-	public WritePacketBuilder(InetAddress addressOfHost, int destPort, String fileName, ModeType mode) {
-		super(addressOfHost, destPort, RequestType.WRQ, fileName, mode);
+	public ReadPacket(InetAddress addressOfHost, int destPort, String fileName, ModeType mode) {
+		super(addressOfHost, destPort, RequestType.RRQ, fileName, mode);
 	}
 
 	/**
@@ -46,17 +46,17 @@ public class WritePacketBuilder extends ReadWritePacketPacketBuilder {
 	 * 
 	 * @param inDatagramPacket
 	 */
-	public WritePacketBuilder(DatagramPacket inDatagramPacket) {
+	public ReadPacket(DatagramPacket inDatagramPacket) {
 		super(inDatagramPacket);
 		deconstructPacket(inDatagramPacket);
 	}
 	
 	/* (non-Javadoc)
-	 * @see packet.ReadWritePacketPacketBuilder#getRequestTypeHeaderByteArray()
+	 * @see packet.ReadWritePacketPacket#getRequestTypeHeaderByteArray()
 	 */
 	@Override 
 	protected byte[] getRequestTypeHeaderByteArray() {
-		return RequestType.WRQ.getHeaderByteArray();
+		return RequestType.RRQ.getHeaderByteArray();
 	};
 
 }

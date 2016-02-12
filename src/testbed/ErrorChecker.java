@@ -4,10 +4,10 @@ import java.net.InetAddress;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import packet.AckPacketBuilder;
-import packet.DataPacketBuilder;
-import packet.ErrorPacketBuilder;
-import packet.PacketBuilder;
+import packet.AckPacket;
+import packet.DataPacket;
+import packet.ErrorPacket;
+import packet.Packet;
 import resource.Configurations;
 import resource.Strings;
 import types.ErrorType;
@@ -20,7 +20,7 @@ public class ErrorChecker {
     private int mExpectedBlockNumber;
     
     
-    public ErrorChecker(PacketBuilder packet) {
+    public ErrorChecker(Packet packet) {
         mPacketOriginatingAddress = packet.getPacket().getAddress();
         mPacketOriginatingPort = packet.getPacket().getPort();
         mExpectedBlockNumber = 0;
@@ -31,11 +31,11 @@ public class ErrorChecker {
     	mExpectedBlockNumber++;
     }
     
-    public TFTPError check(PacketBuilder packet, RequestType expectedCommunicationType) {
+    public TFTPError check(Packet packet, RequestType expectedCommunicationType) {
     	
     	if(packet.getRequestType() == RequestType.ERROR) {
     		// We found an error packet, now print out the message.
-    		ErrorPacketBuilder errorPacket = new ErrorPacketBuilder(packet.getPacket());
+    		ErrorPacket errorPacket = new ErrorPacket(packet.getPacket());
     		return new TFTPError(errorPacket.getErrorType(), errorPacket.getCustomPackageErrorMessage());
     	}
     	
@@ -53,7 +53,7 @@ public class ErrorChecker {
         
     }
     
-    private String formatError(PacketBuilder packet, RequestType comType) {
+    private String formatError(Packet packet, RequestType comType) {
     	
     	byte[] data = packet.getPacketBuffer();
     	if (data[0] != 0) return Strings.NON_ZERO_FIRST_BYTE;
@@ -95,7 +95,7 @@ public class ErrorChecker {
     			break;
     			
     		case DATA:
-    			if (mExpectedBlockNumber != ((DataPacketBuilder) packet).getBlockNumber()) 
+    			if (mExpectedBlockNumber != ((DataPacket) packet).getBlockNumber()) 
     				return Strings.BLOCK_NUMBER_MISMATCH; 
     			incrementExpectedBlockNumber();
     			break;
@@ -103,7 +103,7 @@ public class ErrorChecker {
     		case ACK:
     			if (packet.getPacketLength() != 4) 
     				return Strings.INVALID_PACKET_SIZE;
-    			if (mExpectedBlockNumber != ((AckPacketBuilder) packet).getBlockNumber()) 
+    			if (mExpectedBlockNumber != ((AckPacket) packet).getBlockNumber()) 
     				return Strings.BLOCK_NUMBER_MISMATCH;
     			incrementExpectedBlockNumber();
     			break;
