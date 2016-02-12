@@ -82,7 +82,7 @@ public class TFTPClient {
 					String readFileName = Keyboard.getString();
 					try {
 						TFTPError result = readRequestHandler(readFileName);
-						if (!(result.getType() == ErrorType.NO_ERROR)) {
+						if (result.getType() != ErrorType.NO_ERROR) {
 							logger.print(Logger.ERROR, Strings.TRANSFER_FAILED);
 							logger.print(Logger.ERROR, result.getString());
 						} else {
@@ -266,10 +266,8 @@ public class TFTPClient {
 
 			// loop until no more packets to receive
 			while (morePackets) {
-				
-				boolean legalTransferID = false;
-				
-				do{
+								
+				while (true) {
 					
 					dataBuf = new byte[Configurations.MAX_BUFFER];
 					lastPacket = new DatagramPacket(dataBuf, dataBuf.length);
@@ -288,18 +286,12 @@ public class TFTPClient {
 					}
 
 					TFTPError currErrorType = errorChecker.check(dataPacket, RequestType.DATA);
-					if (currErrorType.getType() != ErrorType.NO_ERROR) {
-						
-						if(errorHandle(currErrorType, dataPacket.getPacket())){
-							errorChecker = null;
-							return currErrorType;
-						}
-						legalTransferID = true;
-					} else {
-						legalTransferID = false;
-					}
-
-				}while(legalTransferID);
+					if (currErrorType.getType() == ErrorType.NO_ERROR) break;
+					
+					if(errorHandle(currErrorType, dataPacket.getPacket())) // If error cannot be survived.
+						return currErrorType;
+					
+				}
 
 								
 				byte[] fileData = dataPacket.getDataBuffer();
