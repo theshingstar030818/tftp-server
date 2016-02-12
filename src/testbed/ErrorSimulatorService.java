@@ -234,8 +234,10 @@ public class ErrorSimulatorService implements Runnable {
 			this.mLastPacket = vEPFour.errorPacketCreator();
 			break;
 		case UNKNOWN_TRANSFER:
-			Thread codeFiveThread = new Thread(new ErrorCodeFive(inPacket), "Error Code 5 thread");
-			codeFiveThread.start();
+			//Thread codeFiveThread = new Thread(new ErrorCodeFive(inPacket), "Error Code 5 thread");
+			//codeFiveThread.start();
+			this.vEPFive = new ErrorCodeFive(inPacket);
+			this.vEPFive.run();
 			// error code 5 thread
 			break;
 		case FILE_EXISTS:

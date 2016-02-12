@@ -168,7 +168,7 @@ public class TFTPClient {
 
 			while (fileData != null && fileData.length >= Configurations.MAX_PAYLOAD_BUFFER) {
 				
-				boolean legalTransferID = false;
+				boolean illegalTransferIDFound = false;
 				
 				do {
 					// This packet has the block number to start on!
@@ -178,9 +178,11 @@ public class TFTPClient {
 					sendReceiveSocket.receive(lastPacket);
 					logger.print(Logger.VERBOSE, "Recevied : ");
 					
-					// get the first block of file to transfer
-					fileData = writeRequestFileStorageService.getFileByteBufferFromDisk();
-
+					if(!illegalTransferIDFound) {
+						// get the first block of file to transfer
+						fileData = writeRequestFileStorageService.getFileByteBufferFromDisk();
+					}
+					
 					// Initialize DataPacket with block number n
 					ackPacket = new AckPacket(lastPacket);
 					BufferPrinter.printPacket(ackPacket,logger, RequestType.ACK);
@@ -196,11 +198,11 @@ public class TFTPClient {
 							errorChecker = null;
 							return currErrorType;
 						}
-						legalTransferID = true;
+						illegalTransferIDFound = true;
 					} else {
-						legalTransferID = false;
+						illegalTransferIDFound = false;
 					}
-				} while (legalTransferID);
+				} while (illegalTransferIDFound);
 
 				// Overwrite last packet
 				dataPacket = new DataPacket(lastPacket);
