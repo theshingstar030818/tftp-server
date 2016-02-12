@@ -12,8 +12,8 @@ import types.*;
 public class ErrorCodeFour extends ErrorCodeSimulator {
 	private int mSubcode;
 	private DatagramPacket mSendPacket;
-	private RequestType rt = super.receivePacketBuilder.getRequestType();
-	private boolean readWriteCheck = (rt == RequestType.RRQ || rt == RequestType.WRQ);
+	private RequestType rt;
+	private boolean readWriteCheck;
 	private byte[] readWriteBuffer = super.receivePacketBuilder.getDataBuffer();
 	private int packetCount = 0;
 
@@ -25,6 +25,8 @@ public class ErrorCodeFour extends ErrorCodeSimulator {
 
 	public DatagramPacket errorPacketCreator() {
 		this.mSendPacket = null;
+		rt = super.receivePacketBuilder.getRequestType();
+		readWriteCheck = (rt == RequestType.RRQ || rt == RequestType.WRQ);
 		// MISSING PACKET TOO LARGE > 516 bytes
 		switch (this.mSubcode) {
 
@@ -55,6 +57,8 @@ public class ErrorCodeFour extends ErrorCodeSimulator {
 			
 				this.mSendPacket = ((DataPacket) receivePacketBuilder).buildPacket(receivePacketBuilder.getDataBuffer());
 			} else if(rt == RequestType.ACK) {
+				int currentBlockNumber = super.receivePacketBuilder.getBlockNumber();
+				super.receivePacketBuilder.setBlockNumber((short) (currentBlockNumber + 5));
 				this.mSendPacket = ((AckPacket) receivePacketBuilder).buildPacket();
 			} else {
 				this.mSendPacket = super.receivePacketBuilder.getPacket();
@@ -123,9 +127,9 @@ public class ErrorCodeFour extends ErrorCodeSimulator {
 			break;
 		case 4:
 			// ack packet with [0,4]
-			data[1] = 3;
+			
 			if (this.packetCount == 2) {
-				data[1] = 4;
+				data[1] = 3;
 				this.mSendPacket = new DatagramPacket(data, data.length, packet.getAddress(), packet.getPort());
 			} else {
 				this.mSendPacket = inPacket.getPacket();
