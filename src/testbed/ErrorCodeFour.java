@@ -100,7 +100,7 @@ public class ErrorCodeFour extends ErrorCodeSimulator {
 		switch (header[1]) {
 		case 1:
 			// read request with header[0,1]
-			if (this.packetCount == 2) {
+			if (this.packetCount == 1) {
 				data[1] = 3;
 				this.mSendPacket = new DatagramPacket(data, data.length, packet.getAddress(), packet.getPort());
 			} else {
@@ -109,7 +109,7 @@ public class ErrorCodeFour extends ErrorCodeSimulator {
 			break;
 		case 2:
 			// write request with header [0,2]
-			if (this.packetCount == 2) {
+			if (this.packetCount == 1) {
 				data[1] = 3;
 				this.mSendPacket = new DatagramPacket(data, data.length, packet.getAddress(), packet.getPort());
 			} else {
