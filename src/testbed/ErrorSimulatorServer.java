@@ -17,6 +17,13 @@ import types.InstanceType;
 import types.Logger;
 import helpers.BufferPrinter;
 
+/**
+ * @author Team 3
+ *
+ * The error server hosted at port 68 that listens to client traffic.
+ * When traffic is received, the server will generate another thread to 
+ * handle the error simulation.
+ */
 public class ErrorSimulatorServer implements Callback {
 	
 	/**
@@ -37,7 +44,6 @@ public class ErrorSimulatorServer implements Callback {
 	Vector<Thread> threads;
 	
 	DatagramSocket errorSimulatorSock = null;
-
 	
 	/**
 	 * Constructor for ErrorSimulatorServer that initializes the thread container 'threads'.

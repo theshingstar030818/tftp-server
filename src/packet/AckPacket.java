@@ -115,16 +115,25 @@ public class AckPacket extends Packet {
 		return this.mBuffer;
 	}
 
+	/* (non-Javadoc)
+	 * @see packet.Packet#setFilename(java.lang.String)
+	 */
 	@Override
 	public void setFilename(String fileName) {
 		throw new IllegalArgumentException("You cannot use filename with this type of packet.");
 	}
 
+	/* (non-Javadoc)
+	 * @see packet.Packet#setMode(types.ModeType)
+	 */
 	@Override
 	public void setMode(ModeType mode) {
 		throw new IllegalArgumentException("You cannot use Mode with this type of packet.");
 	}
 
+	/* (non-Javadoc)
+	 * @see packet.Packet#getMode()
+	 */
 	@Override
 	public ModeType getMode() {
 		throw new IllegalArgumentException("You cannot use Mode with this type of packet.");

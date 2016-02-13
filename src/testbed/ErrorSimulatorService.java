@@ -18,6 +18,8 @@ import resource.Strings;
 import resource.Tuple;
 import resource.UIStrings;
 import server.Callback;
+import testbed.errorcode.ErrorCodeFive;
+import testbed.errorcode.ErrorCodeFour;
 import types.ErrorType;
 import types.InstanceType;
 import types.Logger;
@@ -53,8 +55,8 @@ public class ErrorSimulatorService implements Runnable {
 	private byte[] mBuffer = null;
 	
 	/* Section of uninitialized Error Producers */
-	private ErrorCodeFour vEPFour = null;
-	private ErrorCodeFive vEPFive = null;
+	private ErrorCodeFour mEPFour = null;
+	private ErrorCodeFive mEPFive = null;
 	/* Lazy initialization for Error Producers */
 
 	/**
@@ -96,7 +98,7 @@ public class ErrorSimulatorService implements Runnable {
 		}
 		this.mMessUpThisTransfer = instance;
 		logger.setClassTag(CLASS_TAG);
-		logger.print(Logger.DEBUG, "Initalized destination to host: " + this.mServerHostAddress + "\n");
+		logger.print(Logger.SILENT, "Initalized error sim service on port " + this.mSendReceiveSocket.getLocalPort() + "\n");
 	}
 
 	/**
@@ -114,7 +116,7 @@ public class ErrorSimulatorService implements Runnable {
 		boolean errorSentToClient = false;
 		boolean errorSendToServer = false;
 		int wrqPacketSize = -1;
-		
+
 		while (transferNotFinished) {
 			try {
 				// On first iteration mForwardPort = Server Listen port
@@ -126,14 +128,20 @@ public class ErrorSimulatorService implements Runnable {
 					this.createSpecifiedError(this.mLastPacket);
 				}
 				
-				logger.print(Logger.DEBUG,"Preparing to send packet to server at port " + this.mForwardPort);
+				logger.print(Logger.SILENT,"Preparing to send packet to server at port " + this.mForwardPort);
 				// Send off this that is directed to the server
 				forwardPacketToSocket(this.mLastPacket);
-
-				logger.print(Logger.DEBUG, Strings.ES_RETRIEVE_PACKET_SERVER);
+				
+				if(!transferNotFinished) {
+					// Break here is for the last ACK packet from client 
+					// during a read request. 
+					break;
+				}
+				
+				logger.print(Logger.SILENT, Strings.ES_RETRIEVE_PACKET_SERVER);
 				// Wait/block for a server reply
 				serverPacket = retrievePacketFromSocket();
-
+				
 				// This following block, checks if we are on the last packet to
 				// be sent
 				if (this.mInitialRequestType == RequestType.RRQ) {
@@ -153,7 +161,7 @@ public class ErrorSimulatorService implements Runnable {
 					// 0
 					if (wrqPacketSize < Configurations.MAX_MESSAGE_SIZE) {
 						// We have finished the transfer
-						logger.print(Logger.DEBUG, Strings.ES_GOT_LAST_PACKET_WRQ);
+						logger.print(Logger.SILENT, Strings.ES_GOT_LAST_PACKET_WRQ);
 						transferNotFinished = false;
 					}
 				}
@@ -170,7 +178,7 @@ public class ErrorSimulatorService implements Runnable {
 					this.createSpecifiedError(this.mLastPacket);
 				}
 				
-				logger.print(Logger.DEBUG, Strings.ES_SEND_PACKET_CLIENT);
+				logger.print(Logger.SILENT, Strings.ES_SEND_PACKET_CLIENT);
 				// Send that packet back to the client
 				forwardPacketToSocket(this.mLastPacket);
 				
@@ -179,19 +187,19 @@ public class ErrorSimulatorService implements Runnable {
 					break;
 				}
 				
-				if (transferNotFinished) {
-					logger.print(Logger.DEBUG, Strings.ES_RETRIEVE_PACKET_CLIENT);
-					// Receiving from client
-					this.mLastPacket = retrievePacketFromSocket();
-					// Set the write packet size in order to determine the end
-					wrqPacketSize = this.mLastPacket.getLength();
-				}
+				
+				logger.print(Logger.SILENT, Strings.ES_RETRIEVE_PACKET_CLIENT);
+				// Receiving from client
+				this.mLastPacket = retrievePacketFromSocket();
+				// Set the write packet size in order to determine the end
+				wrqPacketSize = this.mLastPacket.getLength();
+				
 
 				if (ackServerOnLastBlockByClient) {
 					// This extra process is needed on a read request
 					// Gets a client reply - last ACK
 					// Send the last ACK to the server
-					logger.print(Logger.DEBUG, "Sending last ACK packet to server (RRQ) " + this.mClientPort);
+					logger.print(Logger.SILENT, "Sending last ACK packet to server (RRQ) " + this.mClientPort);
 					this.mLastPacket.setPort(this.mForwardPort);
 					this.mLastPacket.setAddress(this.mServerHostAddress);
 					forwardPacketToSocket(this.mLastPacket);
@@ -205,12 +213,18 @@ public class ErrorSimulatorService implements Runnable {
 		if(errorSentToClient || errorSendToServer) {
 			logger.print(Logger.ERROR, Strings.ES_TRANSFER_ERROR);
 		} else {
-			logger.print(Logger.DEBUG, Strings.ES_TRANSFER_SUCCESS);
+			logger.print(Logger.SILENT, Strings.ES_TRANSFER_SUCCESS);
 		}
+		
 		this.mSendReceiveSocket.close();
 		this.mCallback.callback(Thread.currentThread().getId());
 	}
 
+	/**
+	 * Determines where or not corrupt a datagram packet
+	 * 
+	 * @param inPacket - a packet to corrupt or not
+	 */
 	private void createSpecifiedError(DatagramPacket inPacket) {
 		ErrorType vErrType = this.mErrorSettings.first;
 		int subOpt = this.mErrorSettings.second;
@@ -226,18 +240,20 @@ public class ErrorSimulatorService implements Runnable {
 			break;
 		case ILLEGAL_OPERATION:
 			// error code 4
-			if(this.vEPFour == null) {
-				this.vEPFour = new ErrorCodeFour(inPacket, subOpt);
+			if(this.mEPFour == null) {
+				this.mEPFour = new ErrorCodeFour(inPacket, subOpt);
 			} else {
-				this.vEPFour.constructPacketBuilder(inPacket);
+				this.mEPFour.constructPacketBuilder(inPacket);
 			}
-			this.mLastPacket = vEPFour.errorPacketCreator();
+			this.mLastPacket = mEPFour.errorPacketCreator();
 			break;
 		case UNKNOWN_TRANSFER:
 			//Thread codeFiveThread = new Thread(new ErrorCodeFive(inPacket), "Error Code 5 thread");
 			//codeFiveThread.start();
-			this.vEPFive = new ErrorCodeFive(inPacket);
-			this.vEPFive.run();
+			if(this.mEPFive == null) {
+				this.mEPFive = new ErrorCodeFive(inPacket);
+			}
+			this.mEPFive.run();
 			// error code 5 thread
 			break;
 		case FILE_EXISTS:
@@ -335,5 +351,4 @@ public class ErrorSimulatorService implements Runnable {
 		BufferPrinter.printBuffer(receivePacket.getData(), CLASS_TAG, logger);
 		return receivePacket;
 	}
-
 }
