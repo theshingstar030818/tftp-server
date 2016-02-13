@@ -1,14 +1,19 @@
-package testbed;
+package testbed.errorcode;
 
 import java.net.*;
 
-import helpers.Conversion;
 import packet.AckPacket;
 import packet.Packet;
 import resource.Configurations;
+import testbed.ErrorCodeSimulator;
 import packet.DataPacket;
 import types.*;
 
+/**
+ * @author Team 3
+ *
+ * This class corrupts a piece of the datagram buffer to simulate a corrupt packet
+ */
 public class ErrorCodeFour extends ErrorCodeSimulator {
 	private int mSubcode;
 	private DatagramPacket mSendPacket;
@@ -23,13 +28,16 @@ public class ErrorCodeFour extends ErrorCodeSimulator {
 		this.mSubcode = subcode;
 	}
 
+	/**
+	 * Create an error packet by first checking a condition whether or not first. 
+	 * 
+	 * @return
+	 */
 	public DatagramPacket errorPacketCreator() {
 		this.mSendPacket = null;
 		rt = super.receivePacketBuilder.getRequestType();
 		readWriteCheck = (rt == RequestType.RRQ || rt == RequestType.WRQ);
-		// MISSING PACKET TOO LARGE > 516 bytes
 		switch (this.mSubcode) {
-
 		case 1: // Change filename
 			if (readWriteCheck) {
 				// Settings and invalid file name

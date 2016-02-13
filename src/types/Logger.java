@@ -9,15 +9,15 @@ public enum Logger {
 		}
 		@Override
 		public void print(Logger c, String s){
-			//print all the information of DEBUG 
-			if(c == VERBOSE || c == DEBUG || c == INFO || c == WARN ){
+			//print all the information of SILENT 
+			if(c == VERBOSE || c == SILENT || c == INFO || c == WARN ){
 				System.out.println(this.classTag + s);
 			}else if(c == ERROR || c == FATAL){
 				System.err.println(this.classTag + s);
 			}
 		}
 	},
-	DEBUG {
+	SILENT {
 		@Override
 		public short getLogLevelShort() {
 			return 1;
@@ -25,11 +25,11 @@ public enum Logger {
 		@Override
 		public void print(Logger c, String s){
 			// print all the debug level messages except VERBOSE messages
-			if(c == DEBUG || c == INFO || c == WARN){
-				System.out.println(this.classTag + s);
-			}else if(c == ERROR || c == FATAL){
-				System.err.println(this.classTag + s);
-			}
+//			if(c == SILENT || c == INFO || c == WARN){
+//				System.out.println(this.classTag + s);
+//			}else if(c == ERROR || c == FATAL){
+//				System.err.println(this.classTag + s);
+//			}
 		}
 	},
 	INFO {
@@ -39,7 +39,7 @@ public enum Logger {
 		}
 		@Override
 		public void print(Logger c, String s){
-			// print all the debug level messages except VERBOSE and DEBUG level messages
+			// print all the debug level messages except VERBOSE and SILENT level messages
 			if(c == INFO || c == WARN){
 				System.out.println(this.classTag + s);
 			}else if(c == ERROR || c == FATAL){
@@ -54,7 +54,7 @@ public enum Logger {
 		}
 		@Override
 		public void print(Logger c, String s){
-			// print all the debug level messages except VERBOSE, DEBUG and INFO level messages
+			// print all the debug level messages except VERBOSE, SILENT and INFO level messages
 			if(c == WARN){
 				System.out.println(this.classTag + s);
 			}else if(c == ERROR || c == FATAL){
@@ -69,7 +69,7 @@ public enum Logger {
 		}
 		@Override
 		public void print(Logger c, String s){
-			// print all the debug level messages except VERBOSE, DEBUG,INFO and WARN level messages
+			// print all the debug level messages except VERBOSE, SILENT,INFO and WARN level messages
 			if(c == ERROR || c == FATAL){
 				System.err.println(this.classTag + s);
 			}
