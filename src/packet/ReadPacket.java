@@ -12,7 +12,7 @@ import types.*;
  *         block number it should be encapsulated in the Datagram with
  */
 
-public class ReadPacket extends ReadWritePacketPacket {
+public class ReadPacket extends ReadWritePacket {
 
 	/**
 	 * Used to create a packet from scratch by inputing the required parameters

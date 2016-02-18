@@ -12,7 +12,7 @@ import types.*;
  *         the WRQ request type
  */
 
-public class WritePacket extends ReadWritePacketPacket {
+public class WritePacket extends ReadWritePacket {
 
 	/**
 	 * Used to create a packet from scratch by inputing the required parameters

@@ -144,7 +144,7 @@ public class TFTPClient {
 
 		logger.print(logger, Strings.CLIENT_INITIATE_WRITE_REQUEST);
 		sendReceiveSocket = new DatagramSocket();
-		ReadWritePacketPacket wpb;
+		ReadWritePacket wpb;
 		FileStorageService writeRequestFileStorageService;
 		DataPacket dataPacket;
 		AckPacket ackPacket;
