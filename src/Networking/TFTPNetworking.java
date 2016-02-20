@@ -4,19 +4,24 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
+import java.net.InetAddress;
 import java.net.SocketException;
+import java.net.UnknownHostException;
 
 import helpers.BufferPrinter;
 import helpers.FileStorageService;
 import packet.AckPacket;
 import packet.DataPacket;
 import packet.ErrorPacket;
+import packet.Packet;
 import packet.ReadWritePacket;
+import packet.WritePacket;
 import resource.Configurations;
 import resource.Strings;
 import testbed.ErrorChecker;
 import testbed.TFTPErrorMessage;
 import types.ErrorType;
+import types.InstanceType;
 import types.Logger;
 import types.RequestType;
 
@@ -26,6 +31,16 @@ public class TFTPNetworking {
 	private DatagramPacket lastPacket;
 	public ErrorChecker errorChecker; // This is a temporary measure.
 	private Logger logger = Logger.VERBOSE;
+	
+	public TFTPNetworking() {
+		lastPacket = null;
+		errorChecker = null;
+		try {
+			socket = new DatagramSocket();
+		} catch (SocketException e) {
+			e.printStackTrace();
+		}
+	}
 	
 	public TFTPNetworking(ReadWritePacket p) {
 		lastPacket = p.getPacket();
@@ -42,7 +57,6 @@ public class TFTPNetworking {
 		errorChecker = new ErrorChecker(p);
 		socket = s;
 	}
-	
 	
 	
 	public TFTPErrorMessage receiveFile(ReadWritePacket packet, DatagramSocket vSocket) {
@@ -78,6 +92,7 @@ public class TFTPNetworking {
 					if (error.getType() == ErrorType.NO_ERROR) break;
 					if (errorHandle(error, lastPacket)) return error;
 				}
+				
 				// Extract the data from the received packet with packet builder
 				if(lastPacket.getLength() < Configurations.MAX_MESSAGE_SIZE) {
 					int realPacketSize = lastPacket.getLength();
@@ -110,11 +125,16 @@ public class TFTPNetworking {
 	}
 	
 	
+	
 	public TFTPErrorMessage sendFile(ReadWritePacket packet) {
-
 		BufferPrinter.printPacket(packet, Logger.VERBOSE, RequestType.RRQ);
+		return sendFile(packet.getFilename());
+	}
+	
+	
+	public TFTPErrorMessage sendFile(String fileName) {
+
 		DatagramPacket receivePacket;
-		String fileName = packet.getFilename();
 		AckPacket ackPacket;
 		
 		try {
@@ -164,6 +184,52 @@ public class TFTPNetworking {
 			e.printStackTrace();
 		}
 		
+		return new TFTPErrorMessage(ErrorType.NO_ERROR, Strings.NO_ERROR);
+	}
+	
+	
+	public DatagramPacket generateInitWRQ(String fileName, int portToSendTo) {
+		logger.print(logger, Strings.CLIENT_INITIATE_WRITE_REQUEST);
+		ReadWritePacket wpb;
+		FileStorageService writeRequestFileStorageService;
+		DatagramPacket lastPacket = null;
+		try {
+			logger.print(logger, Strings.CLIENT_INITIATING_FIE_STORAGE_SERVICE);
+			writeRequestFileStorageService = new FileStorageService(fileName, InstanceType.CLIENT);
+
+			String actualFileName;
+
+			actualFileName = writeRequestFileStorageService.getFileName();
+
+			wpb = new WritePacket(InetAddress.getLocalHost(), portToSendTo, actualFileName,
+					Configurations.DEFAULT_RW_MODE);
+
+			lastPacket = wpb.buildPacket();
+			logger.print(logger, Strings.SENDING);
+			BufferPrinter.printPacket(wpb, logger, RequestType.WRQ);
+			socket.send(lastPacket);
+			
+			socket.receive(lastPacket);
+			
+			// Trusts that the first response is from expected source.
+			errorChecker = new ErrorChecker(new AckPacket(lastPacket)); 
+			
+			
+		} catch (SocketException e) {
+			e.printStackTrace();
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		} catch (UnknownHostException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return lastPacket;
+	}
+	
+	
+	public TFTPErrorMessage generateInitRRq(ReadWritePacket rrq) {
 		return new TFTPErrorMessage(ErrorType.NO_ERROR, Strings.NO_ERROR);
 	}
 	
