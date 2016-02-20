@@ -13,7 +13,7 @@ import resource.Configurations;
  *         by their specific respective classes. Using this class will require
  *         user definition of which specific class to initialize.
  */
-public class ReadWritePacketPacket extends Packet {
+public class ReadWritePacket extends Packet {
 
 	protected String mFilename;
 	protected ModeType mMode;
@@ -30,7 +30,7 @@ public class ReadWritePacketPacket extends Packet {
 	 * @param requestType
 	 *            - The request type either RRQ or WRQ
 	 */
-	public ReadWritePacketPacket(InetAddress addressOfHost, int destPort, RequestType requestType) {
+	public ReadWritePacket(InetAddress addressOfHost, int destPort, RequestType requestType) {
 		super(addressOfHost, destPort, requestType);
 		this.mFilename = Configurations.DEFAULT_FILENAME;
 		this.mMode = Configurations.DEFAULT_RW_MODE;
@@ -50,7 +50,7 @@ public class ReadWritePacketPacket extends Packet {
 	 * @param fileName
 	 *            - Filename to RRQ or WRQ
 	 */
-	public ReadWritePacketPacket(InetAddress addressOfHost, int destPort, RequestType requestType, String fileName) {
+	public ReadWritePacket(InetAddress addressOfHost, int destPort, RequestType requestType, String fileName) {
 		super(addressOfHost, destPort, requestType);
 		this.mFilename = fileName;
 		this.mMode = Configurations.DEFAULT_RW_MODE;
@@ -72,7 +72,7 @@ public class ReadWritePacketPacket extends Packet {
 	 * @param mode
 	 *            - The encoding mode of the data
 	 */
-	public ReadWritePacketPacket(InetAddress addressOfHost, int destPort, RequestType requestType, String fileName,
+	public ReadWritePacket(InetAddress addressOfHost, int destPort, RequestType requestType, String fileName,
 			ModeType mode) {
 		super(addressOfHost, destPort, requestType);
 		this.mFilename = fileName;
@@ -84,7 +84,7 @@ public class ReadWritePacketPacket extends Packet {
 	 * 
 	 * @param inDatagramPacket
 	 */
-	public ReadWritePacketPacket(DatagramPacket inDatagramPacket) {
+	public ReadWritePacket(DatagramPacket inDatagramPacket) {
 		super(inDatagramPacket);
 		deconstructPacket(inDatagramPacket);
 	}

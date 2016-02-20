@@ -84,7 +84,6 @@ public class TFTPServer implements Callback {
 		try {
 			serverSock = new DatagramSocket(Configurations.SERVER_LISTEN_PORT);
 			System.out.println("Server initiated on port " + Configurations.SERVER_LISTEN_PORT);
-			serverSock.setSoTimeout(30000);
 		} catch (SocketException e) {
 			e.printStackTrace();
 			System.exit(1);

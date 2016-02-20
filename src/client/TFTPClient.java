@@ -11,6 +11,7 @@ import java.net.InetAddress;
 import java.net.SocketException;
 import java.util.Scanner;
 
+import Networking.TFTPNetworking;
 import helpers.BufferPrinter;
 import helpers.FileStorageService;
 import helpers.Keyboard;
@@ -52,6 +53,7 @@ public class TFTPClient {
 	public void initialize() {
 		logger.setClassTag(this.CLASS_TAG);
 		Scanner scan = new Scanner(System.in);
+		TFTPNetworking net = new TFTPNetworking();
 		try {
 			mode = getSendPort();
 			if (mode == 1) {
@@ -99,12 +101,17 @@ public class TFTPClient {
 					// Write file
 					logger.print(logger, Strings.PROMPT_FILE_NAME_PATH);
 					String writeFileNameOrFilePath = Keyboard.getString();
+					TFTPErrorMessage result = null;
 					File f = new File(writeFileNameOrFilePath);
 					if (!f.exists() || f.isDirectory()) {
 						logger.print(logger, Strings.FILE_NOT_EXIST);
 						break;
 					}
-					TFTPErrorMessage result = writeRequestHandler(writeFileNameOrFilePath);
+					//TFTPErrorMessage result = writeRequestHandler(writeFileNameOrFilePath);
+					DatagramPacket packet = net.generateInitWRQ(writeFileNameOrFilePath, this.mPortToSendTo);
+					if (packet != null)
+						result = net.sendFile(new WritePacket(packet));
+					else System.exit(1);
 					if (!(result.getType() == ErrorType.NO_ERROR)) {
 						logger.print(Logger.ERROR, Strings.TRANSFER_FAILED);
 						logger.print(Logger.ERROR, result.getString());
@@ -123,9 +130,6 @@ public class TFTPClient {
 					break;
 				}
 			}
-		} catch (SocketException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
 		} finally {
 			scan.close();
 		}
@@ -140,11 +144,11 @@ public class TFTPClient {
 	 *            server
 	 * @throws SocketException
 	 */
-	private TFTPErrorMessage writeRequestHandler(String writeFileNameOrFilePath) throws SocketException {
+/*	private TFTPErrorMessage writeRequestHandler(String writeFileNameOrFilePath) throws SocketException {
 
 		logger.print(logger, Strings.CLIENT_INITIATE_WRITE_REQUEST);
 		sendReceiveSocket = new DatagramSocket();
-		ReadWritePacketPacket wpb;
+		ReadWritePacket wpb;
 		FileStorageService writeRequestFileStorageService;
 		DataPacket dataPacket;
 		AckPacket ackPacket;
@@ -212,6 +216,7 @@ public class TFTPClient {
 				BufferPrinter.printPacket(dataPacket, logger, RequestType.DATA);
 				sendReceiveSocket.send(lastPacket);
 			}
+
 			// Receive the last ACK.
 			packetBuffer = new byte[Configurations.MAX_BUFFER];
 			lastPacket = new DatagramPacket(packetBuffer, packetBuffer.length);
@@ -228,7 +233,7 @@ public class TFTPClient {
 		}
 		errorChecker = null;
 		return new TFTPErrorMessage(ErrorType.NO_ERROR, "no errors");
-	}
+	} */
 
 	/**
 	 * This function create a read request for the client and stores the file

@@ -6,6 +6,7 @@ import packet.ErrorPacket;
 import packet.Packet;
 import packet.PacketFactory;
 import packet.ReadPacket;
+import packet.ReadWritePacket;
 import packet.WritePacket;
 import resource.Configurations;
 import resource.Strings;
@@ -68,11 +69,11 @@ public class BufferPrinter {
 			break;
 		case RRQ:
 			logger.print(Logger.VERBOSE, Strings.RRQ);
-			logger.print(Logger.VERBOSE, "File Name : " + ((ReadPacket) pb).getFilename());
+			logger.print(Logger.VERBOSE, "File Name : " + ((ReadWritePacket) pb).getFilename());
 			break;
 		case WRQ:
 			logger.print(Logger.VERBOSE, Strings.WRQ);
-			logger.print(Logger.VERBOSE, "File Name : " + ((WritePacket) pb).getFilename());
+			logger.print(Logger.VERBOSE, "File Name : " + ((ReadWritePacket) pb).getFilename());
 			break;
 		case ERROR:
 			logger.print(Logger.VERBOSE, Strings.ERROR);
