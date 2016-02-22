@@ -35,6 +35,7 @@ public class Keyboard {
 		try {
             return inputStream.readLine();
 		} catch (Exception e) {
+			System.err.println(e);
 	    	return "";
 		}
     }

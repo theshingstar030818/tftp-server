@@ -60,7 +60,7 @@ public class TFTPService implements Runnable {
 				
 				net = new TFTPNetworking(vWritePacket, mSendReceiveSocket);
 				net.handleInitWRQ(vWritePacket);
-				net.receiveFile(vWritePacket, mSendReceiveSocket);
+				net.receiveFile(mSendReceiveSocket);
 				
 				break;
 				

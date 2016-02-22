@@ -14,6 +14,7 @@ import packet.AckPacket;
 import packet.DataPacket;
 import packet.ErrorPacket;
 import packet.Packet;
+import packet.ReadPacket;
 import packet.ReadWritePacket;
 import packet.WritePacket;
 import resource.Configurations;
@@ -32,6 +33,7 @@ public class TFTPNetworking {
 	public ErrorChecker errorChecker; // This is a temporary measure.
 	private Logger logger = Logger.VERBOSE;
 	private String fileName;
+	private FileStorageService storage;
 	
 	public TFTPNetworking() {
 		lastPacket = null;
@@ -60,23 +62,25 @@ public class TFTPNetworking {
 	}
 	
 	
-	public TFTPErrorMessage receiveFile(ReadWritePacket packet, DatagramSocket vSocket) {
+	public TFTPErrorMessage receiveFile() {
+		return receiveFile(socket);
+	}
+	
+	
+	public TFTPErrorMessage receiveFile(DatagramSocket vSocket) {
 		
 		// when we get a write request, we need to acknowledge client first (block 0)
 		socket = vSocket;
 		AckPacket vAckPacket = new AckPacket(lastPacket);
 		DatagramPacket vSendPacket = vAckPacket.buildPacket();
-		String v_sFileName = packet.getFilename();
 		TFTPErrorMessage error;
 		
 		try {
 			
 			// socket.send(vSendPacket);
 			// Open a channel to the file
-			FileStorageService vFileStorageService = new FileStorageService (v_sFileName);
-
 			// Since we don't have an error, we can expect block size 1 to come next.
-			errorChecker.incrementExpectedBlockNumber();
+			// errorChecker.incrementExpectedBlockNumber();
 			byte[] vEmptyData = new byte[Configurations.MAX_BUFFER];
 			boolean vHasMore = true;
 			
@@ -85,6 +89,10 @@ public class TFTPNetworking {
 					byte[] data = new byte[Configurations.MAX_BUFFER];
 					lastPacket = new DatagramPacket(data, data.length);
 					socket.receive(lastPacket);
+					if (errorChecker == null) {
+						errorChecker = new ErrorChecker(new DataPacket(lastPacket));
+						errorChecker.incrementExpectedBlockNumber();
+					}
 					DataPacket receivedPacket = new DataPacket(lastPacket);
 					logger.print(Logger.VERBOSE, Strings.RECEIVED);
 					BufferPrinter.printPacket(receivedPacket, logger, RequestType.DATA);
@@ -105,7 +113,7 @@ public class TFTPNetworking {
 				DataPacket vDataPacketBuilder = new DataPacket(lastPacket);
 				vEmptyData = vDataPacketBuilder.getDataBuffer();
 
-				vHasMore = vFileStorageService.saveFileByteBufferToDisk(vEmptyData);
+				vHasMore = storage.saveFileByteBufferToDisk(vEmptyData);
 				// ACK this bit of data
 				
 				vAckPacket = new AckPacket(lastPacket);
@@ -140,15 +148,14 @@ public class TFTPNetworking {
 		AckPacket ackPacket;
 		
 		try {
-			errorChecker.incrementExpectedBlockNumber();
+			//errorChecker.incrementExpectedBlockNumber();
 			
-			FileStorageService vFileStorageService = new FileStorageService( fileName );
 			byte[] vEmptyData = new byte[Configurations.MAX_BUFFER];
 			TFTPErrorMessage error;
 
 			while (vEmptyData != null && vEmptyData.length >= Configurations.MAX_PAYLOAD_BUFFER ){
 				
-				vEmptyData = vFileStorageService.getFileByteBufferFromDisk();
+				vEmptyData = storage.getFileByteBufferFromDisk();
 				// Building a data packet from the last packet ie. will increment block number
 				DataPacket vDataPacket = new DataPacket(lastPacket);
 				DatagramPacket vSendPacket = vDataPacket.buildPacket(vEmptyData);
@@ -172,14 +179,15 @@ public class TFTPNetworking {
 				lastPacket = receivePacket;
 				
 			}
-			byte[] data = new byte[Configurations.MAX_BUFFER];
-			receivePacket = new DatagramPacket(data, data.length);
-			socket.receive(receivePacket);
-			
-			logger.print(Logger.SILENT, Strings.RECEIVED);
-			BufferPrinter.printPacket(new AckPacket(receivePacket), Logger.VERBOSE, RequestType.ACK);
-			
-			System.err.println("If the code reached here, the bug was fixed. Make sure the last ack packet was acked");
+//			byte[] data = new byte[Configurations.MAX_BUFFER];
+//			receivePacket = new DatagramPacket(data, data.length);
+//			System.out.println("Foos");
+//			socket.receive(receivePacket);
+//			System.out.println("Ball");
+//			logger.print(Logger.SILENT, Strings.RECEIVED);
+//			BufferPrinter.printPacket(new AckPacket(receivePacket), Logger.VERBOSE, RequestType.ACK);
+//			
+//			System.err.println("If the code reached here, the bug was fixed. Make sure the last ack packet was acked");
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
 		} catch (IOException e) {
@@ -191,21 +199,20 @@ public class TFTPNetworking {
 	
 	
 	public DatagramPacket generateInitWRQ(String fn, int portToSendTo) {
-		fileName = fn;
+		try {
+			storage = new FileStorageService(fn, InstanceType.CLIENT);
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		}
 		logger.print(logger, Strings.CLIENT_INITIATE_WRITE_REQUEST);
 		ReadWritePacket wpb;
-		FileStorageService writeRequestFileStorageService;
 		lastPacket = null;
 		try {
 			logger.print(logger, Strings.CLIENT_INITIATING_FIE_STORAGE_SERVICE);
-			writeRequestFileStorageService = new FileStorageService(fileName, InstanceType.CLIENT);
-
-			String actualFileName;
-
-			actualFileName = writeRequestFileStorageService.getFileName();
-
-			wpb = new WritePacket(InetAddress.getLocalHost(), portToSendTo, actualFileName,
+			
+			wpb = new WritePacket(InetAddress.getLocalHost(), portToSendTo, storage.getFileName(),
 					Configurations.DEFAULT_RW_MODE);
+			fileName = storage.getFileName();
 
 			lastPacket = wpb.buildPacket();
 			logger.print(logger, Strings.SENDING);
@@ -216,7 +223,7 @@ public class TFTPNetworking {
 			
 			// Trusts that the first response is from expected source.
 			errorChecker = new ErrorChecker(new AckPacket(lastPacket)); 
-			
+			errorChecker.incrementExpectedBlockNumber();
 			
 		} catch (SocketException e) {
 			e.printStackTrace();
@@ -232,14 +239,50 @@ public class TFTPNetworking {
 	}
 	
 	
-	public TFTPErrorMessage generateInitRRq(ReadWritePacket rrq) {
-		return new TFTPErrorMessage(ErrorType.NO_ERROR, Strings.NO_ERROR);
+	public void generateInitRRQ(String fn, int portToSendTo) {
+		try {
+			logger.print(logger, Strings.CLIENT_INITIATING_FIE_STORAGE_SERVICE);
+			fileName = fn;
+			try {
+				storage = new FileStorageService(fileName, InstanceType.CLIENT);
+			} catch (FileNotFoundException e) {
+				e.printStackTrace();
+			}
+			// build read request packet
+	
+			ReadPacket rpb;
+	
+			rpb = new ReadPacket(InetAddress.getLocalHost(), portToSendTo, fileName,
+					Configurations.DEFAULT_RW_MODE);
+	
+			// now get the packet from the ReadPacket
+			lastPacket = rpb.buildPacket();
+	
+			logger.print(logger, Strings.SENDING);
+			BufferPrinter.printPacket(rpb, logger, RequestType.RRQ);
+			// send the read packet over sendReceiveSocket
+			socket.send(lastPacket);
+		
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 	
 	
 	public TFTPErrorMessage handleInitWRQ(ReadWritePacket wrq) {
 		
+		fileName = wrq.getFilename();
+		try {
+			storage = new FileStorageService(fileName, InstanceType.SERVER);
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		}
 		TFTPErrorMessage error = errorChecker.check(wrq, RequestType.WRQ);
+		errorChecker.incrementExpectedBlockNumber(); // Could be so wrong.
+		//errorChecker.incrementExpectedBlockNumber(); // Could be so wrong.
 		if (error.getType() != ErrorType.NO_ERROR) 
 			if (errorHandle(error, wrq.getPacket())) 
 				return error;
@@ -262,10 +305,17 @@ public class TFTPNetworking {
 	
 	public TFTPErrorMessage handleInitRRQ(ReadWritePacket rrq) {
 		
+		fileName = rrq.getFilename();
+		try {
+			storage = new FileStorageService(fileName, InstanceType.SERVER);
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		}
 		TFTPErrorMessage error = errorChecker.check(rrq, RequestType.RRQ);
 		if (error.getType() != ErrorType.NO_ERROR)
 			if (errorHandle(error, rrq.getPacket()))
 				return error;
+		errorChecker.incrementExpectedBlockNumber();
 		
 		return new TFTPErrorMessage(ErrorType.NO_ERROR, Strings.NO_ERROR);
 	}
