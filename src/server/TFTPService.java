@@ -2,8 +2,8 @@ package server;
 
 import java.net.*;
 
-import Networking.TFTPNetworking;
 import helpers.BufferPrinter;
+import networking.TFTPNetworking;
 import types.ErrorType;
 import types.Logger;
 import types.RequestType;
@@ -60,7 +60,7 @@ public class TFTPService implements Runnable {
 				
 				net = new TFTPNetworking(vWritePacket, mSendReceiveSocket);
 				net.handleInitWRQ(vWritePacket);
-				net.receiveFile(vWritePacket, mSendReceiveSocket);
+				net.receiveFile(mSendReceiveSocket);
 				
 				break;
 				
