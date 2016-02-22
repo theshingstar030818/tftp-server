@@ -1,4 +1,4 @@
-package Networking;
+package networking;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -31,6 +31,7 @@ public class TFTPNetworking {
 	private DatagramPacket lastPacket;
 	public ErrorChecker errorChecker; // This is a temporary measure.
 	private Logger logger = Logger.VERBOSE;
+	private String fileName;
 	
 	public TFTPNetworking() {
 		lastPacket = null;
@@ -128,11 +129,12 @@ public class TFTPNetworking {
 	
 	public TFTPErrorMessage sendFile(ReadWritePacket packet) {
 		BufferPrinter.printPacket(packet, Logger.VERBOSE, RequestType.RRQ);
-		return sendFile(packet.getFilename());
+		fileName = packet.getFilename();
+		return sendFile();
 	}
 	
 	
-	public TFTPErrorMessage sendFile(String fileName) {
+	public TFTPErrorMessage sendFile() {
 
 		DatagramPacket receivePacket;
 		AckPacket ackPacket;
@@ -188,11 +190,12 @@ public class TFTPNetworking {
 	}
 	
 	
-	public DatagramPacket generateInitWRQ(String fileName, int portToSendTo) {
+	public DatagramPacket generateInitWRQ(String fn, int portToSendTo) {
+		fileName = fn;
 		logger.print(logger, Strings.CLIENT_INITIATE_WRITE_REQUEST);
 		ReadWritePacket wpb;
 		FileStorageService writeRequestFileStorageService;
-		DatagramPacket lastPacket = null;
+		lastPacket = null;
 		try {
 			logger.print(logger, Strings.CLIENT_INITIATING_FIE_STORAGE_SERVICE);
 			writeRequestFileStorageService = new FileStorageService(fileName, InstanceType.CLIENT);

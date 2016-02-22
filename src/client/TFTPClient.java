@@ -11,10 +11,10 @@ import java.net.InetAddress;
 import java.net.SocketException;
 import java.util.Scanner;
 
-import Networking.TFTPNetworking;
 import helpers.BufferPrinter;
 import helpers.FileStorageService;
 import helpers.Keyboard;
+import networking.TFTPNetworking;
 import packet.*;
 import resource.*;
 import testbed.ErrorChecker;
@@ -53,7 +53,7 @@ public class TFTPClient {
 	public void initialize() {
 		logger.setClassTag(this.CLASS_TAG);
 		Scanner scan = new Scanner(System.in);
-		TFTPNetworking net = new TFTPNetworking();
+		TFTPNetworking net = null;
 		try {
 			mode = getSendPort();
 			if (mode == 1) {
@@ -77,6 +77,7 @@ public class TFTPClient {
 				switch (optionSelected) {
 				case 1:
 					// Read file
+					net = new TFTPNetworking();
 					logger.print(logger, Strings.PROMPT_ENTER_FILE_NAME);
 					String readFileName = Keyboard.getString();
 					try {
@@ -99,6 +100,7 @@ public class TFTPClient {
 					break;
 				case 2:
 					// Write file
+					net = new TFTPNetworking();
 					logger.print(logger, Strings.PROMPT_FILE_NAME_PATH);
 					String writeFileNameOrFilePath = Keyboard.getString();
 					TFTPErrorMessage result = null;
@@ -110,7 +112,7 @@ public class TFTPClient {
 					//TFTPErrorMessage result = writeRequestHandler(writeFileNameOrFilePath);
 					DatagramPacket packet = net.generateInitWRQ(writeFileNameOrFilePath, this.mPortToSendTo);
 					if (packet != null)
-						result = net.sendFile(new WritePacket(packet));
+						result = net.sendFile();
 					else System.exit(1);
 					if (!(result.getType() == ErrorType.NO_ERROR)) {
 						logger.print(Logger.ERROR, Strings.TRANSFER_FAILED);
