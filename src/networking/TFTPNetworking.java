@@ -238,7 +238,13 @@ public class TFTPNetworking {
 		return lastPacket;
 	}
 	
-	
+	/**
+	 * This function create a read request for the client and stores the file
+	 * retrieved from the server on to the file system
+	 * 
+	 * @param readFileName
+	 *            - the name of the file that the client requests from server
+	 */
 	public void generateInitRRQ(String fn, int portToSendTo) {
 		try {
 			logger.print(logger, Strings.CLIENT_INITIATING_FIE_STORAGE_SERVICE);
