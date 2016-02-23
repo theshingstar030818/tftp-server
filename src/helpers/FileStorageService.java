@@ -97,6 +97,8 @@ public class FileStorageService {
 			}
 			this.mFilePath = Paths.get(filePathOrFileName).toString();
 		} else {
+			if(filePathOrFileName == null || filePathOrFileName.isEmpty())
+				throw new FileNotFoundException();
 			// So its not a file path, maybe its a file name, so we try it out
 			this.mFileName = filePathOrFileName;
 			this.mFilePath = Paths.get(this.mDefaultStorageFolder, this.mFileName).toString();

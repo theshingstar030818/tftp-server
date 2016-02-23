@@ -26,4 +26,12 @@ public class Configurations {
 	public static final int LEN_ACK_PACKET_BUFFER = 4;
 	public static final String SERVER_INET_HOST = "localhost";
 	public static final int ERROR_PACKET_USELESS_VALUES = 5;
+	
+	
+	/* Important keys for Error Simulator command */
+	public static final String MAIN_ERROR = "+_)(";
+	public static final String SUB_ERROR = "_)(*";
+	public static final String TE_NUM_PACKETS = "(*&^";
+	public static final String TE_FREQ_ERROR = "*&^%";
+	
 }
