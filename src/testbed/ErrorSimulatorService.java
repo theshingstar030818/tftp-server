@@ -118,12 +118,14 @@ public class ErrorSimulatorService implements Runnable {
 		boolean ackServerOnLastBlockByClient = false;
 		boolean errorSentToClient = false;
 		boolean errorSendToServer = false;
-		int wrqPacketSize = -1;
+		int wrqPacketSize = -1; // Used to determine whether to forward last ACK packet 
 		
 		// Add the first packet to the queue 
 		this.mPacketSendQueue.addFirst(this.mLastPacket);
+		// Always forward the first packet to port 69
 		this.mLastPacket.setPort(this.mForwardPort);
 		this.mLastPacket.setAddress(this.mServerHostAddress);
+		
 		while (transferNotFinished) {
 			try {
 				logger.print(Logger.SILENT,"Preparing to send packet to server at port " + this.mForwardPort);
@@ -133,8 +135,9 @@ public class ErrorSimulatorService implements Runnable {
 					if(this.mMessUpThisTransfer == InstanceType.SERVER) {
 						this.createSpecifiedError(this.mLastPacket);
 					}
-					forwardPacketToSocket(this.mLastPacket);
-					this.mPacketSendQueue.removeFirst();
+					
+					// Send the next packet in the work queue
+					forwardPacketToSocket(this.mPacketSendQueue.pop());
 					
 					if(!transferNotFinished) {
 						// Break here is for the last ACK packet from client WRQ
@@ -171,9 +174,10 @@ public class ErrorSimulatorService implements Runnable {
 					if(this.mMessUpThisTransfer == InstanceType.CLIENT) {
 						this.createSpecifiedError(this.mLastPacket);
 					}
-					// Send that packet back to the client
-					forwardPacketToSocket(this.mLastPacket);
-					this.mPacketSendQueue.removeFirst();
+					
+					// Send the next packet in the work queue
+					forwardPacketToSocket(this.mPacketSendQueue.pop());
+
 					if(this.mLastPacket.getData()[1] == 5) {
 						errorSentToClient = true;
 						break;
@@ -189,9 +193,7 @@ public class ErrorSimulatorService implements Runnable {
 					this.mLastPacket.setAddress(this.mServerHostAddress);
 
 					if (ackServerOnLastBlockByClient) {
-						// This extra process is needed on a read request
-						// Gets a client reply - last ACK
-						// Send the last ACK to the server
+						// This extra process is needed on a read request to send the last ACK to the server
 						logger.print(Logger.SILENT, "Sending last ACK packet to server (RRQ) " + this.mClientPort);
 						this.mLastPacket.setPort(this.mForwardPort);
 						this.mLastPacket.setAddress(this.mServerHostAddress);
