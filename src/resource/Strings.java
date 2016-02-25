@@ -51,6 +51,7 @@ public class Strings {
 	public static final String NO_ERROR = "No error.";
 	public static final String OPERATION_NOT_SUPPORTED = "This option is not supported right now. Not generating any errors.";
 	public static final String EXCEPTION_ERROR = "Exception Error please see console for details.";
+	public static final String TRANSMISSION_ERROR = "Transmission error, dropped, duplicated, or lost packets.";
 
 	// TFTP error message templates.
 	public static final String NON_ZERO_FIRST_BYTE = "First byte is not 0.";

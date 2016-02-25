@@ -4,18 +4,12 @@
 package client;
 
 import java.io.File;
-import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
-import java.net.InetAddress;
-import java.net.SocketException;
 import java.util.Scanner;
 
-import helpers.BufferPrinter;
-import helpers.FileStorageService;
 import helpers.Keyboard;
-import networking.TFTPNetworking;
-import packet.*;
+import networking.ClientNetworking;
 import resource.*;
 import testbed.ErrorChecker;
 import testbed.TFTPErrorMessage;
@@ -53,7 +47,7 @@ public class TFTPClient {
 	public void initialize() {
 		logger.setClassTag(this.CLASS_TAG);
 		Scanner scan = new Scanner(System.in);
-		TFTPNetworking net = null;
+		ClientNetworking net = null;
 		try {
 			mode = getSendPort();
 			if (mode == 1) {
@@ -77,7 +71,7 @@ public class TFTPClient {
 				switch (optionSelected) {
 				case 1:
 					// Read file
-					net = new TFTPNetworking();
+					net = new ClientNetworking();
 					logger.print(logger, Strings.PROMPT_ENTER_FILE_NAME);
 					String readFileName = Keyboard.getString();
 					try {
@@ -102,7 +96,7 @@ public class TFTPClient {
 					break;
 				case 2:
 					// Write file
-					net = new TFTPNetworking();
+					net = new ClientNetworking();
 					logger.print(logger, Strings.PROMPT_FILE_NAME_PATH);
 					String writeFileNameOrFilePath = Keyboard.getString();
 					TFTPErrorMessage result = null;

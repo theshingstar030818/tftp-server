@@ -4,36 +4,30 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
-import java.net.InetAddress;
 import java.net.SocketException;
-import java.net.UnknownHostException;
 
 import helpers.BufferPrinter;
 import helpers.FileStorageService;
 import packet.AckPacket;
 import packet.DataPacket;
 import packet.ErrorPacket;
-import packet.Packet;
-import packet.ReadPacket;
 import packet.ReadWritePacket;
-import packet.WritePacket;
 import resource.Configurations;
 import resource.Strings;
 import testbed.ErrorChecker;
 import testbed.TFTPErrorMessage;
 import types.ErrorType;
-import types.InstanceType;
 import types.Logger;
 import types.RequestType;
 
 public class TFTPNetworking {
 	
-	private DatagramSocket socket;
-	private DatagramPacket lastPacket;
-	public ErrorChecker errorChecker; // This is a temporary measure.
-	private Logger logger = Logger.VERBOSE;
-	private String fileName;
-	private FileStorageService storage;
+	protected DatagramSocket socket;
+	protected DatagramPacket lastPacket;
+	protected ErrorChecker errorChecker; // This is a temporary measure.
+	protected Logger logger = Logger.VERBOSE;
+	protected String fileName;
+	protected FileStorageService storage;
 	
 	public TFTPNetworking() {
 		lastPacket = null;
@@ -193,135 +187,6 @@ public class TFTPNetworking {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-		
-		return new TFTPErrorMessage(ErrorType.NO_ERROR, Strings.NO_ERROR);
-	}
-	
-	
-	public DatagramPacket generateInitWRQ(String fn, int portToSendTo) {
-		try {
-			storage = new FileStorageService(fn, InstanceType.CLIENT);
-		} catch (FileNotFoundException e) {
-			e.printStackTrace();
-		}
-		logger.print(logger, Strings.CLIENT_INITIATE_WRITE_REQUEST);
-		ReadWritePacket wpb;
-		lastPacket = null;
-		try {
-			logger.print(logger, Strings.CLIENT_INITIATING_FIE_STORAGE_SERVICE);
-			
-			wpb = new WritePacket(InetAddress.getLocalHost(), portToSendTo, storage.getFileName(),
-					Configurations.DEFAULT_RW_MODE);
-			fileName = storage.getFileName();
-
-			lastPacket = wpb.buildPacket();
-			logger.print(logger, Strings.SENDING);
-			BufferPrinter.printPacket(wpb, logger, RequestType.WRQ);
-			socket.send(lastPacket);
-			
-			socket.receive(lastPacket);
-			
-			// Trusts that the first response is from expected source.
-			errorChecker = new ErrorChecker(new AckPacket(lastPacket)); 
-			errorChecker.incrementExpectedBlockNumber();
-			
-		} catch (SocketException e) {
-			e.printStackTrace();
-		} catch (FileNotFoundException e) {
-			e.printStackTrace();
-		} catch (UnknownHostException e) {
-			e.printStackTrace();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		return lastPacket;
-	}
-	
-	/**
-	 * This function create a read request for the client and stores the file
-	 * retrieved from the server on to the file system
-	 * 
-	 * @param readFileName
-	 *            - the name of the file that the client requests from server
-	 */
-	public void generateInitRRQ(String fn, int portToSendTo) {
-		try {
-			logger.print(logger, Strings.CLIENT_INITIATING_FIE_STORAGE_SERVICE);
-			fileName = fn;
-			try {
-				storage = new FileStorageService(fileName, InstanceType.CLIENT);
-			} catch (FileNotFoundException e) {
-				e.printStackTrace();
-			}
-			// build read request packet
-	
-			ReadPacket rpb;
-	
-			rpb = new ReadPacket(InetAddress.getLocalHost(), portToSendTo, fileName,
-					Configurations.DEFAULT_RW_MODE);
-	
-			// now get the packet from the ReadPacket
-			lastPacket = rpb.buildPacket();
-	
-			logger.print(logger, Strings.SENDING);
-			BufferPrinter.printPacket(rpb, logger, RequestType.RRQ);
-			// send the read packet over sendReceiveSocket
-			socket.send(lastPacket);
-		
-		} catch (FileNotFoundException e) {
-			e.printStackTrace();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-	}
-	
-	
-	public TFTPErrorMessage handleInitWRQ(ReadWritePacket wrq) {
-		
-		fileName = wrq.getFilename();
-		try {
-			storage = new FileStorageService(fileName, InstanceType.SERVER);
-		} catch (FileNotFoundException e) {
-			e.printStackTrace();
-		}
-		TFTPErrorMessage error = errorChecker.check(wrq, RequestType.WRQ);
-		errorChecker.incrementExpectedBlockNumber(); // Could be so wrong.
-		//errorChecker.incrementExpectedBlockNumber(); // Could be so wrong.
-		if (error.getType() != ErrorType.NO_ERROR) 
-			if (errorHandle(error, wrq.getPacket())) 
-				return error;
-		
-		AckPacket vAckPacket = new AckPacket(wrq.getPacket());
-		DatagramPacket vSendPacket = vAckPacket.buildPacket();
-		
-		logger.print(Logger.SILENT, Strings.SENDING);
-		BufferPrinter.printPacket(new AckPacket(vSendPacket), Logger.VERBOSE, RequestType.ACK);
-		
-		try {
-			socket.send(vSendPacket);
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-				
-		return new TFTPErrorMessage(ErrorType.NO_ERROR, Strings.NO_ERROR);
-	}
-	
-	
-	public TFTPErrorMessage handleInitRRQ(ReadWritePacket rrq) {
-		
-		fileName = rrq.getFilename();
-		try {
-			storage = new FileStorageService(fileName, InstanceType.SERVER);
-		} catch (FileNotFoundException e) {
-			e.printStackTrace();
-		}
-		TFTPErrorMessage error = errorChecker.check(rrq, RequestType.RRQ);
-		if (error.getType() != ErrorType.NO_ERROR)
-			if (errorHandle(error, rrq.getPacket()))
-				return error;
-		errorChecker.incrementExpectedBlockNumber();
 		
 		return new TFTPErrorMessage(ErrorType.NO_ERROR, Strings.NO_ERROR);
 	}

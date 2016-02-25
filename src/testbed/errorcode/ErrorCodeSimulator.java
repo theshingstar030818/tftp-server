@@ -1,4 +1,4 @@
-package testbed;
+package testbed.errorcode;
 
 import java.net.*;
 import packet.*;

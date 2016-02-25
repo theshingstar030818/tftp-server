@@ -3,7 +3,7 @@ package server;
 import java.net.*;
 
 import helpers.BufferPrinter;
-import networking.TFTPNetworking;
+import networking.ServerNetworking;
 import types.ErrorType;
 import types.Logger;
 import types.RequestType;
@@ -49,7 +49,7 @@ public class TFTPService implements Runnable {
 
 		ReadWritePacket vClientRequestPacket = new ReadWritePacket(this.mLastPacket);
 		RequestType reqType = vClientRequestPacket.getRequestType();
-		TFTPNetworking net;
+		ServerNetworking net;
 		
 		switch(reqType) {
 			case WRQ:
@@ -58,7 +58,7 @@ public class TFTPService implements Runnable {
 				logger.print(Logger.SILENT, Strings.RECEIVED);
 				BufferPrinter.printPacket(vWritePacket, Logger.VERBOSE, RequestType.WRQ);
 				
-				net = new TFTPNetworking(vWritePacket, mSendReceiveSocket);
+				net = new ServerNetworking(vWritePacket, mSendReceiveSocket);
 				net.handleInitWRQ(vWritePacket);
 				net.receiveFile(mSendReceiveSocket);
 				
@@ -71,7 +71,7 @@ public class TFTPService implements Runnable {
 				logger.print(Logger.SILENT, Strings.RECEIVED);
 				BufferPrinter.printPacket(vReadPacket, Logger.VERBOSE, RequestType.RRQ);
 						
-				net = new TFTPNetworking(vReadPacket);
+				net = new ServerNetworking(vReadPacket);
 				net.handleInitRRQ(vReadPacket);
 				net.sendFile(vReadPacket);	
 				
@@ -80,7 +80,7 @@ public class TFTPService implements Runnable {
 			default:
 				logger.print(Logger.ERROR, Strings.SS_WRONG_PACKET);
 				TFTPErrorMessage error = new TFTPErrorMessage(ErrorType.ILLEGAL_OPERATION, Strings.SS_WRONG_PACKET);
-				new TFTPNetworking(vClientRequestPacket).errorHandle(error, vClientRequestPacket.getPacket());
+				new ServerNetworking(vClientRequestPacket).errorHandle(error, vClientRequestPacket.getPacket());
 				break;
 		}
 
