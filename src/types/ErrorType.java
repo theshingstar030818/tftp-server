@@ -112,10 +112,20 @@ public enum ErrorType {
 			return Strings.EXCEPTION_ERROR;
 		}
 	},
+	TRANSMISSION_ERROR {
+		@Override
+		public short getErrorCodeShort() {
+			return 404;
+		}
+		@Override
+		public String getErrorMessageString() {
+			return Strings.TRANSMISSION_ERROR;
+		}
+	},
 	EXIT {
 		@Override
 		public short getErrorCodeShort() {
-			return -1;
+			return 404;
 		}
 		@Override
 		public String getErrorMessageString() {
@@ -148,6 +158,8 @@ public enum ErrorType {
 				return ErrorType.FILE_EXISTS;
 			case 7:
 				return ErrorType.NO_SUCH_USER;
+			case 404:
+				return ErrorType.TRANSMISSION_ERROR;
 			default:
 				return ErrorType.NO_ERROR;
 		}

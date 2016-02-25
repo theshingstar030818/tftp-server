@@ -36,7 +36,7 @@ public class ErrorSimulatorServer implements Callback {
 	
 	private Logger logger = Logger.VERBOSE;
 	private TFTPUserInterface mErrorUI;
-	private Tuple<ErrorType, Integer> mErrorOptionSettings;
+	private ErrorCommand mErrorOptionSettings;
 	private final String CLASS_TAG = "<Error Simulator Server>";
 	private InstanceType testInstance; 
 	
@@ -79,7 +79,7 @@ public class ErrorSimulatorServer implements Callback {
 				// Create the packet for receiving.
 				byte[] buffer = new byte[Configurations.MAX_BUFFER]; 
 				this.mErrorOptionSettings = this.mErrorUI.getErrorCodeFromUser(testInstance);
-				if(this.mErrorOptionSettings.first == ErrorType.EXIT) {
+				if(this.mErrorOptionSettings.getMainErrorFamily() == ErrorType.EXIT) {
 					active.set(false);
 					break;
 				}

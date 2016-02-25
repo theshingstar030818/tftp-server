@@ -2,6 +2,7 @@ package testbed;
 
 import java.util.HashMap;
 import resource.Configurations;
+import types.ErrorType;
 
 public class ErrorCommand {
 	
@@ -11,15 +12,15 @@ public class ErrorCommand {
 		this.mCommandMap = new HashMap<>();
 	}
 	
-	public void addMainErrorFamily(int value) {
+	public void setMainErrorFamily(int value) {
 		this.mCommandMap.put(Configurations.MAIN_ERROR, value);
 	}
 	
-	public int getMainErrorFamily() { 
-		return this.mCommandMap.get(Configurations.MAIN_ERROR);
+	public ErrorType getMainErrorFamily() { 
+		return ErrorType.matchErrorByNumber(this.mCommandMap.get(Configurations.MAIN_ERROR));
 	}
 	
-	public void addSubErrorFromFamily(int value) {
+	public void setSubErrorFromFamily(int value) {
 		this.mCommandMap.put(Configurations.SUB_ERROR, value);
 	}
 	

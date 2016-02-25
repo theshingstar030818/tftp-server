@@ -39,10 +39,12 @@ public class TFTPUserInterface {
 	 * @return tuple - first is the error type - second is the error sub code to
 	 *         produce
 	 */
-	public Tuple<ErrorType, Integer> getErrorCodeFromUser(InstanceType instance) {
+	public ErrorCommand getErrorCodeFromUser(InstanceType instance) {
 		int optionSelected = 0;
 		boolean validInput = false;
-
+		
+		// Check below for how this get set
+		ErrorCommand errorToProduce = new ErrorCommand();
 		while (!validInput) {
 			System.out.println(UIStrings.MENU_ERROR_SIMULATOR_ERROR_SELECTION);
 			try {
@@ -118,7 +120,9 @@ public class TFTPUserInterface {
 				break;
 			}
 		}
-		return new Tuple<ErrorType, Integer>(this.mUserErrorOption, this.mUserErrorSubOption);
+		errorToProduce.setMainErrorFamily(this.mUserErrorOption.getErrorCodeShort());
+		errorToProduce.setSubErrorFromFamily(this.mUserErrorSubOption);
+		return errorToProduce;
 	}
 
 	/**

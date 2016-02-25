@@ -5,7 +5,6 @@ import java.net.*;
 import packet.AckPacket;
 import packet.Packet;
 import resource.Configurations;
-import testbed.ErrorCodeSimulator;
 import packet.DataPacket;
 import types.*;
 
