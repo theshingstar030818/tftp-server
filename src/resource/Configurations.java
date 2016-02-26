@@ -33,5 +33,5 @@ public class Configurations {
 	public static final String SUB_ERROR = "_)(*";
 	public static final String TE_NUM_PACKETS = "(*&^";
 	public static final String TE_FREQ_ERROR = "*&^%";
-	
+	public static final String TE_TYPE_ERROR = "&*()";
 }
