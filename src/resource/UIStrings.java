@@ -21,7 +21,8 @@ public class UIStrings {
 							   + "\t 6.File already exists \n"
 							   + "\t 7.No such user (obsolete) \n"
 							   + "\t 8.No errors please \n"
-							   + "\t 9.Exit \n"
+							   + "\t 9.Transmission Error \n"
+							   + "\t10.Exit \n"
 							   + "Select option :";
 	public static final String MENU_ERROR_SIMULATOR_ILLEGAL_TFTP_OPERATION 
 							   = "----------------------\n"
@@ -72,5 +73,24 @@ public class UIStrings {
 	 						  +"\t 1. Normal (No Error Simulator)\n"
 	 						  +"\t 2. Test (With Error Simulator)\n"
 	 						  +"Select option : \n";
-	 						   
+	 public static final String MENU_ERROR_SIMULATOR_TRANSMISSION_MENU 
+	 						  = "--------------------------------\n"
+	 						  +"|   Select Transmission Error    |\n"
+	 						  +"--------------------------------\n"
+	 						  +"Options : \n"
+	 						  +"\t 1. Lose Packet\n"
+	 						  +"\t 2. Delay Packet\n"
+	 						  +"\t 3. Duplicate Packet\n"
+	 						  +"\t 4. Go Back\n"
+	 						  +"Select option : \n";
+	 public static final String MENU_ERROR_SIMULATOR_PROMPT_FREQUENCY 
+	 						  = "How frequent do you want to simulate this error? (-1 just once, otherwise other numbers mean every other ie, 2 for every 2 good packets)";
+	 public static final String MENU_ERROR_SIMULATOR_PROMPT_DELAY_AMOUNT  
+			 				  = "How long do you want to delay a packet for (milliseconds)?";
+	 public static final String MENU_ERROR_SIMULATOR_PROMPT_AMOUNT
+	 						  = "How many transmission errors do you want to create?";
+	 public static final String MENU_ERROR_SIMULATOR_PROMPT_NUM_PACKET
+	 						  = "Pick the i-th packet to delay (ie 1 for the first packet of some type):";
+	 public static final String MENU_ERROR_SIMULATOR_PROMPT_TYPE
+	  						  = "Which type of packet do you want to create the error with, enter op code. (-1 means any packet based on frequncy)";
 }

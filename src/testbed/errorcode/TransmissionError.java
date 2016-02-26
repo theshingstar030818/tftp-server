@@ -16,16 +16,18 @@ public class TransmissionError implements Runnable {
 	
 	protected DatagramPacket mPacket;
 	protected ErrorSimulatorService mActiveMonitor;
+	protected int mFrozenMillis;
 	
-	public TransmissionError(DatagramPacket inPacket, ErrorSimulatorService monitor) {
+	public TransmissionError(DatagramPacket inPacket, int ms, ErrorSimulatorService monitor) {
 		this.mPacket = inPacket;
 		this.mActiveMonitor = monitor;
+		this.mFrozenMillis = ms;
 	}
 
 	@Override
 	public void run() {
 		try {
-			Thread.sleep((long)( (Configurations.TRANMISSION_TIMEOUT * 1.5)));
+			Thread.sleep((long)this.mFrozenMillis);
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}

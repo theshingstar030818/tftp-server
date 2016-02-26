@@ -7,11 +7,19 @@ package types;
 public enum RequestType {
 	RRQ {
 		@Override
+		public int getOptCode() {
+			return 1;
+		}
+		@Override
 		public byte[] getHeaderByteArray() {
 			return new byte[] {0,1};
 		}
 	},
 	WRQ {
+		@Override
+		public int getOptCode() {
+			return 2;
+		}
 		@Override
 		public byte[] getHeaderByteArray() {
 			return new byte[] {0,2};
@@ -19,11 +27,19 @@ public enum RequestType {
 	},
 	DATA {
 		@Override
+		public int getOptCode() {
+			return 3;
+		}
+		@Override
 		public byte[] getHeaderByteArray() {
 			return new byte[] {0,3};
 		}
 	},
 	ACK {
+		@Override
+		public int getOptCode() {
+			return 4;
+		}
 		@Override
 		public byte[] getHeaderByteArray() {
 			return new byte[] {0,4};
@@ -31,11 +47,19 @@ public enum RequestType {
 	},
 	ERROR {
 		@Override
+		public int getOptCode() {
+			return 5;
+		}
+		@Override
 		public byte[] getHeaderByteArray() {
 			return new byte[] {0,5};
 		}
 	},
 	NONE {
+		@Override
+		public int getOptCode() {
+			return -1;
+		}
 		@Override
 		// This is not a real Request Type
 		public byte[] getHeaderByteArray() {
@@ -75,5 +99,7 @@ public enum RequestType {
 	 * @return packet header array
 	 */
 	public abstract byte[] getHeaderByteArray();
+	
+	public abstract int getOptCode();
 	
 }

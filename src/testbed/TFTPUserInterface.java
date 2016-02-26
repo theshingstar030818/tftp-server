@@ -23,6 +23,9 @@ public class TFTPUserInterface {
 	private static Logger logger = Logger.VERBOSE;
 	private ErrorType mUserErrorOption;
 	private int mUserErrorSubOption = 0;
+	private int mNumPktToFkWit = 0;
+	private int mSpaceOfDelay = 0;
+	private int mOpCodeToMessWith = 0;
 
 	public TFTPUserInterface() {
 		this.mUserErrorOption = ErrorType.NO_ERROR;
@@ -110,6 +113,22 @@ public class TFTPUserInterface {
 				this.mUserErrorOption = ErrorType.NO_ERROR;
 				break;
 			case 9:
+				// Transmission Error
+				this.mUserErrorOption = ErrorType.TRANSMISSION_ERROR;
+				this.getSubOption(UIStrings.MENU_ERROR_SIMULATOR_TRANSMISSION_MENU, 4, instance);
+				if (this.mUserErrorSubOption == 4) {
+					// go back to the previous level
+					this.mUserErrorSubOption = 0;
+					validInput = false;
+				} else {
+					this.getTransmissionMenu(this.mUserErrorSubOption);
+					validInput = true;
+					errorToProduce.setTransmissionErrorFrequency(this.mSpaceOfDelay);
+					errorToProduce.setTransmissionErrorOccurrences(this.mNumPktToFkWit);
+					errorToProduce.setTransmissionErrorType(this.mOpCodeToMessWith);
+				}
+				break;
+			case 10:
 				// No error
 				System.out.println(Strings.EXIT_BYE);
 				validInput = true;
@@ -188,7 +207,41 @@ public class TFTPUserInterface {
 	private static void printSelectLogLevelMenu() {
 		System.out.println(UIStrings.MENU_ERROR_SIMULATOR_LOG_LEVEL);
 	}
-
+	
+	private void getTransmissionMenu(int transmissionError) {
+		switch(transmissionError) {
+		case 1:
+			// lose packet
+			System.out.println(UIStrings.MENU_ERROR_SIMULATOR_PROMPT_AMOUNT);
+			this.mNumPktToFkWit = Keyboard.getInteger();
+			System.out.println(UIStrings.MENU_ERROR_SIMULATOR_PROMPT_FREQUENCY);
+			this.mSpaceOfDelay = Keyboard.getInteger();
+			System.out.println(UIStrings.MENU_ERROR_SIMULATOR_PROMPT_TYPE);
+			this.mOpCodeToMessWith = Keyboard.getInteger();
+			break;
+		case 2:
+			// delay packet
+			// Picks i-th packet to delay
+			System.out.println(UIStrings.MENU_ERROR_SIMULATOR_PROMPT_NUM_PACKET);
+			this.mNumPktToFkWit = Keyboard.getInteger();
+			// Picks the delay in milliseconds
+			System.out.println(UIStrings.MENU_ERROR_SIMULATOR_PROMPT_DELAY_AMOUNT);
+			this.mSpaceOfDelay = Keyboard.getInteger();
+			System.out.println(UIStrings.MENU_ERROR_SIMULATOR_PROMPT_TYPE);
+			this.mOpCodeToMessWith = Keyboard.getInteger();
+			break;
+		case 3:
+			// duplicate
+			System.out.println(UIStrings.MENU_ERROR_SIMULATOR_PROMPT_AMOUNT);
+			this.mNumPktToFkWit = Keyboard.getInteger();
+			System.out.println(UIStrings.MENU_ERROR_SIMULATOR_PROMPT_FREQUENCY);
+			this.mSpaceOfDelay = Keyboard.getInteger();
+			System.out.println(UIStrings.MENU_ERROR_SIMULATOR_PROMPT_TYPE);
+			this.mOpCodeToMessWith = Keyboard.getInteger();
+			break;
+		}
+	}
+	
 	/**
 	 * This function gets the user's sub-option for sub-error menu
 	 * 

@@ -3,6 +3,7 @@ package testbed;
 import java.util.HashMap;
 import resource.Configurations;
 import types.ErrorType;
+import types.RequestType;
 
 public class ErrorCommand {
 	
@@ -56,5 +57,13 @@ public class ErrorCommand {
 	
 	public int getTransmissionErrorFrequency() {
 		return this.mCommandMap.get(Configurations.TE_FREQ_ERROR);
+	}
+	
+	public void setTransmissionErrorType(int value) {
+		this.mCommandMap.put(Configurations.TE_TYPE_ERROR, value);
+	}
+	
+	public RequestType getTransmissionErrorType() {
+		return RequestType.matchRequestByNumber(this.mCommandMap.get(Configurations.TE_TYPE_ERROR));
 	}
 }

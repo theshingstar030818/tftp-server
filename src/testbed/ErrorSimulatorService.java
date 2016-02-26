@@ -10,14 +10,10 @@ import java.net.InetAddress;
 import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.util.LinkedList;
-import java.util.Scanner;
 
 import helpers.BufferPrinter;
-import helpers.Keyboard;
 import resource.Configurations;
 import resource.Strings;
-import resource.Tuple;
-import resource.UIStrings;
 import server.Callback;
 import testbed.errorcode.ErrorCodeFive;
 import testbed.errorcode.ErrorCodeFour;
@@ -141,7 +137,8 @@ public class ErrorSimulatorService implements Runnable {
 				if (this.mMessUpThisTransfer == InstanceType.SERVER) {
 					this.createSpecifiedError(this.mPacketSendQueue.peekFirst());
 				}
-				if (this.mPacketSendQueue.peekFirst().getPort() == this.mForwardPort) {
+				if (this.mPacketSendQueue.peekFirst() != null &&
+						this.mPacketSendQueue.peekFirst().getPort() == this.mForwardPort) {
 					// This "if" block is for sending to the server
 
 					// Send the next packet in the work queue
@@ -178,13 +175,14 @@ public class ErrorSimulatorService implements Runnable {
 					// Redirect the packet back to the client address
 					this.mLastPacket.setPort(this.mClientPort);
 					this.mLastPacket.setAddress(this.mClientHostAddress);
-					++this.mPacketsProcessed;
+					
 				}
 
 				if (this.mMessUpThisTransfer == InstanceType.CLIENT) {
 					this.createSpecifiedError(this.mPacketSendQueue.peekFirst());
 				}
-				if (this.mPacketSendQueue.peekFirst().getPort() == this.mClientPort) {
+				if (this.mPacketSendQueue.peekFirst() != null &&
+						this.mPacketSendQueue.peekFirst().getPort() == this.mClientPort) {
 					logger.print(Logger.SILENT, Strings.ES_SEND_PACKET_CLIENT);
 
 					// Send the next packet in the work queue
@@ -212,7 +210,7 @@ public class ErrorSimulatorService implements Runnable {
 						this.mLastPacket.setAddress(this.mServerHostAddress);
 						forwardPacketToSocket(this.mLastPacket);
 					}
-					++this.mPacketsProcessed;
+					
 				}
 			} catch (IOException e) {
 				e.printStackTrace();
@@ -238,6 +236,7 @@ public class ErrorSimulatorService implements Runnable {
 		if(inPacket == null) {
 			return;
 		}
+		++this.mPacketsProcessed;
 		ErrorType vErrType = this.mErrorSettings.getMainErrorFamily();
 		int subOpt = this.mErrorSettings.getSubErrorFromFamily();
 		switch (vErrType) {
@@ -276,6 +275,20 @@ public class ErrorSimulatorService implements Runnable {
 			// error code 5
 			break;
 		case TRANSMISSION_ERROR:
+			if(this.mErrorSettings.getTransmissionErrorType() != RequestType.NONE &&
+			   this.mErrorSettings.getTransmissionErrorType().getOptCode() != inPacket.getData()[1]) {
+				System.out.println(String.format("type %s and compare header %s", 
+						this.mErrorSettings.getTransmissionErrorType() != RequestType.NONE,
+						this.mErrorSettings.getTransmissionErrorType().getOptCode() != inPacket.getData()[1]));
+				return;
+			}
+			if((this.mPacketsProcessed % (this.mErrorSettings.getTransmissionErrorFrequency()+1)) != 0 && 
+			    this.mErrorSettings.getTransmissionErrorOccurences() < this.mPacketsProcessed/2) {
+				System.err.println(String.format("Dont panic! We stoped making transmission errors. Heres why frequency hop: %d and %d/%d occurence/processed",
+						this.mPacketsProcessed % (this.mErrorSettings.getTransmissionErrorFrequency()+1),this.mErrorSettings.getTransmissionErrorOccurences(),
+						 this.mPacketsProcessed/2));
+				return;
+			}
 			switch(this.mErrorSettings.getSubErrorFromFamily())
 			{
 			case 1:
@@ -283,7 +296,7 @@ public class ErrorSimulatorService implements Runnable {
 				break;
 			case 2:
 				// Delay a packet
-				TransmissionError transmissionError = new TransmissionError(inPacket, this);
+				TransmissionError transmissionError = new TransmissionError(inPacket, this.mErrorSettings.getTransmissionErrorFrequency(), this);
 				Thread delayPacketThread = new Thread(transmissionError);
 				delayPacketThread.start();
 				// We passed that packet to the thread, so lets pop it out now
