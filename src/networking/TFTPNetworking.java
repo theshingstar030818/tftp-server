@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.SocketException;
+import java.net.SocketTimeoutException;
 
 import helpers.BufferPrinter;
 import helpers.FileStorageService;
@@ -24,7 +25,7 @@ public class TFTPNetworking {
 	
 	protected DatagramSocket socket;
 	protected DatagramPacket lastPacket;
-	protected ErrorChecker errorChecker; // This is a temporary measure.
+	protected ErrorChecker errorChecker;
 	protected Logger logger = Logger.VERBOSE;
 	protected String fileName;
 	protected FileStorageService storage;
@@ -65,24 +66,29 @@ public class TFTPNetworking {
 		
 		// when we get a write request, we need to acknowledge client first (block 0)
 		socket = vSocket;
-		AckPacket vAckPacket = new AckPacket(lastPacket);
-		DatagramPacket vSendPacket = vAckPacket.buildPacket();
 		TFTPErrorMessage error;
+		lastPacket = null;
+		DatagramPacket recvPacket = new DatagramPacket(new byte[Configurations.MAX_BUFFER], Configurations.MAX_BUFFER);
 		
 		try {
-			
-			// socket.send(vSendPacket);
-			// Open a channel to the file
-			// Since we don't have an error, we can expect block size 1 to come next.
-			// errorChecker.incrementExpectedBlockNumber();
+			socket.setSoTimeout(Configurations.TRANMISSION_TIMEOUT);
 			byte[] vEmptyData = new byte[Configurations.MAX_BUFFER];
 			boolean vHasMore = true;
 			
 			while ( vHasMore ){
 				while (true) {
-					byte[] data = new byte[Configurations.MAX_BUFFER];
-					lastPacket = new DatagramPacket(data, data.length);
-					socket.receive(lastPacket);
+					
+					try { 
+						socket.receive(recvPacket);
+					} catch (SocketTimeoutException e) {
+						if (lastPacket == null) {
+							return null;
+						}
+						sendACK(lastPacket);
+						continue;
+					}
+					
+					lastPacket = recvPacket;
 					if (errorChecker == null) {
 						errorChecker = new ErrorChecker(new DataPacket(lastPacket));
 						errorChecker.incrementExpectedBlockNumber();
@@ -93,7 +99,7 @@ public class TFTPNetworking {
 					error = errorChecker.check(receivedPacket, RequestType.DATA);
 					
 					if (error.getType() == ErrorType.NO_ERROR) break;
-					if (errorHandle(error, lastPacket)) return error;
+					if (errorHandle(error, lastPacket, RequestType.DATA)) return error;
 				}
 				
 				// Extract the data from the received packet with packet builder
@@ -104,20 +110,14 @@ public class TFTPNetworking {
 					lastPacket.setData(packetBuffer);
 				}
 				
+				errorChecker.incrementExpectedBlockNumber();
+				
 				DataPacket vDataPacketBuilder = new DataPacket(lastPacket);
 				vEmptyData = vDataPacketBuilder.getDataBuffer();
 
 				vHasMore = storage.saveFileByteBufferToDisk(vEmptyData);
-				// ACK this bit of data
 				
-				vAckPacket = new AckPacket(lastPacket);
-				vSendPacket = vAckPacket.buildPacket();
-				
-				logger.print(Logger.VERBOSE, Strings.SENDING);
-				BufferPrinter.printPacket(vAckPacket, logger, RequestType.ACK);
-				
-				socket.send(vSendPacket);
-				// Validate if a DATA packet is given
+				sendACK(lastPacket);
 			}
 			
 		} catch (IOException e) {
@@ -126,6 +126,21 @@ public class TFTPNetworking {
 		
 		return new TFTPErrorMessage(ErrorType.NO_ERROR, Strings.NO_ERROR);
 	}
+	
+	private void sendACK(DatagramPacket packet) {
+		
+		logger.print(Logger.VERBOSE, Strings.SENDING);
+		BufferPrinter.printPacket(new AckPacket(packet), logger, RequestType.ACK);
+		
+		try {
+			socket.send(new AckPacket(packet).buildPacket());
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+	
+	
+	
 	
 	
 	
@@ -142,10 +157,10 @@ public class TFTPNetworking {
 		AckPacket ackPacket;
 		
 		try {
-			//errorChecker.incrementExpectedBlockNumber();
 			
 			byte[] vEmptyData = new byte[Configurations.MAX_BUFFER];
 			TFTPErrorMessage error;
+			socket.setSoTimeout(Configurations.TRANMISSION_TIMEOUT);
 
 			while (vEmptyData != null && vEmptyData.length >= Configurations.MAX_PAYLOAD_BUFFER ){
 				
@@ -153,35 +168,34 @@ public class TFTPNetworking {
 				// Building a data packet from the last packet ie. will increment block number
 				DataPacket vDataPacket = new DataPacket(lastPacket);
 				DatagramPacket vSendPacket = vDataPacket.buildPacket(vEmptyData);
+				
 				logger.print(Logger.SILENT, Strings.SENDING);
 				BufferPrinter.printPacket(vDataPacket, Logger.VERBOSE, RequestType.ACK);
+				
 				socket.send(vSendPacket);
 					
 				while (true) {
 					// Receive ACK packets from the client.
 					byte[] data = new byte[Configurations.MAX_BUFFER];
 					receivePacket = new DatagramPacket(data, data.length);
-					socket.receive(receivePacket);
+					try {
+						socket.receive(receivePacket);
+					} catch (SocketTimeoutException e) {
+						socket.send(vSendPacket);
+						continue;
+					}
 					ackPacket = new AckPacket(receivePacket);
 					error = errorChecker.check(ackPacket, RequestType.ACK);
 					
 					if (error.getType() == ErrorType.NO_ERROR) break;
 					
-					if (errorHandle(error, receivePacket)) return error; 
+					if (errorHandle(error, receivePacket, RequestType.ACK)) return error; 
 				}
-				
+				errorChecker.incrementExpectedBlockNumber();
 				lastPacket = receivePacket;
 				
 			}
-//			byte[] data = new byte[Configurations.MAX_BUFFER];
-//			receivePacket = new DatagramPacket(data, data.length);
-//			System.out.println("Foos");
-//			socket.receive(receivePacket);
-//			System.out.println("Ball");
-//			logger.print(Logger.SILENT, Strings.RECEIVED);
-//			BufferPrinter.printPacket(new AckPacket(receivePacket), Logger.VERBOSE, RequestType.ACK);
-//			
-//			System.err.println("If the code reached here, the bug was fixed. Make sure the last ack packet was acked");
+
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
 		} catch (IOException e) {
@@ -202,10 +216,21 @@ public class TFTPNetworking {
 	 *            - the datagram packet that resulted in the error
 	 * @return - whether the thread should carry on or die
 	 */
+	
 	public boolean errorHandle(TFTPErrorMessage error, DatagramPacket packet) {
+		return errorHandle(error, packet, null);
+	}
+	
+	public boolean errorHandle(TFTPErrorMessage error, DatagramPacket packet, RequestType recvType) {
 		ErrorPacket errorPacket = new ErrorPacket(packet);
 		switch (error.getType()) {
 			case ILLEGAL_OPERATION:
+				if(error.getString().equals(Strings.BLOCK_NUMBER_MISMATCH)) {
+					if (recvType == RequestType.DATA)
+						sendACK(packet);
+					return false;
+				}
+				
 				DatagramPacket illegalOpsError = errorPacket.buildPacket(ErrorType.ILLEGAL_OPERATION,
 						error.getString());
 				

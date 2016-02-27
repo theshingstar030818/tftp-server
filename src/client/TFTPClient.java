@@ -75,9 +75,12 @@ public class TFTPClient {
 					logger.print(logger, Strings.PROMPT_ENTER_FILE_NAME);
 					String readFileName = Keyboard.getString();
 					try {
-						//TFTPErrorMessage result = readRequestHandler(readFileName);
-						net.generateInitRRQ(readFileName, this.mPortToSendTo);
-						TFTPErrorMessage result = net.receiveFile();
+						TFTPErrorMessage result;
+						do {
+							net.generateInitRRQ(readFileName, this.mPortToSendTo);
+							result = net.receiveFile();
+						} while(result == null);
+						
 						if (result.getType() != ErrorType.NO_ERROR) {
 							logger.print(Logger.ERROR, Strings.TRANSFER_FAILED);
 							logger.print(Logger.ERROR, result.getString());
@@ -106,8 +109,11 @@ public class TFTPClient {
 						break;
 					}
 					DatagramPacket packet = net.generateInitWRQ(writeFileNameOrFilePath, this.mPortToSendTo);
-					if (packet != null)
-						result = net.sendFile();
+					if (packet != null) {
+						do {
+							result = net.sendFile();
+						} while (result == null);
+					}
 					else System.exit(1);
 					if (!(result.getType() == ErrorType.NO_ERROR)) {
 						logger.print(Logger.ERROR, Strings.TRANSFER_FAILED);
