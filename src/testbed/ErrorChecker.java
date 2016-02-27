@@ -20,8 +20,8 @@ import types.RequestType;
  */
 public class ErrorChecker {
 
-	private InetAddress mPacketOriginatingAddress; // Temporary name.
-	private int mPacketOriginatingPort; // Temporary name.
+	private InetAddress mPacketOriginatingAddress;
+	private int mPacketOriginatingPort;
 	private int mExpectedBlockNumber;
 
 	public ErrorChecker(Packet packet) {
@@ -29,6 +29,10 @@ public class ErrorChecker {
 		mPacketOriginatingPort = packet.getPacket().getPort();
 		mExpectedBlockNumber = 0;
 
+	}
+	
+	public int getExpectedBlockNumber() {
+		return mExpectedBlockNumber;
 	}
 
 	public void incrementExpectedBlockNumber() {
@@ -124,7 +128,6 @@ public class ErrorChecker {
 		case DATA:
 			if (mExpectedBlockNumber != ((DataPacket) packet).getBlockNumber())
 				return Strings.BLOCK_NUMBER_MISMATCH;
-			incrementExpectedBlockNumber();
 			break;
 
 		case ACK:
@@ -132,7 +135,6 @@ public class ErrorChecker {
 				return Strings.INVALID_PACKET_SIZE;
 			if (mExpectedBlockNumber != ((AckPacket) packet).getBlockNumber())
 				return Strings.BLOCK_NUMBER_MISMATCH;
-			incrementExpectedBlockNumber();
 			break;
 
 		case ERROR:

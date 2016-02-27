@@ -3,9 +3,9 @@ package networking;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.DatagramPacket;
-import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.SocketException;
+import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
 
 import helpers.BufferPrinter;
@@ -22,14 +22,16 @@ import types.RequestType;
 
 public class ClientNetworking extends TFTPNetworking {
 
-	public ClientNetworking() {
-		// TODO Auto-generated constructor stub
-	}
+	public ClientNetworking() {}
 
 	public DatagramPacket generateInitWRQ(String fn, int portToSendTo) {
+		
 		try {
+			socket.setSoTimeout(Configurations.TRANMISSION_TIMEOUT);
 			storage = new FileStorageService(fn, InstanceType.CLIENT);
 		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		} catch (SocketException e) {
 			e.printStackTrace();
 		}
 		logger.print(logger, Strings.CLIENT_INITIATE_WRITE_REQUEST);
@@ -45,9 +47,15 @@ public class ClientNetworking extends TFTPNetworking {
 			lastPacket = wpb.buildPacket();
 			logger.print(logger, Strings.SENDING);
 			BufferPrinter.printPacket(wpb, logger, RequestType.WRQ);
-			socket.send(lastPacket);
-			
-			socket.receive(lastPacket);
+			while (true) {
+				socket.send(lastPacket);
+				try {
+					socket.receive(lastPacket);
+				} catch (SocketTimeoutException e) {
+					continue;
+				}
+				break;
+			}
 			
 			// Trusts that the first response is from expected source.
 			errorChecker = new ErrorChecker(new AckPacket(lastPacket)); 
@@ -60,7 +68,6 @@ public class ClientNetworking extends TFTPNetworking {
 		} catch (UnknownHostException e) {
 			e.printStackTrace();
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		return lastPacket;
@@ -100,7 +107,6 @@ public class ClientNetworking extends TFTPNetworking {
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}

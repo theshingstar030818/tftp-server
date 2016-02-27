@@ -40,7 +40,7 @@ public class ServerNetworking extends TFTPNetworking {
 		}
 		TFTPErrorMessage error = errorChecker.check(wrq, RequestType.WRQ);
 		errorChecker.incrementExpectedBlockNumber(); // Could be so wrong.
-		// errorChecker.incrementExpectedBlockNumber(); // Could be so wrong.
+
 		if (error.getType() != ErrorType.NO_ERROR)
 			if (errorHandle(error, wrq.getPacket()))
 				return error;

@@ -50,6 +50,7 @@ public class TFTPService implements Runnable {
 		ReadWritePacket vClientRequestPacket = new ReadWritePacket(this.mLastPacket);
 		RequestType reqType = vClientRequestPacket.getRequestType();
 		ServerNetworking net;
+		TFTPErrorMessage result;
 		
 		switch(reqType) {
 			case WRQ:
@@ -58,9 +59,12 @@ public class TFTPService implements Runnable {
 				logger.print(Logger.SILENT, Strings.RECEIVED);
 				BufferPrinter.printPacket(vWritePacket, Logger.VERBOSE, RequestType.WRQ);
 				
+				
 				net = new ServerNetworking(vWritePacket, mSendReceiveSocket);
+				do {
 				net.handleInitWRQ(vWritePacket);
-				net.receiveFile(mSendReceiveSocket);
+				result = net.receiveFile(mSendReceiveSocket);
+				} while (result == null);
 				
 				break;
 				
@@ -72,8 +76,10 @@ public class TFTPService implements Runnable {
 				BufferPrinter.printPacket(vReadPacket, Logger.VERBOSE, RequestType.RRQ);
 						
 				net = new ServerNetworking(vReadPacket);
-				net.handleInitRRQ(vReadPacket);
-				net.sendFile(vReadPacket);	
+				do {
+					net.handleInitRRQ(vReadPacket);
+					result = net.sendFile(vReadPacket);	
+				} while(result == null);
 				
 				break;
 				
@@ -81,6 +87,7 @@ public class TFTPService implements Runnable {
 				logger.print(Logger.ERROR, Strings.SS_WRONG_PACKET);
 				TFTPErrorMessage error = new TFTPErrorMessage(ErrorType.ILLEGAL_OPERATION, Strings.SS_WRONG_PACKET);
 				new ServerNetworking(vClientRequestPacket).errorHandle(error, vClientRequestPacket.getPacket());
+				// While it might not be a WRQ we're expecting, the effect is the same.
 				break;
 		}
 
