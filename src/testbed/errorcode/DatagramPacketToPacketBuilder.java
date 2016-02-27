@@ -9,10 +9,10 @@ import types.RequestType;
  * 
  *         Simulates corruption of TFTP packets
  */
-public abstract class ErrorCodeSimulator {
+public abstract class DatagramPacketToPacketBuilder {
 	protected Packet receivePacketBuilder;
 
-	public ErrorCodeSimulator(DatagramPacket inPacket) {
+	public DatagramPacketToPacketBuilder(DatagramPacket inPacket) {
 		this.constructPacketBuilder(inPacket);
 	}
 
