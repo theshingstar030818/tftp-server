@@ -125,7 +125,7 @@ public enum ErrorType {
 	EXIT {
 		@Override
 		public short getErrorCodeShort() {
-			return 404;
+			return 9;
 		}
 		@Override
 		public String getErrorMessageString() {
@@ -170,6 +170,8 @@ public enum ErrorType {
 				return ErrorType.NO_SUCH_USER;
 			case 404:
 				return ErrorType.TRANSMISSION_ERROR;
+			case 9:
+				return ErrorType.EXIT;
 			default:
 				return ErrorType.NO_ERROR;
 		}
