@@ -74,7 +74,7 @@ public class TFTPNetworking {
 			socket.setSoTimeout(Configurations.TRANMISSION_TIMEOUT);
 			byte[] vEmptyData = new byte[Configurations.MAX_BUFFER];
 			boolean vHasMore = true;
-			System.err.println("Expected block number = " + errorChecker.mExpectedBlockNumber);
+			//System.err.println("Expected block number = " + errorChecker.mExpectedBlockNumber);
 			while ( vHasMore ){
 				while (true) {
 					//System.err.println("Excepted block number = " + errorChecker.mExpectedBlockNumber);

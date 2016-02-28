@@ -54,10 +54,9 @@ public class ErrorSimulatorService implements Runnable {
 	private InstanceType mMessUpThisTransfer;
 	private byte[] mBuffer = null;
 	private int mPacketsProcessed;
-	private RequestType mRequestType;
 	private int mWRQPacketSize;
 	private int mRRQPacketSize;
-	
+
 	/* Section of uninitialized Error Producers */
 	private ErrorCodeFour mEPFour = null;
 	private ErrorCodeFive mEPFive = null;
@@ -108,7 +107,6 @@ public class ErrorSimulatorService implements Runnable {
 				"Initalized error sim service on port " + this.mSendReceiveSocket.getLocalPort() + "\n");
 		this.mPacketSendQueue = new LinkedList<>();
 		this.mPacketsProcessed = 0;
-		this.mRequestType = RequestType.matchRequestByNumber(this.mLastPacket.getData()[1]);
 		this.mWRQPacketSize = -1;
 	}
 
@@ -121,119 +119,72 @@ public class ErrorSimulatorService implements Runnable {
 	 * @throws IOException
 	 */
 	public void run() {
-		DatagramPacket serverPacket = null;
-		boolean transferNotFinished = true;
-		boolean ackServerOnLastBlockByClient = false;
+		// Initialize useful members
+		boolean isTransfering = true;
 		boolean errorSentToClient = false;
 		boolean errorSendToServer = false;
+		DatagramPacket receivedPacket = null;
+		int packetLength = 0;
 
-		// Add the first packet to the queue
-		this.mPacketSendQueue.addFirst(this.mLastPacket);
-		// Always forward the first packet to port 69
-		this.mLastPacket.setPort(this.mForwardPort);
+		// Facilitate the first WRQ/RRQ request and set server thread port
+		this.mPacketSendQueue.addLast(this.mLastPacket);
+		this.simulateError(this.mLastPacket); // Adds a packet into the work Q
+		this.mLastPacket.setPort(this.mForwardPort); // Always 69 at this point,
+														// changes later
 		this.mLastPacket.setAddress(this.mServerHostAddress);
-		boolean hasTransmissionError = false; // This flag tells the program run
-												// loop to skip a client or
-												// server transaction
-		while (transferNotFinished) {
-			try {
-
-				// Send off this that is directed to the server
-				if (this.mMessUpThisTransfer == InstanceType.SERVER) {
-					this.createSpecifiedError(this.mPacketSendQueue.peekFirst());
-					++this.mPacketsProcessed;
-				}
-				if ((this.mPacketSendQueue.peekFirst() != null
-						&& this.mPacketSendQueue.peekFirst().getPort() == this.mForwardPort) || hasTransmissionError) {
-					if (!hasTransmissionError) {
-						// This "if" block is for sending to the server
-						logger.print(Logger.VERBOSE, "Preparing to send packet to server at port " + this.mForwardPort);
-						// Send the next packet in the work queue
-						forwardPacketToSocket(this.mPacketSendQueue.pop());
-
-						if (!transferNotFinished) {
-							// Break here is for the last ACK packet from client
-							// WRQ
-							break;
-						}
-					}
-					logger.print(Logger.VERBOSE, Strings.ES_RETRIEVE_PACKET_SERVER);
-					serverPacket = retrievePacketFromSocket();
-					this.mPacketSendQueue.addLast(serverPacket);
-					// This following block, checks if we are on the last packet
-					if (this.mInitialRequestType == RequestType.RRQ) {
-						if (serverPacket.getLength() < Configurations.MAX_MESSAGE_SIZE) {
-							// Coming into this block means that on a RRQ, the
-							// last data block
-							transferNotFinished = false;
-							ackServerOnLastBlockByClient = true;
-						}
-					} else if (this.mInitialRequestType == RequestType.WRQ && mWRQPacketSize > 0) {
-						// Must test if this was the first transfer
-						// mWRQPacketSize = 0
-						if (mWRQPacketSize < Configurations.MAX_MESSAGE_SIZE) {
-							// We have finished the transfer
-							logger.print(Logger.VERBOSE, Strings.ES_GOT_LAST_PACKET_WRQ);
-							transferNotFinished = false;
-						}
-					}
-
-					this.mLastPacket = serverPacket;
-					// Set the mForwardPort to the Server's Thread Port
-					this.mForwardPort = serverPacket.getPort();
-					// Redirect the packet back to the client address
-					directPacketToDestination();
-					hasTransmissionError = false;
-
-				} else {
-					hasTransmissionError = true;
-				}
-				
-
-				if (this.mMessUpThisTransfer == InstanceType.CLIENT) {
-					this.createSpecifiedError(this.mPacketSendQueue.peekFirst());
-					++this.mPacketsProcessed;
-				}
-				if ((this.mPacketSendQueue.peekFirst() != null
-						&& this.mPacketSendQueue.peekFirst().getPort() == this.mClientPort) || hasTransmissionError) {
-
-					if (!hasTransmissionError) {
-						logger.print(Logger.VERBOSE, Strings.ES_SEND_PACKET_CLIENT);
-						logger.print(Logger.VERBOSE, "Preparing to send packet to CLIENT at port " + this.mClientPort);
-						// Send the next packet in the work queue
-						forwardPacketToSocket(this.mPacketSendQueue.pop());
-
-						if (this.mLastPacket.getData()[1] == 5) {
-							errorSentToClient = true;
-							break;
-						}
-					}
-
-					logger.print(Logger.VERBOSE, Strings.ES_RETRIEVE_PACKET_CLIENT);
-					// Receiving from client
-					this.mLastPacket = retrievePacketFromSocket();
-					// At this point, the packet could pretty much be from ANYONE, client or server
-					this.mPacketSendQueue.addLast(this.mLastPacket);
-					// Set the write packet size in order to determine the end
-					//mWRQPacketSize = this.mLastPacket.getLength();
-					directPacketToDestination();
-					
-					if (ackServerOnLastBlockByClient) {
-						// This extra process is needed on a read request to
-						// send the last ACK to the server
-						logger.print(Logger.VERBOSE, "Sending last ACK packet to server (RRQ) " + this.mClientPort);
-						this.mLastPacket.setPort(this.mForwardPort);
-						this.mLastPacket.setAddress(this.mServerHostAddress);
-						forwardPacketToSocket(this.mLastPacket);
-					}
-					hasTransmissionError = false;
-				} else {
-					hasTransmissionError = true;
-				}
-				
-			} catch (IOException e) {
-				e.printStackTrace();
+		try {
+			this.forwardPacketToSocket(this.mPacketSendQueue.pop());
+			
+			receivedPacket = this.retrievePacketFromSocket();
+			if (packetIsError(receivedPacket)) {
+				isTransfering = false;
+				receivedPacket.setAddress(this.mClientHostAddress);
+				receivedPacket.setPort(this.mClientPort);
+				this.mLastPacket = receivedPacket;
+				this.mPacketSendQueue.addLast(this.mLastPacket);
+			} else {
+				this.mForwardPort = receivedPacket.getPort();
+				this.mServerHostAddress = receivedPacket.getAddress();
+				this.mLastPacket = receivedPacket;
+				this.mPacketSendQueue.addLast(this.mLastPacket);
 			}
+		} catch (IOException e) {
+			System.err.println("Sending the first RRQ and WRQ was an issue!");
+		}
+
+		// Main while loop to facilitate transfer and create error
+		// First packet will be from client
+		while (isTransfering) {
+			try {
+				// The following function adds the packet into the work Q
+				isTransfering = continueHandlingPacket(receivedPacket);
+				directPacketToDestination();
+				forwardPacketToSocket(this.mPacketSendQueue.pop());
+				receivedPacket = retrievePacketFromSocket();
+				this.mPacketSendQueue.addLast(receivedPacket);
+			} catch (IOException e) {
+				System.err.println("Something bad happened while transfering files");
+			}
+		}
+		
+		// End ACK based on request type.
+		try {
+			if (this.mInitialRequestType == RequestType.WRQ) {
+				// Send the last ACK to client
+				this.mLastPacket = this.mPacketSendQueue.pop();
+				this.mLastPacket.setPort(this.mClientPort);
+				this.mLastPacket.setAddress(this.mClientHostAddress);
+				this.forwardPacketToSocket(this.mLastPacket);
+			} else if (this.mInitialRequestType == RequestType.RRQ) {
+				// Send the last ACK to server
+				this.mLastPacket = this.mPacketSendQueue.pop();
+				this.mLastPacket.setPort(this.mForwardPort);
+				this.mLastPacket.setAddress(this.mServerHostAddress);
+				logger.print(Logger.VERBOSE, "Preparing to send packet to server at port " + this.mForwardPort);
+				this.forwardPacketToSocket(this.mLastPacket);
+			}
+		} catch (IOException e) {
+			System.err.println("Something bad happened while transfering files");
 		}
 		if (errorSentToClient || errorSendToServer) {
 			logger.print(Logger.ERROR, Strings.ES_TRANSFER_ERROR);
@@ -241,33 +192,86 @@ public class ErrorSimulatorService implements Runnable {
 			logger.print(Logger.VERBOSE, Strings.ES_TRANSFER_SUCCESS);
 		}
 
+		// Closing Logic
 		this.mSendReceiveSocket.close();
 		this.mCallback.callback(Thread.currentThread().getId());
 	}
 
+	private boolean continueHandlingPacket(DatagramPacket inPacket) {
+		this.mLastPacket = inPacket;
+		if (inPacket.getPort() == this.mClientPort) {
+			// From Client
+			if (packetIsError(inPacket)) {
+				inPacket.setAddress(this.mServerHostAddress);
+				inPacket.setPort(this.mForwardPort);
+				this.mPacketSendQueue.addFirst(inPacket); // May cause issue to be determined later
+				logger.print(Logger.VERBOSE, String.format("Client sent a error packet, now forwarding it to the server!"));
+				return false; 
+			} 
+			if (this.mMessUpThisTransfer == InstanceType.SERVER) {
+				this.simulateError(inPacket); // Adds packet into Q
+				++this.mPacketsProcessed;
+			}
+			if (this.mInitialRequestType == RequestType.RRQ) {
+				logger.print(Logger.VERBOSE, String.format("An ack packet was received by the client, forwarding to server!"));
+				return true; // This will be an ACK
+			} else {
+				logger.print(Logger.VERBOSE, String.format("Check WRQ to server if last block: %s.", 
+						inPacket.getLength() == Configurations.MAX_MESSAGE_SIZE));
+				return inPacket.getLength() == Configurations.MAX_MESSAGE_SIZE;
+			}
+		} else {
+			// From Server
+			if (packetIsError(inPacket)) {
+				inPacket.setAddress(this.mClientHostAddress);
+				inPacket.setPort(this.mClientPort);
+				this.mPacketSendQueue.addFirst(inPacket); // May cause issue to be determined later
+				logger.print(Logger.VERBOSE, String.format("Server sent a error packet, now forwarding it to the client!"));
+				return false; 
+			} 
+			if (this.mMessUpThisTransfer == InstanceType.CLIENT) {
+				this.simulateError(inPacket); // Adds packet into Q
+				++this.mPacketsProcessed;
+			}
+			if (this.mInitialRequestType == RequestType.RRQ) {
+				logger.print(Logger.VERBOSE, String.format("Check RRQ to cloient if last block: %s.", 
+						inPacket.getLength() == Configurations.MAX_MESSAGE_SIZE));
+				return inPacket.getLength() == Configurations.MAX_MESSAGE_SIZE;
+			} else {
+				logger.print(Logger.VERBOSE, String.format("An ack packet was reived by the server, forwarding it to client!"));
+				return true; // This will be an ACK
+			}
+		}
+	}
+
 	/**
-	 * This function is used to apply the rules of the simulator to make sure arbitrary packets 
-	 * get forwarded to the correct destination
+	 * This function is used to apply the rules of the simulator to make sure
+	 * arbitrary packets get forwarded to the correct destination
 	 */
 	private void directPacketToDestination() {
-		switch(this.mRequestType) {
+		switch (this.mInitialRequestType) {
 		case RRQ:
-			if(this.mLastPacket.getData()[1] == 4) {
+			if (this.mLastPacket.getData()[1] == 4) {
 				// This is an ACK, an ACK always go to the server
+				//logger.print(Logger.VERBOSE, "Preparing to send packet to server at port " + this.mForwardPort);
 				this.mLastPacket.setPort(this.mForwardPort);
 				this.mLastPacket.setAddress(this.mServerHostAddress);
-			} else if(this.mLastPacket.getData()[1] == 3) {
-				// This is a DATA packet, a DATA packet always goes to the client
+			} else if (this.mLastPacket.getData()[1] == 3) {
+				// This is a DATA packet, a DATA packet always goes to the
+				// client
+				//logger.print(Logger.VERBOSE, "Preparing to send packet to CLIENT at port " + this.mClientPort);
 				this.mLastPacket.setPort(this.mClientPort);
 				this.mLastPacket.setAddress(this.mClientHostAddress);
 				this.mRRQPacketSize = this.mLastPacket.getLength();
-			}else {
+			} else {
 				// Possible Error Packet
-				if(this.mLastPacket.getPort() == this.mServerListenPort) {
+				if (this.mLastPacket.getPort() == this.mServerListenPort) {
 					// It is from the server, so we send it to the client
+					//logger.print(Logger.VERBOSE, "Preparing to send packet to CLIENT at port " + this.mClientPort);
 					this.mLastPacket.setPort(this.mClientPort);
 					this.mLastPacket.setAddress(this.mClientHostAddress);
 				} else {
+					//logger.print(Logger.VERBOSE, "Preparing to send packet to server at port " + this.mForwardPort);
 					// It is from the client, so we send it to the server
 					this.mLastPacket.setPort(this.mForwardPort);
 					this.mLastPacket.setAddress(this.mServerHostAddress);
@@ -276,46 +280,50 @@ public class ErrorSimulatorService implements Runnable {
 			}
 			break;
 		case WRQ:
-			if(this.mLastPacket.getData()[1] == 4) {
+			if (this.mLastPacket.getData()[1] == 4) {
 				// This is an ACK, an ACK always go to the client
+				//logger.print(Logger.VERBOSE, "Preparing to send packet to CLIENT at port " + this.mClientPort);
 				this.mLastPacket.setPort(this.mClientPort);
 				this.mLastPacket.setAddress(this.mClientHostAddress);
-			} else if(this.mLastPacket.getData()[1] == 3) {
+			} else if (this.mLastPacket.getData()[1] == 3) {
 				// This is a DATA, a DATA always go to the server
+				//logger.print(Logger.VERBOSE, "Preparing to send packet to server at port " + this.mForwardPort);
 				this.mLastPacket.setPort(this.mForwardPort);
 				this.mLastPacket.setAddress(this.mServerHostAddress);
 				this.mWRQPacketSize = this.mLastPacket.getLength();
 			} else {
 				// Possible Error Packet
-				if(this.mLastPacket.getPort() == this.mServerListenPort) {
+				if (this.mLastPacket.getPort() == this.mServerListenPort) {
 					// It is from the server, so we send it to the client
+					//logger.print(Logger.VERBOSE, "Preparing to send packet to CLIENT at port " + this.mClientPort);
 					this.mLastPacket.setPort(this.mClientPort);
 					this.mLastPacket.setAddress(this.mClientHostAddress);
 				} else {
 					// It is from the client, so we send it to the server
+					//logger.print(Logger.VERBOSE, "Preparing to send packet to server at port " + this.mForwardPort);
 					this.mLastPacket.setPort(this.mForwardPort);
 					this.mLastPacket.setAddress(this.mServerHostAddress);
 				}
 				logger.print(logger, "Unable to determine which entity to forward the packet on WRQ.");
 			}
-			
+
 			break;
 		default:
-			logger.print(logger, "Unable to determine which entity to forward the packet.");
+			logger.print(logger, "The packet forwarded was not a RRQ or WRQ.");
 		}
 	}
-	
+
 	/**
 	 * Determines where or not corrupt a datagram packet
 	 * 
 	 * @param inPacket
 	 *            - a packet to corrupt or not
 	 */
-	private void createSpecifiedError(DatagramPacket inPacket) {
+	private void simulateError(DatagramPacket inPacket) {
 		if (inPacket == null) {
 			return;
 		}
-		
+
 		ErrorType vErrType = this.mErrorSettings.getMainErrorFamily();
 		int subOpt = this.mErrorSettings.getSubErrorFromFamily();
 		switch (vErrType) {
@@ -365,27 +373,37 @@ public class ErrorSimulatorService implements Runnable {
 								this.mErrorSettings.getTransmissionErrorType().getOptCode() != inPacket.getData()[1]));
 				return;
 			}
-			// COMMENT: We will need to move this custom "skip" login inside each case statement. They behave differently
-//			if ((this.mPacketsProcessed % (this.mErrorSettings.getTransmissionErrorFrequency() + 1)) != 0
-//					|| this.mErrorSettings.getTransmissionErrorOccurences() < this.mPacketsProcessed) {
-//				logger.print(Logger.ERROR,
-//						String.format(
-//								"Dont panic! We stoped making transmission errors. Heres why frequency hop: %d and %d/%d occurence/processed",
-//								this.mPacketsProcessed % (this.mErrorSettings.getTransmissionErrorFrequency() + 1),
-//								this.mErrorSettings.getTransmissionErrorOccurences(), this.mPacketsProcessed / 2));
-//				return;
-//			}
+			// COMMENT: We will need to move this custom "skip" login inside
+			// each case statement. They behave differently
+			// if ((this.mPacketsProcessed %
+			// (this.mErrorSettings.getTransmissionErrorFrequency() + 1)) != 0
+			// || this.mErrorSettings.getTransmissionErrorOccurences() <
+			// this.mPacketsProcessed) {
+			// logger.print(Logger.ERROR,
+			// String.format(
+			// "Dont panic! We stoped making transmission errors. Heres why
+			// frequency hop: %d and %d/%d occurence/processed",
+			// this.mPacketsProcessed %
+			// (this.mErrorSettings.getTransmissionErrorFrequency() + 1),
+			// this.mErrorSettings.getTransmissionErrorOccurences(),
+			// this.mPacketsProcessed / 2));
+			// return;
+			// }
 			switch (this.mErrorSettings.getSubErrorFromFamily()) {
 			case 1:
 				// Lose a packet
 				break;
 			case 2:
-				// We check this condition since this type packet. mPacketsProcessed is always ahead of ErrorOccurrences by 1
-				// only gets incremented one way -> messing with client or server bound packets (set in ES)
+				// We check this condition since this type packet.
+				// mPacketsProcessed is always ahead of ErrorOccurrences by 1
+				// only gets incremented one way -> messing with client or
+				// server bound packets (set in ES)
 				this.mLastPacket.setPort(this.mForwardPort);
 				this.mLastPacket.setAddress(this.mServerHostAddress);
-				if((this.mPacketsProcessed) != this.mErrorSettings.getTransmissionErrorOccurences()) return;
-				logger.print(Logger.ERROR, String.format("Attempting to delay a packet with op code %d.", inPacket.getData()[1]));
+				if ((this.mPacketsProcessed) != this.mErrorSettings.getTransmissionErrorOccurences())
+					return;
+				logger.print(Logger.ERROR,
+						String.format("Attempting to delay a packet with op code %d.", inPacket.getData()[1]));
 				// Delay a packet
 				TransmissionError transmissionError = new TransmissionError(this.mPacketSendQueue.pop(),
 						this.mErrorSettings.getTransmissionErrorFrequency(), this);
@@ -406,6 +424,10 @@ public class ErrorSimulatorService implements Runnable {
 		}
 	}
 
+	private boolean packetIsError(DatagramPacket inPacket) {
+		return inPacket.getData()[1] == 5;
+	}
+
 	/**
 	 * This function takes care of sending the packet to any address that is
 	 * identifies by the DatagramPacket
@@ -415,6 +437,11 @@ public class ErrorSimulatorService implements Runnable {
 	 * @throws IOException
 	 */
 	private void forwardPacketToSocket(DatagramPacket inUDPPacket) throws IOException {
+		if(inUDPPacket.getPort() == this.mClientPort) {
+			logger.print(Logger.VERBOSE, Strings.ES_RETRIEVE_PACKET_CLIENT);
+		} else {
+			logger.print(Logger.VERBOSE, Strings.ES_RETRIEVE_PACKET_SERVER);
+		}
 		sendPacket(new DatagramPacket(inUDPPacket.getData(), inUDPPacket.getLength(), inUDPPacket.getAddress(),
 				inUDPPacket.getPort()));
 	}
@@ -485,7 +512,11 @@ public class ErrorSimulatorService implements Runnable {
 		byte[] packetBuffer = new byte[realPacketSize];
 		System.arraycopy(receivePacket.getData(), 0, packetBuffer, 0, realPacketSize);
 		receivePacket.setData(packetBuffer);
-
+		if(receivePacket.getPort() == this.mClientPort) {
+			logger.print(Logger.VERBOSE, Strings.ES_RETRIEVE_PACKET_CLIENT);
+		} else {
+			logger.print(Logger.VERBOSE, Strings.ES_RETRIEVE_PACKET_SERVER);
+		}
 		BufferPrinter.printBuffer(receivePacket.getData(), CLASS_TAG, logger);
 		return receivePacket;
 	}
@@ -495,3 +526,135 @@ public class ErrorSimulatorService implements Runnable {
 		this.mPacketSendQueue.addFirst(inPacket);
 	}
 }
+// public void run() {
+// DatagramPacket serverPacket = null;
+// boolean transferNotFinished = true;
+// boolean ackServerOnLastBlockByClient = false;
+// boolean errorSentToClient = false;
+// boolean errorSendToServer = false;
+//
+// // Add the first packet to the queue
+// this.mPacketSendQueue.addFirst(this.mLastPacket);
+// // Always forward the first packet to port 69
+// this.mLastPacket.setPort(this.mForwardPort);
+// this.mLastPacket.setAddress(this.mServerHostAddress);
+// boolean hasTransmissionError = false; // This flag tells the program run
+// // loop to skip a client or
+// // server transaction
+// while (transferNotFinished) {
+// try {
+//
+// // Send off this that is directed to the server
+// if (this.mMessUpThisTransfer == InstanceType.SERVER) {
+// this.createSpecifiedError(this.mPacketSendQueue.peekFirst());
+// ++this.mPacketsProcessed;
+// }
+// if ((this.mPacketSendQueue.peekFirst() != null
+// && this.mPacketSendQueue.peekFirst().getPort() == this.mForwardPort) ||
+// hasTransmissionError) {
+// if (!hasTransmissionError) {
+// // This "if" block is for sending to the server
+// logger.print(Logger.VERBOSE, "Preparing to send packet to server at port
+// " + this.mForwardPort);
+// // Send the next packet in the work queue
+// forwardPacketToSocket(this.mPacketSendQueue.pop());
+//
+// if (!transferNotFinished) {
+// // Break here is for the last ACK packet from client
+// // WRQ
+// break;
+// }
+// }
+// logger.print(Logger.VERBOSE, Strings.ES_RETRIEVE_PACKET_SERVER);
+// serverPacket = retrievePacketFromSocket();
+// this.mPacketSendQueue.addLast(serverPacket);
+// // This following block, checks if we are on the last packet
+// if (this.mInitialRequestType == RequestType.RRQ) {
+// if (serverPacket.getLength() < Configurations.MAX_MESSAGE_SIZE) {
+// // Coming into this block means that on a RRQ, the
+// // last data block
+// transferNotFinished = false;
+// ackServerOnLastBlockByClient = true;
+// }
+// } else if (this.mInitialRequestType == RequestType.WRQ && mWRQPacketSize
+// > 0) {
+// // Must test if this was the first transfer
+// // mWRQPacketSize = 0
+// if (mWRQPacketSize < Configurations.MAX_MESSAGE_SIZE) {
+// // We have finished the transfer
+// logger.print(Logger.VERBOSE, Strings.ES_GOT_LAST_PACKET_WRQ);
+// transferNotFinished = false;
+// }
+// }
+//
+// this.mLastPacket = serverPacket;
+// // Set the mForwardPort to the Server's Thread Port
+// this.mForwardPort = serverPacket.getPort();
+// // Redirect the packet back to the client address
+// directPacketToDestination();
+// hasTransmissionError = false;
+//
+// } else {
+// hasTransmissionError = true;
+// }
+//
+//
+// if (this.mMessUpThisTransfer == InstanceType.CLIENT) {
+// this.createSpecifiedError(this.mPacketSendQueue.peekFirst());
+// ++this.mPacketsProcessed;
+// }
+// if ((this.mPacketSendQueue.peekFirst() != null
+// && this.mPacketSendQueue.peekFirst().getPort() == this.mClientPort) ||
+// hasTransmissionError) {
+//
+// if (!hasTransmissionError) {
+// logger.print(Logger.VERBOSE, Strings.ES_SEND_PACKET_CLIENT);
+// logger.print(Logger.VERBOSE, "Preparing to send packet to CLIENT at port
+// " + this.mClientPort);
+// // Send the next packet in the work queue
+// forwardPacketToSocket(this.mPacketSendQueue.pop());
+//
+// if (this.mLastPacket.getData()[1] == 5) {
+// errorSentToClient = true;
+// break;
+// }
+// }
+//
+// logger.print(Logger.VERBOSE, Strings.ES_RETRIEVE_PACKET_CLIENT);
+// // Receiving from client
+// this.mLastPacket = retrievePacketFromSocket();
+// // At this point, the packet could pretty much be from ANYONE, client or
+// server
+// this.mPacketSendQueue.addLast(this.mLastPacket);
+// // Set the write packet size in order to determine the end
+// //mWRQPacketSize = this.mLastPacket.getLength();
+// directPacketToDestination();
+//
+// if (ackServerOnLastBlockByClient) {
+// // This extra process is needed on a read request to
+// // send the last ACK to the server
+// logger.print(Logger.VERBOSE, "Sending last ACK packet to server (RRQ) " +
+// this.mClientPort);
+// this.mLastPacket.setPort(this.mForwardPort);
+// this.mLastPacket.setAddress(this.mServerHostAddress);
+// forwardPacketToSocket(this.mLastPacket);
+// }
+// hasTransmissionError = false;
+// } else {
+// hasTransmissionError = true;
+// }
+//
+// } catch (IOException e) {
+// e.printStackTrace();
+// }
+// }
+// if (errorSentToClient || errorSendToServer) {
+// logger.print(Logger.ERROR, Strings.ES_TRANSFER_ERROR);
+// } else {
+// logger.print(Logger.VERBOSE, Strings.ES_TRANSFER_SUCCESS);
+// }
+//
+// this.mSendReceiveSocket.close();
+// this.mCallback.callback(Thread.currentThread().getId());
+// }
+
