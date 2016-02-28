@@ -59,10 +59,12 @@ public class TFTPService implements Runnable {
 			BufferPrinter.printPacket(vWritePacket, Logger.VERBOSE, RequestType.WRQ);
 
 			net = new ServerNetworking(vWritePacket, mSendReceiveSocket);
-			//do {
-			net.handleInitWRQ(vWritePacket);
+			result = net.handleInitWRQ(vWritePacket);
+			if (!result.getString().equals(Strings.NO_ERROR)) {
+				net.errorHandle(result, vWritePacket.getPacket());
+				break;
+			}
 			result = net.receiveFile(mSendReceiveSocket);
-			//} while (result == null);
 
 			break;
 
@@ -74,10 +76,13 @@ public class TFTPService implements Runnable {
 			BufferPrinter.printPacket(vReadPacket, Logger.VERBOSE, RequestType.RRQ);
 
 			net = new ServerNetworking(vReadPacket);
-			do {
-				net.handleInitRRQ(vReadPacket);
-				result = net.sendFile(vReadPacket);
-			} while (result == null);
+
+			result = net.handleInitRRQ(vReadPacket);
+			if (!result.getString().equals(Strings.NO_ERROR)) {
+				net.errorHandle(result, vReadPacket.getPacket());
+				break;
+			}
+			result = net.sendFile(vReadPacket);
 
 			break;
 

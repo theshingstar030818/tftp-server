@@ -57,86 +57,56 @@ public class TFTPUserInterface {
 			}
 
 			switch (optionSelected) {
-			case 1:
-				// file not found
-				logger.print(Logger.SILENT, Strings.OPERATION_NOT_SUPPORTED);
-				validInput = true;
-				this.mUserErrorOption = ErrorType.FILE_NOT_FOUND;
-				break;
-			case 2:
-				// Access violation
-				logger.print(Logger.SILENT, Strings.OPERATION_NOT_SUPPORTED);
-				validInput = true;
-				this.mUserErrorOption = ErrorType.ACCESS_VIOLATION;
-				break;
-			case 3:
-				// Disk full or allocation exceeded
-				logger.print(Logger.SILENT, Strings.OPERATION_NOT_SUPPORTED);
-				validInput = true;
-				this.mUserErrorOption = ErrorType.ALLOCATION_EXCEED;
-				break;
-			case 4:
-				// illegal TFTP operation option
-				this.mUserErrorOption = ErrorType.ILLEGAL_OPERATION;
-				// printIllegalTFTPOperation();
-				this.getSubOption(UIStrings.MENU_ERROR_SIMULATOR_ILLEGAL_TFTP_OPERATION, 8, instance);
-				if (this.mUserErrorSubOption == 8) {
-					// go back to the previous level
+				case 1:
+					// illegal TFTP operation option
+					this.mUserErrorOption = ErrorType.ILLEGAL_OPERATION;
+					// printIllegalTFTPOperation();
+					this.getSubOption(UIStrings.MENU_ERROR_SIMULATOR_ILLEGAL_TFTP_OPERATION, 8, instance);
+					if (this.mUserErrorSubOption == 8) {
+						// go back to the previous level
+						this.mUserErrorSubOption = 0;
+						validInput = false;
+					} else {
+						validInput = true;
+					}
+					break;
+				case 2:
+					// unknown transfer ID operation option
+					this.mUserErrorOption = ErrorType.UNKNOWN_TRANSFER;
 					this.mUserErrorSubOption = 0;
-					validInput = false;
-				} else {
 					validInput = true;
-				}
-				break;
-			case 5:
-				// unknown transfer ID operation option
-				this.mUserErrorOption = ErrorType.UNKNOWN_TRANSFER;
-				this.mUserErrorSubOption = 0;
-				validInput = true;
-				break;
-			case 6:
-				// File already exists
-				logger.print(Logger.SILENT, Strings.OPERATION_NOT_SUPPORTED);
-				validInput = true;
-				this.mUserErrorOption = ErrorType.FILE_EXISTS;
-				break;
-			case 7:
-				// No such user
-				logger.print(Logger.SILENT, Strings.OPERATION_NOT_SUPPORTED);
-				validInput = true;
-				this.mUserErrorOption = ErrorType.NO_SUCH_USER;
-				break;
-			case 8:
-				// No error
-				System.out.println("Alright boss.");
-				validInput = true;
-				this.mUserErrorOption = ErrorType.NO_ERROR;
-				break;
-			case 9:
-				// Transmission Error
-				this.mUserErrorOption = ErrorType.TRANSMISSION_ERROR;
-				this.getSubOption(UIStrings.MENU_ERROR_SIMULATOR_TRANSMISSION_MENU, 4, instance);
-				if (this.mUserErrorSubOption == 4) {
-					// go back to the previous level
-					this.mUserErrorSubOption = 0;
-					validInput = false;
-				} else {
-					this.getTransmissionMenu(this.mUserErrorSubOption);
+					break;
+				case 3:
+					// No error
+					System.out.println("Alright boss.");
 					validInput = true;
-					errorToProduce.setTransmissionErrorFrequency(this.mSpaceOfDelay);
-					errorToProduce.setTransmissionErrorOccurrences(this.mNumPktToFkWit);
-					errorToProduce.setTransmissionErrorType(this.mOpCodeToMessWith);
-				}
-				break;
-			case 10:
-				// No error
-				System.out.println(Strings.EXIT_BYE);
-				validInput = true;
-				this.mUserErrorOption = ErrorType.EXIT;
-				break;
-			default:
-				System.out.println(Strings.ERROR_INPUT);
-				break;
+					this.mUserErrorOption = ErrorType.NO_ERROR;
+					break;
+				case 4:
+					// Transmission Error
+					this.mUserErrorOption = ErrorType.TRANSMISSION_ERROR;
+					this.getSubOption(UIStrings.MENU_ERROR_SIMULATOR_TRANSMISSION_MENU, 4, instance);
+					if (this.mUserErrorSubOption == 4) {
+						// go back to the previous level
+						this.mUserErrorSubOption = 0;
+						validInput = false;
+					} else {
+						this.getTransmissionMenu(this.mUserErrorSubOption);
+						validInput = true;
+						errorToProduce.setTransmissionErrorFrequency(this.mSpaceOfDelay);
+						errorToProduce.setTransmissionErrorOccurrences(this.mNumPktToFkWit);
+						errorToProduce.setTransmissionErrorType(this.mOpCodeToMessWith);
+					}
+					break;
+				case 5:
+					// Exit
+					System.out.println(Strings.EXIT_BYE);
+					validInput = true;
+					this.mUserErrorOption = ErrorType.EXIT;
+					break;
+				default:
+					System.out.println(Strings.ERROR_INPUT);
+					break;
 			}
 		}
 		errorToProduce.setMainErrorFamily(this.mUserErrorOption.getErrorCodeShort());

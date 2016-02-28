@@ -13,17 +13,12 @@ public class UIStrings {
 							   + "----------------------\n"
 							   + "Please select which error to generate\n"
 							   + "Options : \n"
-							   + "\t 1.File not found \n"
-							   + "\t 2.Access violation \n"
-							   + "\t 3.Disk full or allocation exceeded \n"
-							   + "\t 4.Illegal TFTP operation \n"
-							   + "\t 5.Unknown transfer ID \n"
-							   + "\t 6.File already exists \n"
-							   + "\t 7.No such user (obsolete) \n"
-							   + "\t 8.No errors please \n"
-							   + "\t 9.Transmission Error \n"
-							   + "\t10.Exit \n"
-							   + "Select option :";
+							   + "\t 1.Illegal TFTP operation \n"
+							   + "\t 2.Unknown transfer ID \n"
+							   + "\t 3.No errors please \n"
+							   + "\t 4.Transmission Error \n"
+							   + "\t 5.Exit \n"
+							   + "Select option : ";
 	public static final String MENU_ERROR_SIMULATOR_ILLEGAL_TFTP_OPERATION 
 							   = "----------------------\n"
 			   				   + "| Illegal TFTP Operation Menu |\n"
