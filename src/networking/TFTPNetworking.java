@@ -250,7 +250,7 @@ public class TFTPNetworking {
 					socket.send(illegalOpsError);
 				} catch (IOException e) { e.printStackTrace(); }
 				logger.print(Logger.ERROR, Strings.ILLEGAL_OPERATION_HELP_MESSAGE);
-				
+				BufferPrinter.printPacket(new ErrorPacket(packet), Logger.ERROR, RequestType.ERROR);
 				return true;
 				
 			case UNKNOWN_TRANSFER:
@@ -261,7 +261,7 @@ public class TFTPNetworking {
 					socket.send(unknownError);
 				} catch (IOException e) { e.printStackTrace(); }
 				logger.print(Logger.ERROR, Strings.UNKNOWN_TRANSFER_HELP_MESSAGE);
-				
+				BufferPrinter.printPacket(new ErrorPacket(packet), Logger.ERROR, RequestType.ERROR);
 				return false;
 				
 			default:

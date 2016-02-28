@@ -336,6 +336,8 @@ public class ErrorSimulatorService implements Runnable {
 				this.mEPFour.constructPacketBuilder(inPacket);
 			}
 			this.mLastPacket = mEPFour.errorPacketCreator();
+			this.mPacketSendQueue.pop();
+			this.mPacketSendQueue.addLast(this.mLastPacket);
 			break;
 		case UNKNOWN_TRANSFER:
 			// Thread codeFiveThread = new Thread(new ErrorCodeFive(inPacket),
@@ -380,6 +382,8 @@ public class ErrorSimulatorService implements Runnable {
 			case 2:
 				// We check this condition since this type packet. mPacketsProcessed is always ahead of ErrorOccurrences by 1
 				// only gets incremented one way -> messing with client or server bound packets (set in ES)
+				this.mLastPacket.setPort(this.mForwardPort);
+				this.mLastPacket.setAddress(this.mServerHostAddress);
 				if((this.mPacketsProcessed) != this.mErrorSettings.getTransmissionErrorOccurences()) return;
 				logger.print(Logger.ERROR, String.format("Attempting to delay a packet with op code %d.", inPacket.getData()[1]));
 				// Delay a packet
