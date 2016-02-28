@@ -33,18 +33,19 @@ public class ServerNetworking extends TFTPNetworking {
 	public TFTPErrorMessage handleInitWRQ(ReadWritePacket wrq) {
 
 		fileName = wrq.getFilename();
+		TFTPErrorMessage error = errorChecker.check(wrq, RequestType.WRQ);
+		if (error.getType() != ErrorType.NO_ERROR)
+			if (errorHandle(error, wrq.getPacket()))
+				return error;
+
 		try {
 			storage = new FileStorageService(fileName, InstanceType.SERVER);
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
 		}
-		TFTPErrorMessage error = errorChecker.check(wrq, RequestType.WRQ);
+		
 		errorChecker.incrementExpectedBlockNumber(); // Could be so wrong.
-
-		if (error.getType() != ErrorType.NO_ERROR)
-			if (errorHandle(error, wrq.getPacket()))
-				return error;
-
+		
 		AckPacket vAckPacket = new AckPacket(wrq.getPacket());
 		DatagramPacket vSendPacket = vAckPacket.buildPacket();
 
@@ -63,15 +64,16 @@ public class ServerNetworking extends TFTPNetworking {
 	public TFTPErrorMessage handleInitRRQ(ReadWritePacket rrq) {
 
 		fileName = rrq.getFilename();
+		TFTPErrorMessage error = errorChecker.check(rrq, RequestType.RRQ);
+		if (error.getType() != ErrorType.NO_ERROR)
+			if (errorHandle(error, rrq.getPacket()))
+				return error;
 		try {
 			storage = new FileStorageService(fileName, InstanceType.SERVER);
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
 		}
-		TFTPErrorMessage error = errorChecker.check(rrq, RequestType.RRQ);
-		if (error.getType() != ErrorType.NO_ERROR)
-			if (errorHandle(error, rrq.getPacket()))
-				return error;
+
 		errorChecker.incrementExpectedBlockNumber();
 
 		return new TFTPErrorMessage(ErrorType.NO_ERROR, Strings.NO_ERROR);
