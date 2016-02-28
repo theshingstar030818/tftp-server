@@ -13,7 +13,7 @@ import types.*;
  *
  * This class corrupts a piece of the datagram buffer to simulate a corrupt packet
  */
-public class ErrorCodeFour extends ErrorCodeSimulator {
+public class ErrorCodeFour extends DatagramPacketToPacketBuilder {
 	private int mSubcode;
 	private DatagramPacket mSendPacket;
 	private RequestType rt;
