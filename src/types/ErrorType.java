@@ -131,6 +131,16 @@ public enum ErrorType {
 		public String getErrorMessageString() {
 			return Strings.EXIT_BYE;
 		}
+	},
+	SORCERERS_APPRENTICE {
+		@Override
+		public short getErrorCodeShort() {
+			return 501;
+		}
+		@Override
+		public String getErrorMessageString() {
+			return Strings.SORCERERS_APPRENTICE;
+		}
 	}
 	;
 	

@@ -110,16 +110,16 @@ public class TFTPClient {
 					}
 					DatagramPacket packet = net.generateInitWRQ(writeFileNameOrFilePath, this.mPortToSendTo);
 					if (packet != null) {
-						do {
-							result = net.sendFile();
-						} while (result == null);
+						result = net.sendFile();
 					}
 					else System.exit(1);
-					if (!(result.getType() == ErrorType.NO_ERROR)) {
+					if ((result.getType() == ErrorType.NO_ERROR) || 
+							(result.getType() == ErrorType.SORCERERS_APPRENTICE)) {
+						logger.print(Logger.VERBOSE, Strings.TRANSFER_SUCCESSFUL);
+					} else {
 						logger.print(Logger.ERROR, Strings.TRANSFER_FAILED);
 						logger.print(Logger.ERROR, result.getString());
-					} else {
-						logger.print(Logger.VERBOSE, Strings.TRANSFER_SUCCESSFUL);
+						
 					}
 					break;
 				case 3:

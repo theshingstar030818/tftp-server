@@ -48,15 +48,15 @@ public class ServerNetworking extends TFTPNetworking {
 		AckPacket vAckPacket = new AckPacket(wrq.getPacket());
 		DatagramPacket vSendPacket = vAckPacket.buildPacket();
 
-		logger.print(Logger.SILENT, Strings.SENDING);
+		logger.print(Logger.VERBOSE, Strings.SENDING);
 		BufferPrinter.printPacket(new AckPacket(vSendPacket), Logger.VERBOSE, RequestType.ACK);
-
+		
 		try {
 			socket.send(vSendPacket);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-
+		super.lastPacket = vSendPacket;
 		return new TFTPErrorMessage(ErrorType.NO_ERROR, Strings.NO_ERROR);
 	}
 

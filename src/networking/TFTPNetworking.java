@@ -67,23 +67,23 @@ public class TFTPNetworking {
 		// when we get a write request, we need to acknowledge client first (block 0)
 		socket = vSocket;
 		TFTPErrorMessage error;
-		lastPacket = null;
 		DatagramPacket recvPacket = new DatagramPacket(new byte[Configurations.MAX_BUFFER], Configurations.MAX_BUFFER);
 		
 		try {
 			socket.setSoTimeout(Configurations.TRANMISSION_TIMEOUT);
 			byte[] vEmptyData = new byte[Configurations.MAX_BUFFER];
 			boolean vHasMore = true;
-			
+			System.err.println("Excepted block number = " + errorChecker.mExpectedBlockNumber);
 			while ( vHasMore ){
 				while (true) {
-					
+					System.err.println("Excepted block number = " + errorChecker.mExpectedBlockNumber);
 					try { 
 						socket.receive(recvPacket);
 					} catch (SocketTimeoutException e) {
-						if (lastPacket == null) {
-							return null;
-						}
+//						if (lastPacket == null) {
+//							return null;
+//						}
+						logger.print(Logger.ERROR, "Socket Timeout on received file! Resending Ack!");
 						sendACK(lastPacket);
 						continue;
 					}
@@ -93,10 +93,12 @@ public class TFTPNetworking {
 						errorChecker = new ErrorChecker(new DataPacket(lastPacket));
 						errorChecker.incrementExpectedBlockNumber();
 					}
+					System.err.println("Excepted block number = " + errorChecker.mExpectedBlockNumber);
 					DataPacket receivedPacket = new DataPacket(lastPacket);
+					error = errorChecker.check(receivedPacket, RequestType.DATA);
 					logger.print(Logger.VERBOSE, Strings.RECEIVED);
 					BufferPrinter.printPacket(receivedPacket, logger, RequestType.DATA);
-					error = errorChecker.check(receivedPacket, RequestType.DATA);
+					
 					
 					if (error.getType() == ErrorType.NO_ERROR) break;
 					if (errorHandle(error, lastPacket, RequestType.DATA)) return error;
@@ -130,10 +132,10 @@ public class TFTPNetworking {
 	private void sendACK(DatagramPacket packet) {
 		
 		logger.print(Logger.VERBOSE, Strings.SENDING);
-		BufferPrinter.printPacket(new AckPacket(packet), logger, RequestType.ACK);
-		
+		AckPacket ackPacket = new AckPacket(packet);
+		BufferPrinter.printPacket(ackPacket, logger, RequestType.ACK);
 		try {
-			socket.send(new AckPacket(packet).buildPacket());
+			socket.send(ackPacket.buildPacket());
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -155,23 +157,23 @@ public class TFTPNetworking {
 
 		DatagramPacket receivePacket;
 		AckPacket ackPacket;
-		
+		short currentSendBlockNumber = 0;
 		try {
 			
 			byte[] vEmptyData = new byte[Configurations.MAX_BUFFER];
 			TFTPErrorMessage error;
 			socket.setSoTimeout(Configurations.TRANMISSION_TIMEOUT);
-
+			
 			while (vEmptyData != null && vEmptyData.length >= Configurations.MAX_PAYLOAD_BUFFER ){
 				
 				vEmptyData = storage.getFileByteBufferFromDisk();
 				// Building a data packet from the last packet ie. will increment block number
 				DataPacket vDataPacket = new DataPacket(lastPacket);
-				DatagramPacket vSendPacket = vDataPacket.buildPacket(vEmptyData);
-				
-				logger.print(Logger.SILENT, Strings.SENDING);
-				BufferPrinter.printPacket(vDataPacket, Logger.VERBOSE, RequestType.ACK);
-				
+				vDataPacket.setBlockNumber(currentSendBlockNumber);
+				++currentSendBlockNumber; // For the next packet, never rely on the ACK block number to provide this
+				DatagramPacket vSendPacket = vDataPacket.buildPacket(vEmptyData); // buildPacket increments val currentSendBlockNumber by 1
+				logger.print(Logger.VERBOSE, Strings.SENDING);
+				BufferPrinter.printPacket(vDataPacket, Logger.VERBOSE, RequestType.DATA);
 				socket.send(vSendPacket);
 					
 				while (true) {
@@ -181,14 +183,24 @@ public class TFTPNetworking {
 					try {
 						socket.receive(receivePacket);
 					} catch (SocketTimeoutException e) {
+						logger.print(Logger.ERROR, "Socket Timeout on send file! Resending Data!");
+						BufferPrinter.printPacket(vDataPacket, Logger.VERBOSE, RequestType.DATA);
 						socket.send(vSendPacket);
 						continue;
 					}
 					ackPacket = new AckPacket(receivePacket);
+						
+					logger.print(Logger.VERBOSE, Strings.RECEIVED);
+					BufferPrinter.printPacket(ackPacket, Logger.VERBOSE, RequestType.ACK);
 					error = errorChecker.check(ackPacket, RequestType.ACK);
 					
-					if (error.getType() == ErrorType.NO_ERROR) break;
-					
+					if ((error.getType() == ErrorType.NO_ERROR) || (error.getType() == ErrorType.SORCERERS_APPRENTICE)) {
+						if(ackPacket.getBlockNumber() == currentSendBlockNumber){
+							break;
+						} else {
+							continue;
+						}
+					}
 					if (errorHandle(error, receivePacket, RequestType.ACK)) return error; 
 				}
 				errorChecker.incrementExpectedBlockNumber();

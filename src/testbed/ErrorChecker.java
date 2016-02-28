@@ -11,6 +11,7 @@ import packet.Packet;
 import resource.Configurations;
 import resource.Strings;
 import types.ErrorType;
+import types.Logger;
 import types.RequestType;
 
 /**
@@ -22,13 +23,15 @@ public class ErrorChecker {
 
 	private InetAddress mPacketOriginatingAddress;
 	private int mPacketOriginatingPort;
-	private int mExpectedBlockNumber;
-
+	public int mExpectedBlockNumber;
+	private Logger logger = Logger.ERROR;
+	private final String CLASS_TAG = "<Error Checker>";
+	
 	public ErrorChecker(Packet packet) {
 		mPacketOriginatingAddress = packet.getPacket().getAddress();
 		mPacketOriginatingPort = packet.getPacket().getPort();
 		mExpectedBlockNumber = 0;
-
+		logger.setClassTag(CLASS_TAG);
 	}
 	
 	public int getExpectedBlockNumber() {
@@ -66,6 +69,10 @@ public class ErrorChecker {
 
 		// Check that the packet format is correct.
 		String formatErrorMessage = formatError(packet, expectedCommunicationType);
+		if(formatErrorMessage.equals("-1")) {
+			logger.print(logger, String.format("Dealing with the special sorcerors apprentice bug. Not going to reply with a duplicate DATA..."));
+			return new TFTPErrorMessage(ErrorType.SORCERERS_APPRENTICE, Strings.SORCERERS_APPRENTICE);
+		}
 		if (!formatErrorMessage.isEmpty())
 			return new TFTPErrorMessage(ErrorType.ILLEGAL_OPERATION, formatErrorMessage);
 
@@ -82,21 +89,35 @@ public class ErrorChecker {
 	 * @return error string
 	 */
 	private String formatError(Packet packet, RequestType comType) {
-
+		int currentBlockNumber = 0;
 		byte[] data = packet.getPacketBuffer();
-		if (data[0] != 0)
+		if (data[0] != 0) {
+			logger.print(logger, String.format("Packet validation found invalid zero byte in the begining!"));
 			return Strings.NON_ZERO_FIRST_BYTE;
-		if (RequestType.matchRequestByNumber(data[1]) != comType)
+		}
+
+		if (RequestType.matchRequestByNumber(data[1]) != comType) {
+			logger.print(logger, String.format("Packet validation found op code %d when expecting %d!",
+					RequestType.matchRequestByNumber(data[1]).getOptCode(), comType.getOptCode()));
 			return Strings.COMMUNICATION_TYPE_MISMATCH;
-		if (data.length > Configurations.MAX_MESSAGE_SIZE)
+		}
+
+		if (data.length > Configurations.MAX_MESSAGE_SIZE) {
+			logger.print(logger, String.format("Packet validation found the packet was too large!"));
 			return Strings.PACKET_TOO_LARGE;
+		}
+
 		switch (comType) {
 		case RRQ:
 		case WRQ:
-			if (data[2] == 0)
+			if (data[2] == 0) {
+				logger.print(logger, String.format("RRQ/WRQ Packet validation found missing filename!"));
 				return Strings.MISSING_FILENAME;
-			if (data[data.length - 1] != 0)
+			}
+			if (data[data.length - 1] != 0) {
+				logger.print(logger, String.format("RRQ/WRQ Packet validation found missing last byte!"));
 				return Strings.NON_ZERO_LAST_BYTE;
+			}
 			int secondZeroIndex = -1, thirdZeroIndex = -1;
 
 			for (int i = 3; i < data.length; ++i) {
@@ -110,45 +131,81 @@ public class ErrorChecker {
 
 				}
 			}
-			if (data[secondZeroIndex] != 0)
+			if (data[secondZeroIndex] != 0) {
+				logger.print(logger, String.format("RRQ/WRQ Packet validation found invalid zero bytes in message!"));
 				return Strings.NON_ZERO_PADDING;
+			}
 			byte[] filenameBytes = new byte[secondZeroIndex - 2];
 			byte[] modeBytes = new byte[thirdZeroIndex - secondZeroIndex - 1];
 			System.arraycopy(data, 2, filenameBytes, 0, filenameBytes.length);
 			System.arraycopy(data, secondZeroIndex + 1, modeBytes, 0, modeBytes.length);
 			String filename = new String(filenameBytes);
 			String mode = new String(modeBytes);
-			if (!mode.equalsIgnoreCase("octet") && !mode.equalsIgnoreCase("netascii"))
+			if (!mode.equalsIgnoreCase("octet") && !mode.equalsIgnoreCase("netascii")) {
+				logger.print(logger, String.format("RRQ/WRQ Packet validation found invalid mode!"));
 				return Strings.INVALID_MODE;
-			if (!isValidFilename(filename))
-				return Strings.INVALID_FILENAME;
+			}
 
+			if (!isValidFilename(filename)) {
+				logger.print(logger, String.format("RRQ/WRQ Packet validation found invalid file name!"));
+				return Strings.INVALID_FILENAME;
+			}
 			break;
 
 		case DATA:
-			if (mExpectedBlockNumber != ((DataPacket) packet).getBlockNumber())
+			currentBlockNumber = ((DataPacket) packet).getBlockNumber();
+			if(this.mExpectedBlockNumber > currentBlockNumber) {
+				logger.print(logger, String.format("We received a delayed DATA packet with blk %d when expected %d, going to ack this packet.", 
+						currentBlockNumber, this.mExpectedBlockNumber));
+			}else if (mExpectedBlockNumber != currentBlockNumber) {
+				logger.print(logger, String.format("ACK block number mismatch on expected %d from actual %d",
+						this.mExpectedBlockNumber, currentBlockNumber));
 				return Strings.BLOCK_NUMBER_MISMATCH;
+			}
 			break;
 
 		case ACK:
-			if (packet.getPacketLength() != 4)
+			currentBlockNumber = ((AckPacket) packet).getBlockNumber();
+			if (packet.getPacketLength() != 4) {
+				logger.print(logger, String.format("Invalid packet size on ACK of %d with expected %d", packet.getPacketLength(), 4));
 				return Strings.INVALID_PACKET_SIZE;
-			if (mExpectedBlockNumber != ((AckPacket) packet).getBlockNumber())
+			}
+			if(this.mExpectedBlockNumber > currentBlockNumber) {
+				logger.print(logger, String.format("We received a delayed ACK packet with blk %d when expected %d. We should not resend a DATA to correspond to this ACK.", 
+						currentBlockNumber, this.mExpectedBlockNumber));
+				return "-1";
+			}
+			else if (mExpectedBlockNumber != currentBlockNumber) {
+				logger.print(logger, String.format("ACK block number mismatch on expected %d from actual %d (op code %d)", 
+						this.mExpectedBlockNumber, currentBlockNumber, packet.getRequestType().getOptCode()));
 				return Strings.BLOCK_NUMBER_MISMATCH;
+			}
 			break;
 
 		case ERROR:
-			if (data.length < 6)
+			if (data.length < 6) {
+				logger.print(logger, String.format("Error Packet validation but the length is too small!"));
 				return Strings.PACKET_TOO_SMALL;
-			if (data[data.length - 1] != 0)
+			}
+
+			if (data[data.length - 1] != 0) {
+				logger.print(logger, String.format("Error Packet validation but the last byte was not zero!"));
 				return Strings.NON_ZERO_LAST_BYTE;
-			if (data[2] != 0)
+			}
+
+			if (data[2] != 0) {
+				logger.print(logger, String.format("Error Packet validation found invalid op code format!"));
 				return Strings.INVALID_ERROR_CODE_FORMAT;
-			if (data[3] < 0 || data[3] > 8)
+			}
+
+			if (data[3] < 0 || data[3] > 8) {
+				logger.print(logger, String.format("Error Packet validation found unknown error code"));
 				return Strings.UNKOWN_ERROR_CODE;
+			}
 			break;
 
 		case NONE:
+			logger.print(logger, String.format("None Packet validation, programming error!"));
 			return Strings.INVALID_PACKET_NONE_TYPE;
 		}
 
