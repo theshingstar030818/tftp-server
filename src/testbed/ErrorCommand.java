@@ -31,10 +31,10 @@ public class ErrorCommand {
 	
 	/**
 	 * Sets the transmission error occurrences through a file transmission.
-	 * When the transmission has exhausted the value set, no tranmission errors
+	 * When the transmission has exhausted the value set, no transmission errors
 	 * will occur there on after.
 	 * 
-	 * @param value - number of tranmission errors to spawn
+	 * @param value - number of transmission errors to spawn
 	 */
 	public void setTransmissionErrorOccurrences(int value) {
 		this.mCommandMap.put(Configurations.TE_NUM_PACKETS, value);
