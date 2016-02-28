@@ -74,7 +74,7 @@ public class TFTPNetworking {
 			socket.setSoTimeout(Configurations.TRANMISSION_TIMEOUT);
 			byte[] vEmptyData = new byte[Configurations.MAX_BUFFER];
 			boolean vHasMore = true;
-			System.err.println("Expected block number = " + errorChecker.mExpectedBlockNumber);
+			//System.err.println("Expected block number = " + errorChecker.mExpectedBlockNumber);
 			while ( vHasMore ){
 				while (true) {
 					//System.err.println("Excepted block number = " + errorChecker.mExpectedBlockNumber);
@@ -82,9 +82,6 @@ public class TFTPNetworking {
 						socket.receive(recvPacket);
 						System.err.println("The received block number is " + (new PacketBuilder()).constructPacket(recvPacket).getBlockNumber());
 					} catch (SocketTimeoutException e) {
-//						if (lastPacket == null) {
-//							return null;
-//						}
 						logger.print(Logger.ERROR, "Socket Timeout on received file! Resending Ack!");
 						sendACK(lastPacket);
 						continue;
@@ -160,6 +157,9 @@ public class TFTPNetworking {
 		DatagramPacket receivePacket;
 		AckPacket ackPacket;
 		short currentSendBlockNumber = 0;
+		lastPacket = new DatagramPacket(new byte[Configurations.MAX_MESSAGE_SIZE], 
+				Configurations.MAX_MESSAGE_SIZE, lastPacket.getAddress(), lastPacket.getPort());
+		
 		try {
 			
 			byte[] vEmptyData = new byte[Configurations.MAX_BUFFER];

@@ -43,8 +43,8 @@ public class ServerNetworking extends TFTPNetworking {
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
 		}
-		
-		errorChecker.incrementExpectedBlockNumber(); // Could be so wrong.
+
+		errorChecker.incrementExpectedBlockNumber();
 		
 		AckPacket vAckPacket = new AckPacket(wrq.getPacket());
 		DatagramPacket vSendPacket = vAckPacket.buildPacket();
