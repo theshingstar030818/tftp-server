@@ -18,6 +18,7 @@ import resource.Configurations;
 import resource.Strings;
 import testbed.ErrorChecker;
 import types.InstanceType;
+import types.Logger;
 import types.RequestType;
 
 public class ClientNetworking extends TFTPNetworking {
@@ -37,6 +38,7 @@ public class ClientNetworking extends TFTPNetworking {
 		logger.print(logger, Strings.CLIENT_INITIATE_WRITE_REQUEST);
 		ReadWritePacket wpb;
 		lastPacket = null;
+		AckPacket wrqFirstAck;
 		try {
 			logger.print(logger, Strings.CLIENT_INITIATING_FIE_STORAGE_SERVICE);
 			
@@ -51,14 +53,17 @@ public class ClientNetworking extends TFTPNetworking {
 				socket.send(lastPacket);
 				try {
 					socket.receive(lastPacket);
+					logger.print(Logger.VERBOSE, Strings.RECEIVED);
+					wrqFirstAck = new AckPacket(lastPacket);
+					BufferPrinter.printPacket(wrqFirstAck, Logger.VERBOSE, RequestType.ACK);
 				} catch (SocketTimeoutException e) {
 					continue;
 				}
 				break;
 			}
-			
+			super.lastPacket = this.lastPacket;
 			// Trusts that the first response is from expected source.
-			errorChecker = new ErrorChecker(new AckPacket(lastPacket)); 
+			errorChecker = new ErrorChecker(wrqFirstAck); 
 			errorChecker.incrementExpectedBlockNumber();
 			
 		} catch (SocketException e) {
