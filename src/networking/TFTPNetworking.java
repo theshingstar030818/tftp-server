@@ -12,6 +12,7 @@ import helpers.FileStorageService;
 import packet.AckPacket;
 import packet.DataPacket;
 import packet.ErrorPacket;
+import packet.PacketBuilder;
 import packet.ReadWritePacket;
 import resource.Configurations;
 import resource.Strings;
@@ -73,12 +74,13 @@ public class TFTPNetworking {
 			socket.setSoTimeout(Configurations.TRANMISSION_TIMEOUT);
 			byte[] vEmptyData = new byte[Configurations.MAX_BUFFER];
 			boolean vHasMore = true;
-			System.err.println("Excepted block number = " + errorChecker.mExpectedBlockNumber);
+			System.err.println("Expected block number = " + errorChecker.mExpectedBlockNumber);
 			while ( vHasMore ){
 				while (true) {
-					System.err.println("Excepted block number = " + errorChecker.mExpectedBlockNumber);
+					//System.err.println("Excepted block number = " + errorChecker.mExpectedBlockNumber);
 					try { 
 						socket.receive(recvPacket);
+						System.err.println("The received block number is " + (new PacketBuilder()).constructPacket(recvPacket).getBlockNumber());
 					} catch (SocketTimeoutException e) {
 //						if (lastPacket == null) {
 //							return null;
@@ -93,7 +95,7 @@ public class TFTPNetworking {
 						errorChecker = new ErrorChecker(new DataPacket(lastPacket));
 						errorChecker.incrementExpectedBlockNumber();
 					}
-					System.err.println("Excepted block number = " + errorChecker.mExpectedBlockNumber);
+				//	System.err.println("Excepted block number = " + errorChecker.mExpectedBlockNumber);
 					DataPacket receivedPacket = new DataPacket(lastPacket);
 					error = errorChecker.check(receivedPacket, RequestType.DATA);
 					logger.print(Logger.VERBOSE, Strings.RECEIVED);

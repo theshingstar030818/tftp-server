@@ -333,7 +333,7 @@ public class ErrorSimulatorService implements Runnable {
 			if (this.mEPFour == null) {
 				this.mEPFour = new ErrorCodeFour(inPacket, subOpt);
 			} else {
-				this.mEPFour.constructPacketBuilder(inPacket);
+				this.mEPFour.setReceivePacket(inPacket);
 			}
 			this.mLastPacket = mEPFour.errorPacketCreator();
 			break;
