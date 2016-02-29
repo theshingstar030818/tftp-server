@@ -141,11 +141,6 @@ public class TFTPNetworking {
 		}
 	}
 	
-	
-	
-	
-	
-	
 	public TFTPErrorMessage sendFile(ReadWritePacket packet) {
 		BufferPrinter.printPacket(packet, Logger.VERBOSE, RequestType.RRQ);
 		fileName = packet.getFilename();

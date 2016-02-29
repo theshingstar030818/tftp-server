@@ -17,6 +17,8 @@ import packet.WritePacket;
 import resource.Configurations;
 import resource.Strings;
 import testbed.ErrorChecker;
+import testbed.TFTPErrorMessage;
+import types.ErrorType;
 import types.InstanceType;
 import types.Logger;
 import types.RequestType;
@@ -25,8 +27,8 @@ public class ClientNetworking extends TFTPNetworking {
 
 	public ClientNetworking() {}
 
-	public DatagramPacket generateInitWRQ(String fn, int portToSendTo) {
-		
+	public TFTPErrorMessage generateInitWRQ(String fn, int portToSendTo) {
+		TFTPErrorMessage error = null;
 		try {
 			socket.setSoTimeout(Configurations.TRANMISSION_TIMEOUT);
 			storage = new FileStorageService(fn, InstanceType.CLIENT);
@@ -52,6 +54,8 @@ public class ClientNetworking extends TFTPNetworking {
 			while (true) {
 				socket.send(lastPacket);
 				try {
+					lastPacket = new DatagramPacket(new byte[Configurations.MAX_MESSAGE_SIZE], 
+							Configurations.MAX_MESSAGE_SIZE, lastPacket.getAddress(), lastPacket.getPort());
 					socket.receive(lastPacket);
 					logger.print(Logger.VERBOSE, Strings.RECEIVED);
 					wrqFirstAck = new AckPacket(lastPacket);
@@ -65,7 +69,8 @@ public class ClientNetworking extends TFTPNetworking {
 			// Trusts that the first response is from expected source.
 			errorChecker = new ErrorChecker(wrqFirstAck); 
 			errorChecker.incrementExpectedBlockNumber();
-			
+			error = errorChecker.check(wrqFirstAck, RequestType.DATA);
+			//if (errorHandle(error, lastPacket, RequestType.DATA)) return error;
 		} catch (SocketException e) {
 			e.printStackTrace();
 		} catch (FileNotFoundException e) {
@@ -75,7 +80,7 @@ public class ClientNetworking extends TFTPNetworking {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-		return lastPacket;
+		return error;
 	}
 	
 	/**

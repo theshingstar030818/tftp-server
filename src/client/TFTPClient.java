@@ -108,13 +108,10 @@ public class TFTPClient {
 						logger.print(logger, Strings.FILE_NOT_EXIST);
 						break;
 					}
-					DatagramPacket packet = net.generateInitWRQ(writeFileNameOrFilePath, this.mPortToSendTo);
-					if (packet != null) {
-						result = net.sendFile();
-					}
-					else System.exit(1);
+					result= net.generateInitWRQ(writeFileNameOrFilePath, this.mPortToSendTo);
 					if ((result.getType() == ErrorType.NO_ERROR) || 
 							(result.getType() == ErrorType.SORCERERS_APPRENTICE)) {
+						result = net.sendFile();
 						logger.print(Logger.VERBOSE, Strings.TRANSFER_SUCCESSFUL);
 					} else {
 						logger.print(Logger.ERROR, Strings.TRANSFER_FAILED);
