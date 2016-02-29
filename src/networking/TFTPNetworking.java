@@ -100,6 +100,7 @@ public class TFTPNetworking {
 					
 					
 					if (error.getType() == ErrorType.NO_ERROR) break;
+					if (error.getType() == ErrorType.SORCERERS_APPRENTICE) sendACK(lastPacket);
 					if (errorHandle(error, lastPacket, RequestType.DATA)) return error;
 				}
 				
@@ -189,15 +190,10 @@ public class TFTPNetworking {
 						
 					logger.print(Logger.VERBOSE, Strings.RECEIVED);
 					BufferPrinter.printPacket(ackPacket, Logger.VERBOSE, RequestType.ACK);
-					error = errorChecker.check(ackPacket, RequestType.ACK);
 					
-					if ((error.getType() == ErrorType.NO_ERROR) || (error.getType() == ErrorType.SORCERERS_APPRENTICE)) {
-						if(ackPacket.getBlockNumber() == currentSendBlockNumber){
-							break;
-						} else {
-							continue;
-						}
-					}
+					error = errorChecker.check(ackPacket, RequestType.ACK);
+					if (error.getType() == ErrorType.NO_ERROR) break; 
+					if (error.getType() == ErrorType.SORCERERS_APPRENTICE) continue;
 					if (errorHandle(error, receivePacket, RequestType.ACK)) return error; 
 				}
 				errorChecker.incrementExpectedBlockNumber();
@@ -259,6 +255,9 @@ public class TFTPNetworking {
 				} catch (IOException e) { e.printStackTrace(); }
 				logger.print(Logger.ERROR, Strings.UNKNOWN_TRANSFER_HELP_MESSAGE);
 				BufferPrinter.printPacket(new ErrorPacket(packet), Logger.ERROR, RequestType.ERROR);
+				return false;
+			
+			case SORCERERS_APPRENTICE:
 				return false;
 				
 			default:
