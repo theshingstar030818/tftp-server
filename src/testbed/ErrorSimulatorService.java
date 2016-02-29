@@ -12,6 +12,8 @@ import java.net.UnknownHostException;
 import java.util.LinkedList;
 
 import helpers.BufferPrinter;
+import packet.Packet;
+import packet.PacketBuilder;
 import resource.Configurations;
 import resource.Strings;
 import server.Callback;
@@ -61,19 +63,12 @@ public class ErrorSimulatorService implements Runnable {
 	private ErrorCodeFour mEPFour = null;
 	private ErrorCodeFive mEPFive = null;
 	private boolean mCanAddToQueue = true;
-	private int mNumLostPackets = 0;
-	private int mFrequencyLostPackets = 0;
+	private RequestType mPacketOpCode = null;
+	private int mPacketBlock = 0;
+	private boolean mLostPacket = false; // if already lost packet
 	// private TransmissionError mTransmissionError = null;
 	/* Lazy initialization for Error Producers */
 
-	private boolean frequencySwitch(){
-		if(mFrequencyLostPackets==0){
-			mFrequencyLostPackets = this.mErrorSettings.getTransmissionErrorFrequency();
-			return false;
-		}
-		mFrequencyLostPackets--;
-		return true;
-	}
 	/**
 	 * This thread manages the facilitation of packets from the client to the
 	 * server. It remembers where the packet comes from and also fixes the
@@ -163,8 +158,7 @@ public class ErrorSimulatorService implements Runnable {
 			System.err.println("Sending the first RRQ and WRQ was an issue!");
 		}
 		
-		mNumLostPackets = this.mErrorSettings.getTransmissionErrorOccurences();
-		mFrequencyLostPackets = this.mErrorSettings.getTransmissionErrorFrequency();
+		
 		// Main while loop to facilitate transfer and create error
 		// First packet will be from client
 		while (isTransfering) {
@@ -389,8 +383,13 @@ public class ErrorSimulatorService implements Runnable {
 			case 1:
 				// Lose a packet
 				System.err.println("Losing packet");
-				while(mNumLostPackets!=0 && !frequencySwitch()){
-					mNumLostPackets--;
+				this.mPacketBlock = this.mErrorSettings.getTransmissionErrorOccurences();
+				this.mPacketOpCode = this.mErrorSettings.getTransmissionErrorType();
+				Packet mInPacket = (new PacketBuilder()).constructPacket(mLastPacket);
+				
+				if(mInPacket.getBlockNumber()==this.mPacketBlock && mInPacket.getRequestType()==this.mPacketOpCode){
+					this.mPacketSendQueue.pop();
+					this.mLostPacket = true;
 				}
 				
 				

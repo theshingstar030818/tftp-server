@@ -183,10 +183,8 @@ public class TFTPUserInterface {
 		switch(transmissionError) {
 		case 1:
 			// lose packet
-			System.out.println(UIStrings.MENU_ERROR_SIMULATOR_PROMPT_AMOUNT);
+			System.out.println(UIStrings.MENU_ERROR_SIMULATOR_PROMPT_NUM_PACKET);
 			this.mNumPktToFkWit = Keyboard.getInteger();
-			System.out.println(UIStrings.MENU_ERROR_SIMULATOR_PROMPT_FREQUENCY);
-			this.mSpaceOfDelay = Keyboard.getInteger();
 			System.out.println(UIStrings.MENU_ERROR_SIMULATOR_PROMPT_TYPE);
 			this.mOpCodeToMessWith = Keyboard.getInteger();
 			break;
