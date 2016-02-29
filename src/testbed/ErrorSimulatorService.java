@@ -12,6 +12,8 @@ import java.net.UnknownHostException;
 import java.util.LinkedList;
 
 import helpers.BufferPrinter;
+import packet.Packet;
+import packet.PacketBuilder;
 import resource.Configurations;
 import resource.Strings;
 import server.Callback;
@@ -60,6 +62,10 @@ public class ErrorSimulatorService implements Runnable {
 	/* Section of uninitialized Error Producers */
 	private ErrorCodeFour mEPFour = null;
 	private ErrorCodeFive mEPFive = null;
+	private boolean mCanAddToQueue = true;
+	private RequestType mPacketOpCode = null;
+	private int mPacketBlock = 0;
+	private boolean mLostPacket = false; // if already lost packet
 	// private TransmissionError mTransmissionError = null;
 	/* Lazy initialization for Error Producers */
 
@@ -151,7 +157,8 @@ public class ErrorSimulatorService implements Runnable {
 		} catch (IOException e) {
 			System.err.println("Sending the first RRQ and WRQ was an issue!");
 		}
-
+		
+		
 		// Main while loop to facilitate transfer and create error
 		// First packet will be from client
 		while (isTransfering) {
@@ -201,6 +208,7 @@ public class ErrorSimulatorService implements Runnable {
 		this.mCallback.callback(Thread.currentThread().getId());
 	}
 
+	/****This adds packets onto the work Q****/
 	private boolean continueHandlingPacket(DatagramPacket inPacket) {
 		if(inPacket == null) return true;
 		this.mLastPacket = inPacket;
@@ -368,12 +376,24 @@ public class ErrorSimulatorService implements Runnable {
 								"Not making delay error because the type we want is %s and header we compare is %s",
 								this.mErrorSettings.getTransmissionErrorType() != RequestType.NONE,
 								this.mErrorSettings.getTransmissionErrorType().getOptCode() != inPacket.getData()[1]));
-				return;
+				break;
 			}
 			
 			switch (this.mErrorSettings.getSubErrorFromFamily()) {
 			case 1:
 				// Lose a packet
+				System.err.println("Losing packet");
+				this.mPacketBlock = this.mErrorSettings.getTransmissionErrorOccurences();
+				this.mPacketOpCode = this.mErrorSettings.getTransmissionErrorType();
+				Packet mInPacket = (new PacketBuilder()).constructPacket(mLastPacket);
+				
+				if(mInPacket.getBlockNumber()==this.mPacketBlock && mInPacket.getRequestType()==this.mPacketOpCode){
+					this.mPacketSendQueue.pop();
+					this.mLostPacket = true;
+				}
+				
+				
+				
 				break;
 			case 2:
 				// We check this condition since this type packet.
@@ -509,6 +529,7 @@ public class ErrorSimulatorService implements Runnable {
 		logger.print(Logger.ERROR, "Inject delayed packet back into work queue!");
 		this.mPacketSendQueue.addFirst(inPacket);
 	}
+	
 }
 // public void run() {
 // DatagramPacket serverPacket = null;
