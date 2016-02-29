@@ -157,6 +157,7 @@ public class ErrorChecker {
 			if(this.mExpectedBlockNumber > currentBlockNumber) {
 				logger.print(logger, String.format("We received a delayed DATA packet with blk %d when expected %d, going to ack this packet.", 
 						currentBlockNumber, this.mExpectedBlockNumber));
+				return "-1";
 			}else if (mExpectedBlockNumber != currentBlockNumber) {
 				logger.print(logger, String.format("ACK block number mismatch on expected %d from actual %d",
 						this.mExpectedBlockNumber, currentBlockNumber));
