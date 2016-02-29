@@ -158,10 +158,14 @@ public class ErrorSimulatorService implements Runnable {
 			try {
 				// The following function adds the packet into the work Q
 				isTransfering = continueHandlingPacket(receivedPacket);
-				directPacketToDestination();
-				forwardPacketToSocket(this.mPacketSendQueue.pop());
-				receivedPacket = retrievePacketFromSocket();
-				this.mPacketSendQueue.addLast(receivedPacket);
+				if(this.mPacketSendQueue.size() > 0) {
+					directPacketToDestination();
+					forwardPacketToSocket(this.mPacketSendQueue.pop());
+					receivedPacket = retrievePacketFromSocket();
+					this.mPacketSendQueue.addLast(receivedPacket);
+				} else {
+					receivedPacket = null;
+				}
 			} catch (IOException e) {
 				System.err.println("Something bad happened while transfering files");
 			}
@@ -198,6 +202,7 @@ public class ErrorSimulatorService implements Runnable {
 	}
 
 	private boolean continueHandlingPacket(DatagramPacket inPacket) {
+		if(inPacket == null) return true;
 		this.mLastPacket = inPacket;
 		if (inPacket.getPort() == this.mClientPort) {
 			// From Client
@@ -209,8 +214,8 @@ public class ErrorSimulatorService implements Runnable {
 				return false; 
 			} 
 			if (this.mMessUpThisTransfer == InstanceType.SERVER) {
-				this.simulateError(inPacket); // Adds packet into Q
 				++this.mPacketsProcessed;
+				this.simulateError(inPacket); // Adds packet into Q
 			}
 			if (this.mInitialRequestType == RequestType.RRQ) {
 				logger.print(Logger.VERBOSE, String.format("An ack packet was received by the client, forwarding to server!"));
@@ -230,15 +235,15 @@ public class ErrorSimulatorService implements Runnable {
 				return false; 
 			} 
 			if (this.mMessUpThisTransfer == InstanceType.CLIENT) {
-				this.simulateError(inPacket); // Adds packet into Q
 				++this.mPacketsProcessed;
+				this.simulateError(inPacket); // Adds packet into Q
 			}
 			if (this.mInitialRequestType == RequestType.RRQ) {
 				logger.print(Logger.VERBOSE, String.format("Check RRQ to cloient if last block: %s.", 
 						inPacket.getLength() == Configurations.MAX_MESSAGE_SIZE));
 				return inPacket.getLength() == Configurations.MAX_MESSAGE_SIZE;
 			} else {
-				logger.print(Logger.VERBOSE, String.format("An ack packet was reived by the server, forwarding it to client!"));
+				logger.print(Logger.VERBOSE, String.format("An ack packet was received by the server, forwarding it to client!"));
 				return true; // This will be an ACK
 			}
 		}
@@ -253,13 +258,11 @@ public class ErrorSimulatorService implements Runnable {
 		case RRQ:
 			if (this.mLastPacket.getData()[1] == 4) {
 				// This is an ACK, an ACK always go to the server
-				//logger.print(Logger.VERBOSE, "Preparing to send packet to server at port " + this.mForwardPort);
 				this.mLastPacket.setPort(this.mForwardPort);
 				this.mLastPacket.setAddress(this.mServerHostAddress);
 			} else if (this.mLastPacket.getData()[1] == 3) {
 				// This is a DATA packet, a DATA packet always goes to the
 				// client
-				//logger.print(Logger.VERBOSE, "Preparing to send packet to CLIENT at port " + this.mClientPort);
 				this.mLastPacket.setPort(this.mClientPort);
 				this.mLastPacket.setAddress(this.mClientHostAddress);
 				this.mRRQPacketSize = this.mLastPacket.getLength();
@@ -267,11 +270,9 @@ public class ErrorSimulatorService implements Runnable {
 				// Possible Error Packet
 				if (this.mLastPacket.getPort() == this.mServerListenPort) {
 					// It is from the server, so we send it to the client
-					//logger.print(Logger.VERBOSE, "Preparing to send packet to CLIENT at port " + this.mClientPort);
 					this.mLastPacket.setPort(this.mClientPort);
 					this.mLastPacket.setAddress(this.mClientHostAddress);
 				} else {
-					//logger.print(Logger.VERBOSE, "Preparing to send packet to server at port " + this.mForwardPort);
 					// It is from the client, so we send it to the server
 					this.mLastPacket.setPort(this.mForwardPort);
 					this.mLastPacket.setAddress(this.mServerHostAddress);
@@ -282,12 +283,10 @@ public class ErrorSimulatorService implements Runnable {
 		case WRQ:
 			if (this.mLastPacket.getData()[1] == 4) {
 				// This is an ACK, an ACK always go to the client
-				//logger.print(Logger.VERBOSE, "Preparing to send packet to CLIENT at port " + this.mClientPort);
 				this.mLastPacket.setPort(this.mClientPort);
 				this.mLastPacket.setAddress(this.mClientHostAddress);
 			} else if (this.mLastPacket.getData()[1] == 3) {
 				// This is a DATA, a DATA always go to the server
-				//logger.print(Logger.VERBOSE, "Preparing to send packet to server at port " + this.mForwardPort);
 				this.mLastPacket.setPort(this.mForwardPort);
 				this.mLastPacket.setAddress(this.mServerHostAddress);
 				this.mWRQPacketSize = this.mLastPacket.getLength();
@@ -295,12 +294,10 @@ public class ErrorSimulatorService implements Runnable {
 				// Possible Error Packet
 				if (this.mLastPacket.getPort() == this.mServerListenPort) {
 					// It is from the server, so we send it to the client
-					//logger.print(Logger.VERBOSE, "Preparing to send packet to CLIENT at port " + this.mClientPort);
 					this.mLastPacket.setPort(this.mClientPort);
 					this.mLastPacket.setAddress(this.mClientHostAddress);
 				} else {
 					// It is from the client, so we send it to the server
-					//logger.print(Logger.VERBOSE, "Preparing to send packet to server at port " + this.mForwardPort);
 					this.mLastPacket.setPort(this.mForwardPort);
 					this.mLastPacket.setAddress(this.mServerHostAddress);
 				}
@@ -373,22 +370,7 @@ public class ErrorSimulatorService implements Runnable {
 								this.mErrorSettings.getTransmissionErrorType().getOptCode() != inPacket.getData()[1]));
 				return;
 			}
-			// COMMENT: We will need to move this custom "skip" login inside
-			// each case statement. They behave differently
-			// if ((this.mPacketsProcessed %
-			// (this.mErrorSettings.getTransmissionErrorFrequency() + 1)) != 0
-			// || this.mErrorSettings.getTransmissionErrorOccurences() <
-			// this.mPacketsProcessed) {
-			// logger.print(Logger.ERROR,
-			// String.format(
-			// "Dont panic! We stoped making transmission errors. Heres why
-			// frequency hop: %d and %d/%d occurence/processed",
-			// this.mPacketsProcessed %
-			// (this.mErrorSettings.getTransmissionErrorFrequency() + 1),
-			// this.mErrorSettings.getTransmissionErrorOccurences(),
-			// this.mPacketsProcessed / 2));
-			// return;
-			// }
+			
 			switch (this.mErrorSettings.getSubErrorFromFamily()) {
 			case 1:
 				// Lose a packet
@@ -400,7 +382,9 @@ public class ErrorSimulatorService implements Runnable {
 				// server bound packets (set in ES)
 				this.mLastPacket.setPort(this.mForwardPort);
 				this.mLastPacket.setAddress(this.mServerHostAddress);
-				if ((this.mPacketsProcessed) != this.mErrorSettings.getTransmissionErrorOccurences())
+				System.out.println(String.format("Should I delay? processed:%d and occurrences is set to %d.", this.mPacketsProcessed / 2,
+						this.mErrorSettings.getTransmissionErrorOccurences()));
+				if ((this.mPacketsProcessed/2) != this.mErrorSettings.getTransmissionErrorOccurences())
 					return;
 				logger.print(Logger.ERROR,
 						String.format("Attempting to delay a packet with op code %d.", inPacket.getData()[1]));

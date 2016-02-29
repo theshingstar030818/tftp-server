@@ -68,9 +68,8 @@ public class ClientNetworking extends TFTPNetworking {
 			super.lastPacket = this.lastPacket;
 			// Trusts that the first response is from expected source.
 			errorChecker = new ErrorChecker(wrqFirstAck); 
+			error = errorChecker.check(wrqFirstAck, RequestType.ACK);
 			errorChecker.incrementExpectedBlockNumber();
-			error = errorChecker.check(wrqFirstAck, RequestType.DATA);
-			//if (errorHandle(error, lastPacket, RequestType.DATA)) return error;
 		} catch (SocketException e) {
 			e.printStackTrace();
 		} catch (FileNotFoundException e) {

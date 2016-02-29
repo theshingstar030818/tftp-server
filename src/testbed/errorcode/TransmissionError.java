@@ -27,6 +27,7 @@ public class TransmissionError implements Runnable {
 	@Override
 	public void run() {
 		try {
+			System.err.println(String.format("Delaying a packet for %d ms", (long)this.mFrozenMillis));
 			Thread.sleep((long)this.mFrozenMillis);
 		} catch (InterruptedException e) {
 			e.printStackTrace();
