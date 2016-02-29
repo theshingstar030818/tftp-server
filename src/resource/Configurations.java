@@ -26,12 +26,12 @@ public class Configurations {
 	public static final int LEN_ACK_PACKET_BUFFER = 4;
 	public static final String SERVER_INET_HOST = "localhost";
 	public static final int ERROR_PACKET_USELESS_VALUES = 5;
-	public static final int TRANMISSION_TIMEOUT = 0; // 1000 ms
+	public static final int TRANMISSION_TIMEOUT = 1000; // 1000 ms
 	
 	/* Important keys for Error Simulator command */
-	public static final String MAIN_ERROR = "+_)(";
-	public static final String SUB_ERROR = "_)(*";
-	public static final String TE_NUM_PACKETS = "(*&^";
-	public static final String TE_FREQ_ERROR = "*&^%";
-	public static final String TE_TYPE_ERROR = "&*()";
+	public static final String MAIN_ERROR = "MAIN_ERROR_SELECTION";
+	public static final String SUB_ERROR = "SUB_ERROR_SELECTION";
+	public static final String TE_NUM_PACKETS = "NUM_PACKETS_SELECTION";
+	public static final String TE_FREQ_ERROR = "FREQ_ERROR_SELECTION";
+	public static final String TE_TYPE_ERROR = "TYPE_ERROR_SELECTION";
 }
