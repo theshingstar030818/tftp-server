@@ -26,7 +26,7 @@ public class Configurations {
 	public static final int LEN_ACK_PACKET_BUFFER = 4;
 	public static final String SERVER_INET_HOST = "localhost";
 	public static final int ERROR_PACKET_USELESS_VALUES = 5;
-	public static final int TRANMISSION_TIMEOUT = 0; // 1000 ms
+	public static final int TRANMISSION_TIMEOUT = 500; // 1000 ms
 	
 	/* Important keys for Error Simulator command */
 	public static final String MAIN_ERROR = "+_)(";

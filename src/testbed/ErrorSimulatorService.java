@@ -60,9 +60,19 @@ public class ErrorSimulatorService implements Runnable {
 	/* Section of uninitialized Error Producers */
 	private ErrorCodeFour mEPFour = null;
 	private ErrorCodeFive mEPFive = null;
+	private boolean mCanAddToQueue = true;
+	private int mNumLostPackets = 0;
+	private int mFrequencyLostPackets = 0;
 	// private TransmissionError mTransmissionError = null;
 	/* Lazy initialization for Error Producers */
 
+	private boolean frequencySwitch(){
+		if(mFrequencyLostPackets==0){
+			mFrequencyLostPackets = this.mErrorSettings.getTransmissionErrorFrequency();
+			return false;
+		}
+		return true;
+	}
 	/**
 	 * This thread manages the facilitation of packets from the client to the
 	 * server. It remembers where the packet comes from and also fixes the
@@ -151,17 +161,22 @@ public class ErrorSimulatorService implements Runnable {
 		} catch (IOException e) {
 			System.err.println("Sending the first RRQ and WRQ was an issue!");
 		}
-
+		
+		mNumLostPackets = this.mErrorSettings.getTransmissionErrorOccurences();
+		mFrequencyLostPackets = this.mErrorSettings.getTransmissionErrorFrequency();
 		// Main while loop to facilitate transfer and create error
 		// First packet will be from client
 		while (isTransfering) {
 			try {
 				// The following function adds the packet into the work Q
+				while(frequencySwitch()){
 				isTransfering = continueHandlingPacket(receivedPacket);
 				directPacketToDestination();
 				forwardPacketToSocket(this.mPacketSendQueue.pop());
 				receivedPacket = retrievePacketFromSocket();
 				this.mPacketSendQueue.addLast(receivedPacket);
+				}
+	
 			} catch (IOException e) {
 				System.err.println("Something bad happened while transfering files");
 			}
@@ -197,6 +212,7 @@ public class ErrorSimulatorService implements Runnable {
 		this.mCallback.callback(Thread.currentThread().getId());
 	}
 
+	/****This adds packets onto the work Q****/
 	private boolean continueHandlingPacket(DatagramPacket inPacket) {
 		this.mLastPacket = inPacket;
 		if (inPacket.getPort() == this.mClientPort) {
@@ -371,8 +387,9 @@ public class ErrorSimulatorService implements Runnable {
 								"Not making delay error because the type we want is %s and header we compare is %s",
 								this.mErrorSettings.getTransmissionErrorType() != RequestType.NONE,
 								this.mErrorSettings.getTransmissionErrorType().getOptCode() != inPacket.getData()[1]));
-				return;
+				break;
 			}
+			
 			// COMMENT: We will need to move this custom "skip" login inside
 			// each case statement. They behave differently
 			// if ((this.mPacketsProcessed %
@@ -392,6 +409,13 @@ public class ErrorSimulatorService implements Runnable {
 			switch (this.mErrorSettings.getSubErrorFromFamily()) {
 			case 1:
 				// Lose a packet
+				System.err.println("Losing packet");
+				while(mNumLostPackets!=0 && !frequencySwitch()){
+					mNumLostPackets--;
+				}
+				
+				
+				
 				break;
 			case 2:
 				// We check this condition since this type packet.
@@ -525,6 +549,7 @@ public class ErrorSimulatorService implements Runnable {
 		logger.print(Logger.ERROR, "Inject delayed packet back into work queue!");
 		this.mPacketSendQueue.addFirst(inPacket);
 	}
+	
 }
 // public void run() {
 // DatagramPacket serverPacket = null;

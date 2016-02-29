@@ -2,7 +2,6 @@ package testbed.errorcode;
 
 import java.net.DatagramPacket;
 
-import resource.Configurations;
 import testbed.ErrorSimulatorService;
 
 /**
