@@ -25,7 +25,8 @@ import types.RequestType;
 
 public class ClientNetworking extends TFTPNetworking {
 
-	public ClientNetworking() {}
+	public ClientNetworking() {
+	}
 
 	public TFTPErrorMessage generateInitWRQ(String fn, int portToSendTo) {
 		TFTPErrorMessage error = null;
@@ -43,7 +44,7 @@ public class ClientNetworking extends TFTPNetworking {
 		AckPacket wrqFirstAck;
 		try {
 			logger.print(logger, Strings.CLIENT_INITIATING_FIE_STORAGE_SERVICE);
-			
+
 			wpb = new WritePacket(InetAddress.getLocalHost(), portToSendTo, storage.getFileName(),
 					Configurations.DEFAULT_RW_MODE);
 			fileName = storage.getFileName();
@@ -54,7 +55,7 @@ public class ClientNetworking extends TFTPNetworking {
 			while (true) {
 				socket.send(lastPacket);
 				try {
-					lastPacket = new DatagramPacket(new byte[Configurations.MAX_MESSAGE_SIZE], 
+					lastPacket = new DatagramPacket(new byte[Configurations.MAX_MESSAGE_SIZE],
 							Configurations.MAX_MESSAGE_SIZE, lastPacket.getAddress(), lastPacket.getPort());
 					socket.receive(lastPacket);
 					logger.print(Logger.VERBOSE, Strings.RECEIVED);
@@ -67,7 +68,7 @@ public class ClientNetworking extends TFTPNetworking {
 			}
 			super.lastPacket = this.lastPacket;
 			// Trusts that the first response is from expected source.
-			errorChecker = new ErrorChecker(wrqFirstAck); 
+			errorChecker = new ErrorChecker(wrqFirstAck);
 			error = errorChecker.check(wrqFirstAck, RequestType.ACK);
 			errorChecker.incrementExpectedBlockNumber();
 		} catch (SocketException e) {
@@ -81,7 +82,7 @@ public class ClientNetworking extends TFTPNetworking {
 		}
 		return error;
 	}
-	
+
 	/**
 	 * This function create a read request for the client and stores the file
 	 * retrieved from the server on to the file system
@@ -93,31 +94,31 @@ public class ClientNetworking extends TFTPNetworking {
 		try {
 			logger.print(logger, Strings.CLIENT_INITIATING_FIE_STORAGE_SERVICE);
 			fileName = fn;
+			socket.setSoTimeout(Configurations.TRANMISSION_TIMEOUT);
 			try {
 				storage = new FileStorageService(fileName, InstanceType.CLIENT);
 			} catch (FileNotFoundException e) {
 				e.printStackTrace();
 			}
 			// build read request packet
-	
+
 			ReadPacket rpb;
-	
-			rpb = new ReadPacket(InetAddress.getLocalHost(), portToSendTo, fileName,
-					Configurations.DEFAULT_RW_MODE);
-	
+
+			rpb = new ReadPacket(InetAddress.getLocalHost(), portToSendTo, fileName, Configurations.DEFAULT_RW_MODE);
+
 			// now get the packet from the ReadPacket
 			lastPacket = rpb.buildPacket();
-	
+
 			logger.print(logger, Strings.SENDING);
 			BufferPrinter.printPacket(rpb, logger, RequestType.RRQ);
 			// send the read packet over sendReceiveSocket
 			socket.send(lastPacket);
-		
+
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
 	}
-	
+
 }

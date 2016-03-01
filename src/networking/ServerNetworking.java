@@ -4,11 +4,13 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
+import java.net.SocketException;
 
 import helpers.BufferPrinter;
 import helpers.FileStorageService;
 import packet.AckPacket;
 import packet.ReadWritePacket;
+import resource.Configurations;
 import resource.Strings;
 import testbed.TFTPErrorMessage;
 import types.ErrorType;
@@ -31,7 +33,7 @@ public class ServerNetworking extends TFTPNetworking {
 	}
 
 	public TFTPErrorMessage handleInitWRQ(ReadWritePacket wrq) {
-
+		
 		fileName = wrq.getFilename();
 		TFTPErrorMessage error = errorChecker.check(wrq, RequestType.WRQ);
 		if (error.getType() != ErrorType.NO_ERROR)
@@ -53,6 +55,7 @@ public class ServerNetworking extends TFTPNetworking {
 		BufferPrinter.printPacket(new AckPacket(vSendPacket), Logger.VERBOSE, RequestType.ACK);
 		
 		try {
+			super.socket.setSoTimeout(Configurations.TRANMISSION_TIMEOUT);
 			socket.send(vSendPacket);
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -62,7 +65,7 @@ public class ServerNetworking extends TFTPNetworking {
 	}
 
 	public TFTPErrorMessage handleInitRRQ(ReadWritePacket rrq) {
-
+			
 		fileName = rrq.getFilename();
 		TFTPErrorMessage error = errorChecker.check(rrq, RequestType.RRQ);
 		if (error.getType() != ErrorType.NO_ERROR)
@@ -70,8 +73,11 @@ public class ServerNetworking extends TFTPNetworking {
 				return error;
 		try {
 			storage = new FileStorageService(fileName, InstanceType.SERVER);
+			super.socket.setSoTimeout(Configurations.TRANMISSION_TIMEOUT);
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
+		} catch (SocketException e1) {
+			e1.printStackTrace();
 		}
 
 		errorChecker.incrementExpectedBlockNumber();
