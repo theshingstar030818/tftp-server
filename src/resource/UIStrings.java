@@ -85,7 +85,7 @@ public class UIStrings {
 	 public static final String MENU_ERROR_SIMULATOR_PROMPT_AMOUNT
 	 						  = "How many transmission errors do you want to create?";
 	 public static final String MENU_ERROR_SIMULATOR_PROMPT_NUM_PACKET
-	 						  = "Pick the i-th packet to delay (ie 1 for the first packet of some type):";
+	 						  = "Pick the i-th packet to delay (ie -1 for RRQ/WRQ and >= 0 for any ACK/DATA block if applicable):";
 	 public static final String MENU_ERROR_SIMULATOR_PROMPT_TYPE
 	  						  = "Which type of packet do you want to create the error with, enter op code. (-1 means any packet based on frequncy)";
 }
