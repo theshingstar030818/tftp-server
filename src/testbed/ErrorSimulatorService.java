@@ -56,15 +56,17 @@ public class ErrorSimulatorService implements Runnable {
 	private RequestType mInitialRequestType;
 	private InstanceType mMessUpThisTransfer;
 	private byte[] mBuffer = null;
+	private int mTransmissionRetries;
 
 	/* Section of uninitialized Error Producers */
 	private ErrorCodeFour mEPFour = null;
 	private ErrorCodeFive mEPFive = null;
 	private RequestType mPacketOpCode = null;
 	private int mPacketBlock = 0;
-	private boolean mLostPacketPerformed = false; 		// if already lost packet
-	private boolean mDelayPacketPerformed = false; 		// has this been performed?
-	private boolean mDuplicatePacketPerformed = false;	// just need to happen once
+	private boolean mLostPacketPerformed = false; // if already lost packet
+	private boolean mDelayPacketPerformed = false; // has this been performed?
+	private boolean mDuplicatePacketPerformed = false; // just need to happen
+														// once
 	// private TransmissionError mTransmissionError = null;
 	/* Lazy initialization for Error Producers */
 
@@ -111,6 +113,7 @@ public class ErrorSimulatorService implements Runnable {
 		logger.print(Logger.VERBOSE,
 				"Initalized error sim service on port " + this.mSendReceiveSocket.getLocalPort() + "\n");
 		this.mPacketSendQueue = new LinkedList<>();
+		mTransmissionRetries = 0;
 	}
 
 	/**
@@ -182,25 +185,39 @@ public class ErrorSimulatorService implements Runnable {
 		continueHandlingPacket(this.mPacketSendQueue.peek());
 		// End ACK based on request type.
 		try {
-			// We watch for transmission errors on the last packet.
-			if(this.mPacketSendQueue.size() != 0) {
-				if (this.mInitialRequestType == RequestType.WRQ) {
-					// Send the last ACK to client
-					this.mLastPacket = this.mPacketSendQueue.pop();
-					this.mLastPacket.setPort(this.mClientPort);
-					this.mLastPacket.setAddress(this.mClientHostAddress);
-					this.forwardPacketToSocket(this.mLastPacket);
-					System.out.println("WRQ done.");
-				} else if (this.mInitialRequestType == RequestType.RRQ) {
-					// Send the last ACK to server
-					this.mLastPacket = this.mPacketSendQueue.pop();
-					this.mLastPacket.setPort(this.mForwardPort);
-					this.mLastPacket.setAddress(this.mServerHostAddress);
-					logger.print(Logger.VERBOSE, "Preparing to send packet to server at port " + this.mForwardPort);
-					this.forwardPacketToSocket(this.mLastPacket);
-					System.out.println("RRQ done.");
+			// Wait on last ACK in case of the last data was lost.
+			System.out.println("Preparing to handle last ACK");
+			this.mSendReceiveSocket.setSoTimeout(Configurations.TRANMISSION_TIMEOUT * 6);
+			while(true) {
+				try{
+					
+					byte[] data = new byte[Configurations.MAX_BUFFER];
+					DatagramPacket receivePacket = new DatagramPacket(data, data.length);
+					this.mSendReceiveSocket.receive(receivePacket);
+					this.mLastPacket = receivePacket;
+					if (this.mInitialRequestType == RequestType.WRQ) {
+						// Send the last ACK to client
+						this.mLastPacket.setPort(this.mClientPort);
+						this.mLastPacket.setAddress(this.mClientHostAddress);
+						this.forwardPacketToSocket(this.mLastPacket);
+					} else if (this.mInitialRequestType == RequestType.RRQ) {
+						// Send the last ACK to server
+						this.mLastPacket.setPort(this.mForwardPort);
+						this.mLastPacket.setAddress(this.mServerHostAddress);
+						logger.print(Logger.VERBOSE, "Preparing to send packet to server at port " + this.mForwardPort);
+						this.forwardPacketToSocket(this.mLastPacket);
+					}
+					
+					break;
+				} catch (SocketTimeoutException e) {
+					if(++this.mTransmissionRetries == Configurations.RETRANMISSION_TRY) {
+						logger.print(Logger.ERROR, String.format("Retransmission retried %d times, send file considered done.",
+								this.mTransmissionRetries));
+						break;
+					}
 				}
 			}
+			this.mSendReceiveSocket.setSoTimeout(0);
 		} catch (IOException e) {
 			System.err.println("Something bad happened while transfering files.");
 		}
@@ -219,7 +236,7 @@ public class ErrorSimulatorService implements Runnable {
 	 * This function will provide packet handling and error creation
 	 * 
 	 * @param inPacket
-	 * @return true if we continue to listen for packets, false otherwise 
+	 * @return true if we continue to listen for packets, false otherwise
 	 */
 	private boolean continueHandlingPacket(DatagramPacket inPacket) {
 		if (inPacket == null)
@@ -242,7 +259,7 @@ public class ErrorSimulatorService implements Runnable {
 			}
 			if (this.mInitialRequestType == RequestType.RRQ) {
 				logger.print(Logger.VERBOSE,
-						String.format("An ack packet was received by the client, forwarding to server!"));
+						String.format("An ack packet was received from the client, forwarding to server!"));
 				return true; // This will be an ACK
 			} else {
 				return inPacket.getLength() == Configurations.MAX_MESSAGE_SIZE;
@@ -266,7 +283,7 @@ public class ErrorSimulatorService implements Runnable {
 				return inPacket.getLength() == Configurations.MAX_MESSAGE_SIZE;
 			} else {
 				logger.print(Logger.VERBOSE,
-						String.format("An ack packet was received by the server, forwarding it to client!"));
+						String.format("An ack packet was received from the server, forwarding it to client!"));
 				return true; // This will be an ACK
 			}
 		}
@@ -423,8 +440,8 @@ public class ErrorSimulatorService implements Runnable {
 				// server bound packets (set in ES)
 				mInPacket = (new PacketBuilder()).constructPacket(mLastPacket);
 				if (mInPacket.getBlockNumber() != this.mErrorSettings.getTransmissionErrorOccurences()
-						|| mInPacket.getRequestType() != this.mErrorSettings.getTransmissionErrorType() ||
-						this.mDelayPacketPerformed)
+						|| mInPacket.getRequestType() != this.mErrorSettings.getTransmissionErrorType()
+						|| this.mDelayPacketPerformed)
 					return;
 				logger.print(Logger.ERROR,
 						String.format("Attempting to delay a packet with op code %d.", inPacket.getData()[1]));
@@ -445,8 +462,8 @@ public class ErrorSimulatorService implements Runnable {
 			case 3:
 				mInPacket = (new PacketBuilder()).constructPacket(this.mLastPacket);
 				if (mInPacket.getBlockNumber() != this.mErrorSettings.getTransmissionErrorOccurences()
-						|| mInPacket.getRequestType() != this.mErrorSettings.getTransmissionErrorType() ||
-						this.mDuplicatePacketPerformed)
+						|| mInPacket.getRequestType() != this.mErrorSettings.getTransmissionErrorType()
+						|| this.mDuplicatePacketPerformed)
 					return;
 				logger.print(Logger.ERROR,
 						String.format("Attempting to duplicate a packet with op code %d.", inPacket.getData()[1]));
@@ -509,9 +526,9 @@ public class ErrorSimulatorService implements Runnable {
 	 */
 	private void forwardPacketToSocket(DatagramPacket inUDPPacket) throws IOException {
 		if (inUDPPacket.getPort() == this.mClientPort) {
-			logger.print(Logger.VERBOSE, Strings.ES_RETRIEVE_PACKET_CLIENT);
+			logger.print(Logger.VERBOSE, Strings.ES_SEND_PACKET_CLIENT);
 		} else {
-			logger.print(Logger.VERBOSE, Strings.ES_RETRIEVE_PACKET_SERVER);
+			logger.print(Logger.VERBOSE, Strings.ES_SEND_PACKET_SERVER);
 		}
 		sendPacket(new DatagramPacket(inUDPPacket.getData(), inUDPPacket.getLength(), inUDPPacket.getAddress(),
 				inUDPPacket.getPort()));
@@ -577,13 +594,22 @@ public class ErrorSimulatorService implements Runnable {
 	private DatagramPacket retrievePacketFromSocket() {
 		mBuffer = new byte[Configurations.MAX_BUFFER];
 		DatagramPacket receivePacket = new DatagramPacket(mBuffer, mBuffer.length);
-		try {
-			this.mSendReceiveSocket.receive(receivePacket);
-		} catch (SocketTimeoutException e) {
-			return null;
-		} catch (IOException e) {
-			e.printStackTrace();
+		while (true) {
+			try {
+				this.mSendReceiveSocket.receive(receivePacket);
+				break;
+			} catch (SocketTimeoutException e) {
+				if (++this.mTransmissionRetries == Configurations.RETRANMISSION_TRY) {
+					logger.print(Logger.ERROR, String.format(
+							"Retransmission retried %d times, send file considered done.", this.mTransmissionRetries));
+					return null;
+				}
+				System.out.println("Time out caught.");
+			} catch (IOException e) {
+				logger.print(Logger.ERROR, "IOException during receive of packet");
+			}
 		}
+
 		int realPacketSize = receivePacket.getLength();
 		byte[] packetBuffer = new byte[realPacketSize];
 		System.arraycopy(receivePacket.getData(), 0, packetBuffer, 0, realPacketSize);
