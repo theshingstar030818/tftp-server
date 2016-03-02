@@ -80,6 +80,7 @@ public class ErrorSimulatorServer implements Callback {
 				this.mErrorOptionSettings = this.mErrorUI.getErrorCodeFromUser(testInstance);
 				if(this.mErrorOptionSettings.getMainErrorFamily() == ErrorType.EXIT) {
 					active.set(false);
+					this.interruptSocketAndShutdown(); 
 					break;
 				}
 				receivePacket = new DatagramPacket(buffer, buffer.length);
