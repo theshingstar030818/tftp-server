@@ -75,7 +75,7 @@ public class TFTPNetworking {
 		// when we get a write request, we need to acknowledge client first (block 0)
 		socket = vSocket;
 		TFTPErrorMessage error;
-		DatagramPacket recvPacket = new DatagramPacket(new byte[Configurations.MAX_BUFFER], Configurations.MAX_BUFFER);
+		DatagramPacket receivePacket = new DatagramPacket(new byte[Configurations.MAX_BUFFER], Configurations.MAX_BUFFER);
 		boolean retriesExceeded = false;
 		try {
 			byte[] vEmptyData = new byte[Configurations.MAX_BUFFER];
@@ -83,7 +83,7 @@ public class TFTPNetworking {
 			while ( vHasMore ){
 				while (true) {
 					try { 
-						socket.receive(recvPacket);
+						socket.receive(receivePacket);
 					} catch (SocketTimeoutException e) {
 						logger.print(Logger.ERROR, "Socket Timeout on received file! Resending Ack!");
 						sendACK(lastPacket);
@@ -100,7 +100,7 @@ public class TFTPNetworking {
 						continue;
 					}
 					
-					lastPacket = recvPacket;
+					lastPacket = receivePacket;
 					if (errorChecker == null) {
 						errorChecker = new ErrorChecker(new DataPacket(lastPacket));
 						errorChecker.incrementExpectedBlockNumber();
@@ -125,15 +125,47 @@ public class TFTPNetworking {
 					lastPacket.setData(packetBuffer);
 				}
 				if(retriesExceeded) break;
-				errorChecker.incrementExpectedBlockNumber();
+				
+				
 				
 				DataPacket vDataPacketBuilder = new DataPacket(lastPacket);
 				vEmptyData = vDataPacketBuilder.getDataBuffer();
 
 				vHasMore = storage.saveFileByteBufferToDisk(vEmptyData);
+				if(vHasMore) errorChecker.incrementExpectedBlockNumber();
 				sendACK(lastPacket);
 			}
+			// Wait on last DATA in case of the last data was lost.
+			socket.setSoTimeout(Configurations.TRANMISSION_TIMEOUT * 2);
+			while(true) {
+				try{
+					
+					byte[] data = new byte[Configurations.MAX_BUFFER];
+					receivePacket = new DatagramPacket(data, data.length);
+					socket.receive(receivePacket);
+					lastPacket = receivePacket;
+					DataPacket receivedPacket = new DataPacket(lastPacket);
+					error = errorChecker.check(receivedPacket, RequestType.DATA);
+					logger.print(Logger.VERBOSE, Strings.RECEIVED);
+					BufferPrinter.printPacket(receivedPacket, logger, RequestType.DATA);
+					
+					if (error.getType() == ErrorType.NO_ERROR) {
+						sendACK(lastPacket);
+						break;
+					}
+					
+					if (error.getType() == ErrorType.SORCERERS_APPRENTICE) sendACK(lastPacket);
+					if (errorHandle(error, lastPacket, RequestType.DATA)) return error;
+				} catch (SocketTimeoutException e) {
+					if(++retries == Configurations.RETRANMISSION_TRY) {
+						logger.print(Logger.ERROR, String.format("Retransmission retried %d times, send file considered done.", retries));
+						retriesExceeded = true;
+						break;
+					}
+				}
+			}
 			
+			socket.setSoTimeout(Configurations.TRANMISSION_TIMEOUT);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}

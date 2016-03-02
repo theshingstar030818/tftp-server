@@ -77,6 +77,7 @@ public class Strings {
 	public static final String ES_TRANSFER_SUCCESS = "Finished transfer and shutting down. \n --- Press enter key to continue to menu ---";
 	public static final String ES_RETRIEVE_PACKET_CLIENT = "Preparing to retrieve packet from client.";
 	public static final String ES_SEND_PACKET_CLIENT = "Preparing to send packet to client.";
+	public static final String ES_SEND_PACKET_SERVER = "Preparing to send packet to the server.";
 	public static final String ES_GOT_LAST_PACKET_WRQ = "Got last write packet, fwding ACK to client";
 	public static final String ES_RETRIEVE_PACKET_SERVER = "Preparing to retrieve packet from server.";
 
