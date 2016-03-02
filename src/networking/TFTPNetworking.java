@@ -76,7 +76,7 @@ public class TFTPNetworking {
 		socket = vSocket;
 		TFTPErrorMessage error;
 		DatagramPacket recvPacket = new DatagramPacket(new byte[Configurations.MAX_BUFFER], Configurations.MAX_BUFFER);
-		
+		boolean retriesExceeded = false;
 		try {
 			byte[] vEmptyData = new byte[Configurations.MAX_BUFFER];
 			boolean vHasMore = true;
@@ -84,13 +84,18 @@ public class TFTPNetworking {
 				while (true) {
 					try { 
 						socket.receive(recvPacket);
-						System.out.println("time out is " + socket.getSoTimeout());
 					} catch (SocketTimeoutException e) {
 						logger.print(Logger.ERROR, "Socket Timeout on received file! Resending Ack!");
 						sendACK(lastPacket);
 						System.err.println("Sent a timeout packet.");
 						if(++retries == Configurations.RETRANMISSION_TRY) {
-							logger.print(Logger.ERROR, String.format("Retransmission retried $d times, giving up due to network error.", retries));
+							if(vHasMore) {
+								logger.print(Logger.ERROR, String.format("Retries exceeded on last packet. Last Packet was lost. Otherside must had gotten finished with blocks."));
+							} else {
+								logger.print(Logger.ERROR, String.format("Retransmission retried %d times, giving up due to network error.", retries));
+							}
+							retriesExceeded = true;
+							break;
 						}
 						continue;
 					}
@@ -108,11 +113,7 @@ public class TFTPNetworking {
 					
 					
 					if (error.getType() == ErrorType.NO_ERROR) break;
-					if (error.getType() == ErrorType.SORCERERS_APPRENTICE) {
-						//socket.setSoTimeout(0);
-						System.err.println("Sent a SA packet.");
-						sendACK(lastPacket);
-					}
+					if (error.getType() == ErrorType.SORCERERS_APPRENTICE) sendACK(lastPacket);
 					if (errorHandle(error, lastPacket, RequestType.DATA)) return error;
 				}
 				retries = 0;
@@ -123,14 +124,13 @@ public class TFTPNetworking {
 					System.arraycopy(lastPacket.getData(), 0, packetBuffer, 0, realPacketSize);
 					lastPacket.setData(packetBuffer);
 				}
-				
+				if(retriesExceeded) break;
 				errorChecker.incrementExpectedBlockNumber();
 				
 				DataPacket vDataPacketBuilder = new DataPacket(lastPacket);
 				vEmptyData = vDataPacketBuilder.getDataBuffer();
 
 				vHasMore = storage.saveFileByteBufferToDisk(vEmptyData);
-				System.err.println("Sent a normal ACK.");
 				sendACK(lastPacket);
 			}
 			
@@ -150,7 +150,8 @@ public class TFTPNetworking {
 				Configurations.MAX_MESSAGE_SIZE, lastPacket.getAddress(), lastPacket.getPort());
 		try {
 			byte[] vEmptyData = new byte[Configurations.MAX_BUFFER];
-			TFTPErrorMessage error;			
+			TFTPErrorMessage error;	
+			boolean retriesExceeded = false;
 			while (vEmptyData != null && vEmptyData.length >= Configurations.MAX_PAYLOAD_BUFFER ){
 				
 				vEmptyData = storage.getFileByteBufferFromDisk();
@@ -168,13 +169,20 @@ public class TFTPNetworking {
 					byte[] data = new byte[Configurations.MAX_BUFFER];
 					receivePacket = new DatagramPacket(data, data.length);
 					try {
-						
 						socket.receive(receivePacket);
-						
 					} catch (SocketTimeoutException e) {
 						logger.print(Logger.ERROR, "Socket Timeout on send file! Resending Data!");
 						BufferPrinter.printPacket(vDataPacket, Logger.VERBOSE, RequestType.DATA);
 						socket.send(vSendPacket);
+						if(++retries == Configurations.RETRANMISSION_TRY) {
+							if(vEmptyData.length < Configurations.MAX_PAYLOAD_BUFFER ) {
+								logger.print(Logger.ERROR, String.format("Retries exceeded on last packet. Last Packet was lost. Otherside must had gotten finished with blocks."));
+							} else {
+								logger.print(Logger.ERROR, String.format("Retransmission retried %d times, giving up due to network error.", retries));
+							}
+							retriesExceeded = true;
+							break;
+						}
 						continue;
 					}
 					ackPacket = new AckPacket(receivePacket);
@@ -190,6 +198,8 @@ public class TFTPNetworking {
 					}
 					if (errorHandle(error, receivePacket, RequestType.ACK)) return error; 
 				}
+				if(retriesExceeded) break;
+				retries = 0;
 				errorChecker.incrementExpectedBlockNumber();
 				lastPacket = receivePacket;
 			}
