@@ -183,7 +183,7 @@ public class TFTPUserInterface {
 		switch(transmissionError) {
 		case 1:
 			// lose packet
-			System.out.println(UIStrings.MENU_ERROR_SIMULATOR_PROMPT_NUM_PACKET);
+			System.out.println(String.format(UIStrings.MENU_ERROR_SIMULATOR_PROMPT_NUM_PACKET, "lose"));
 			this.mNumPktToFkWit = Keyboard.getInteger();
 			System.out.println(UIStrings.MENU_ERROR_SIMULATOR_PROMPT_TYPE);
 			this.mOpCodeToMessWith = Keyboard.getInteger();
@@ -201,10 +201,8 @@ public class TFTPUserInterface {
 			break;
 		case 3:
 			// duplicate
-			System.out.println(UIStrings.MENU_ERROR_SIMULATOR_PROMPT_AMOUNT);
+			System.out.println(String.format(UIStrings.MENU_ERROR_SIMULATOR_PROMPT_NUM_PACKET, "duplicate"));
 			this.mNumPktToFkWit = Keyboard.getInteger();
-			System.out.println(UIStrings.MENU_ERROR_SIMULATOR_PROMPT_FREQUENCY);
-			this.mSpaceOfDelay = Keyboard.getInteger();
 			System.out.println(UIStrings.MENU_ERROR_SIMULATOR_PROMPT_TYPE);
 			this.mOpCodeToMessWith = Keyboard.getInteger();
 			break;
