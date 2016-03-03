@@ -106,6 +106,7 @@ public class TFTPClient {
 						break;
 					}
 					result= net.generateInitWRQ(writeFileNameOrFilePath, this.mPortToSendTo);
+					if (result == null) break;
 					if ((result.getType() == ErrorType.NO_ERROR) || 
 							(result.getType() == ErrorType.SORCERERS_APPRENTICE)) {
 						result = net.sendFile();

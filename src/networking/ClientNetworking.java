@@ -53,6 +53,7 @@ public class ClientNetworking extends TFTPNetworking {
 			lastPacket = lastWritePacket;
 			logger.print(logger, Strings.SENDING);
 			BufferPrinter.printPacket(wpb, logger, RequestType.WRQ);
+			int attempts = 0;
 			while (true) {
 				socket.send(lastPacket);
 				try {
