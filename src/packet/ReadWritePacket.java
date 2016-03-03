@@ -162,6 +162,7 @@ public class ReadWritePacket extends Packet {
 			}
 		}
 		byte[] fileNameBytes = new byte[endIndexForFilename];
+		System.out.println(this.mBuffer.length - endIndexForFilename - 4);
 		byte[] modeStringBytes = new byte[this.mBuffer.length - endIndexForFilename - 4];
 
 		System.arraycopy(this.mBuffer, 2, fileNameBytes, 0, endIndexForFilename);

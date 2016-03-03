@@ -125,9 +125,7 @@ public class TFTPNetworking {
 					lastPacket.setData(packetBuffer);
 				}
 				if(retriesExceeded) break;
-				
-				
-				
+
 				DataPacket vDataPacketBuilder = new DataPacket(lastPacket);
 				vEmptyData = vDataPacketBuilder.getDataBuffer();
 
@@ -244,7 +242,7 @@ public class TFTPNetworking {
 		return new TFTPErrorMessage(ErrorType.NO_ERROR, Strings.NO_ERROR);
 	}
 	
-	private void sendACK(DatagramPacket packet) {
+	protected void sendACK(DatagramPacket packet) {
 		logger.print(Logger.VERBOSE, Strings.SENDING);
 		AckPacket ackPacket = new AckPacket(packet);
 		ackPacket.buildPacket();

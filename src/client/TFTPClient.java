@@ -22,7 +22,6 @@ import types.*;
  */
 public class TFTPClient {
 
-	private DatagramSocket sendReceiveSocket;
 	private boolean isClientAlive = true;
 	private final String CLASS_TAG = "<TFTP Client>";
 	private int mPortToSendTo;
@@ -77,16 +76,14 @@ public class TFTPClient {
 					try {
 						TFTPErrorMessage result;
 						do {
-							net.generateInitRRQ(readFileName, this.mPortToSendTo);
+							result = net.generateInitRRQ(readFileName, this.mPortToSendTo);
+							if(result.getType() != ErrorType.NO_ERROR) break;
 							result = net.receiveFile();
 						} while(result == null);
 						
 						if (result.getType() != ErrorType.NO_ERROR) {
 							logger.print(Logger.ERROR, Strings.TRANSFER_FAILED);
 							logger.print(Logger.ERROR, result.getString());
-							if (!sendReceiveSocket.isClosed()) {
-								sendReceiveSocket.close();
-							}
 						} else {
 							logger.print(Logger.VERBOSE, Strings.TRANSFER_SUCCESSFUL);
 						}

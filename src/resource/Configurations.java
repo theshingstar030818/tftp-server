@@ -27,7 +27,7 @@ public class Configurations {
 	public static final String SERVER_INET_HOST = "localhost";
 	public static final int ERROR_PACKET_USELESS_VALUES = 5;
 	public static final int TRANMISSION_TIMEOUT = 1000; // 1000 ms
-	public static final int RETRANMISSION_TRY = 3;
+	public static final int RETRANMISSION_TRY = 2;
 	
 	/* Important keys for Error Simulator command */
 	public static final String MAIN_ERROR = "MAIN_ERROR_SELECTION";
