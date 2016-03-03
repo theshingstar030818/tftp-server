@@ -94,6 +94,8 @@ public class TFTPNetworking {
 							} else {
 								logger.print(Logger.ERROR, String.format("Retransmission retried %d times, giving up due to network error.", retries));
 							}
+							if (errorChecker.getExpectedBlockNumber() == 0) // Timeout on first block.
+								return null;
 							retriesExceeded = true;
 							break;
 						}
