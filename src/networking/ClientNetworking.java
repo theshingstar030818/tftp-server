@@ -52,6 +52,7 @@ public class ClientNetworking extends TFTPNetworking {
 			lastPacket = wpb.buildPacket();
 			logger.print(logger, Strings.SENDING);
 			BufferPrinter.printPacket(wpb, logger, RequestType.WRQ);
+			int attempts = 0;
 			while (true) {
 				socket.send(lastPacket);
 				try {
@@ -62,6 +63,10 @@ public class ClientNetworking extends TFTPNetworking {
 					wrqFirstAck = new AckPacket(lastPacket);
 					BufferPrinter.printPacket(wrqFirstAck, Logger.VERBOSE, RequestType.ACK);
 				} catch (SocketTimeoutException e) {
+					if (++attempts == Configurations.RETRANMISSION_TRY) {
+						System.out.println("Unable to connect to server.");
+						return null;
+					}
 					continue;
 				}
 				break;
