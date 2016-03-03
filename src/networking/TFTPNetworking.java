@@ -111,7 +111,6 @@ public class TFTPNetworking {
 					logger.print(Logger.VERBOSE, Strings.RECEIVED);
 					BufferPrinter.printPacket(receivedPacket, logger, RequestType.DATA);
 					
-					
 					if (error.getType() == ErrorType.NO_ERROR) break;
 					if (error.getType() == ErrorType.SORCERERS_APPRENTICE) sendACK(lastPacket);
 					if (errorHandle(error, lastPacket, RequestType.DATA)) return error;
@@ -228,8 +227,8 @@ public class TFTPNetworking {
 					
 					error = errorChecker.check(ackPacket, RequestType.ACK);
 					if (error.getType() == ErrorType.NO_ERROR) break; 
+					if (error.getType() == ErrorType.ILLEGAL_OPERATION)
 					if (error.getType() == ErrorType.SORCERERS_APPRENTICE) {
-						//socket.setSoTimeout(0);
 						continue;
 					}
 					if (errorHandle(error, receivePacket, RequestType.ACK)){
@@ -287,6 +286,11 @@ public class TFTPNetworking {
 					if (recvType == RequestType.DATA)
 						sendACK(packet);
 					return false;
+				}
+				
+				if (error.getString().equals(Strings.UNKNOWN_TRANSFER)) {
+					System.out.println("Other host no longer connected.");
+					return true;
 				}
 				
 				DatagramPacket illegalOpsError = errorPacket.buildPacket(ErrorType.ILLEGAL_OPERATION,
