@@ -11,6 +11,7 @@ import java.net.UnknownHostException;
 import helpers.BufferPrinter;
 import helpers.FileStorageService;
 import packet.AckPacket;
+import packet.DataPacket;
 import packet.ReadPacket;
 import packet.ReadWritePacket;
 import packet.WritePacket;
@@ -48,8 +49,8 @@ public class ClientNetworking extends TFTPNetworking {
 			wpb = new WritePacket(InetAddress.getLocalHost(), portToSendTo, storage.getFileName(),
 					Configurations.DEFAULT_RW_MODE);
 			fileName = storage.getFileName();
-
-			lastPacket = wpb.buildPacket();
+			DatagramPacket lastWritePacket = wpb.buildPacket();
+			lastPacket = lastWritePacket;
 			logger.print(logger, Strings.SENDING);
 			BufferPrinter.printPacket(wpb, logger, RequestType.WRQ);
 			int attempts = 0;
@@ -63,10 +64,14 @@ public class ClientNetworking extends TFTPNetworking {
 					wrqFirstAck = new AckPacket(lastPacket);
 					BufferPrinter.printPacket(wrqFirstAck, Logger.VERBOSE, RequestType.ACK);
 				} catch (SocketTimeoutException e) {
+
 					if (++attempts == Configurations.RETRANMISSION_TRY) {
 						System.out.println("Unable to connect to server.");
 						return null;
 					}
+
+					lastPacket = lastWritePacket;
+
 					continue;
 				}
 				break;
@@ -95,7 +100,7 @@ public class ClientNetworking extends TFTPNetworking {
 	 * @param readFileName
 	 *            - the name of the file that the client requests from server
 	 */
-	public void generateInitRRQ(String fn, int portToSendTo) {
+	public TFTPErrorMessage generateInitRRQ(String fn, int portToSendTo) {
 		try {
 			logger.print(logger, Strings.CLIENT_INITIATING_FIE_STORAGE_SERVICE);
 			fileName = fn;
@@ -107,23 +112,51 @@ public class ClientNetworking extends TFTPNetworking {
 			}
 			// build read request packet
 
-			ReadPacket rpb;
-
-			rpb = new ReadPacket(InetAddress.getLocalHost(), portToSendTo, fileName, Configurations.DEFAULT_RW_MODE);
-
+			ReadPacket rpb = new ReadPacket(InetAddress.getLocalHost(), portToSendTo, fileName, Configurations.DEFAULT_RW_MODE);
+			DatagramPacket lastReadPacket = rpb.buildPacket();
 			// now get the packet from the ReadPacket
-			lastPacket = rpb.buildPacket();
-
-			logger.print(logger, Strings.SENDING);
-			BufferPrinter.printPacket(rpb, logger, RequestType.RRQ);
-			// send the read packet over sendReceiveSocket
-			socket.send(lastPacket);
+			lastPacket = lastReadPacket;
+			while (true) {
+				try {
+					logger.print(logger, Strings.SENDING);
+					BufferPrinter.printPacket(rpb, logger, RequestType.RRQ);
+					// send the read packet over sendReceiveSocket
+					socket.send(lastPacket);
+					lastPacket = new DatagramPacket(new byte[Configurations.MAX_MESSAGE_SIZE],
+							Configurations.MAX_MESSAGE_SIZE, lastPacket.getAddress(), lastPacket.getPort());
+					socket.receive(lastPacket);
+					break;
+				} catch (SocketTimeoutException e) {
+					lastPacket = lastReadPacket;
+					if(++retries == Configurations.RETRANMISSION_TRY) {
+						logger.print(Logger.ERROR, String.format("Retransmission retried %d times, send file considered done.", retries));
+						return new TFTPErrorMessage(ErrorType.TRANSMISSION_ERROR, "Network error, could not connect to server.");
+					}
+					logger.print(Logger.VERBOSE, "Time out occured, resending RRQ.");
+					continue;
+				}
+			}
+			if (errorChecker == null) {
+				errorChecker = new ErrorChecker(new DataPacket(lastPacket));
+				errorChecker.incrementExpectedBlockNumber();
+			}
+			DataPacket receivedPacket = new DataPacket(lastPacket);
+			TFTPErrorMessage error = errorChecker.check(receivedPacket, RequestType.DATA);
+			logger.print(Logger.VERBOSE, Strings.RECEIVED);
+			BufferPrinter.printPacket(receivedPacket, logger, RequestType.DATA);
+			
+			if (error.getType() == ErrorType.NO_ERROR) return new TFTPErrorMessage(ErrorType.NO_ERROR, "Giddy up.");
+			if (error.getType() == ErrorType.SORCERERS_APPRENTICE) super.sendACK(lastPacket);
+			if (errorHandle(error, lastPacket, RequestType.DATA)) return error;
+			errorChecker.incrementExpectedBlockNumber();
 
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
+		retries = 0;
+		return new TFTPErrorMessage(ErrorType.NO_ERROR, "Giddy up.");
 	}
 
 }
