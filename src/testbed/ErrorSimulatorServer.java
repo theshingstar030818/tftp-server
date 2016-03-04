@@ -91,6 +91,7 @@ public class ErrorSimulatorServer implements Callback {
 					receivePacket = new DatagramPacket(buffer, buffer.length);
 					logger.print(Logger.VERBOSE, "Waiting on timeout from client during delayed initiating packet.");
 					errorSimulatorSock.receive(receivePacket);
+					System.out.println(String.format("Synchronizing with %s thread.", "blah"));
 					synchronized (vLastThread) {
 						vLastThread.addWorkToFrontOfQueue(receivePacket);
 					}

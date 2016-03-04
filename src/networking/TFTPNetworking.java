@@ -92,7 +92,7 @@ public class TFTPNetworking {
 							if(vHasMore) {
 								logger.print(Logger.ERROR, String.format("Retries exceeded on last packet. Last Packet was lost. Otherside must had gotten finished with blocks."));
 							} else {
-								logger.print(Logger.ERROR, String.format("Retransmission retried %d times, giving up due to network error.", retries));
+								logger.print(Logger.ERROR, String.format("Retransmission retried %d times, no reply, shutting down.", retries));
 							}
 							if (errorChecker.getExpectedBlockNumber() == 0) // Timeout on first block.
 								return null;

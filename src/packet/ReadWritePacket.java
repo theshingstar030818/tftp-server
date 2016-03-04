@@ -145,31 +145,34 @@ public class ReadWritePacket extends Packet {
 	 * These attributes can be get grabbed through getter functions
 	 */
 	private void deconstructBuffer() {
-		StringBuilder modeName = new StringBuilder();
-		boolean fileNameDone = false;
-		boolean startDeconstructingMode = false;
-		int endIndexForFilename = 0;
-		for (int i = 2; i < this.mBuffer.length - 1; ++i) {
-			if (startDeconstructingMode) {
-				modeName.append(this.mBuffer[i]);
+		try {
+			StringBuilder modeName = new StringBuilder();
+			boolean fileNameDone = false;
+			boolean startDeconstructingMode = false;
+			int endIndexForFilename = 0;
+			for (int i = 2; i < this.mBuffer.length - 1; ++i) {
+				if (startDeconstructingMode) {
+					modeName.append(this.mBuffer[i]);
+				}
+				if (this.mBuffer[i] == 0) {
+					fileNameDone = true;
+					startDeconstructingMode = true;
+				}
+				if (!fileNameDone) {
+					++endIndexForFilename;
+				}
 			}
-			if (this.mBuffer[i] == 0) {
-				fileNameDone = true;
-				startDeconstructingMode = true;
-			}
-			if (!fileNameDone) {
-				++endIndexForFilename;
-			}
+			byte[] fileNameBytes = new byte[endIndexForFilename];
+			byte[] modeStringBytes = new byte[this.mBuffer.length - endIndexForFilename - 4];
+
+			System.arraycopy(this.mBuffer, 2, fileNameBytes, 0, endIndexForFilename);
+			System.arraycopy(this.mBuffer, endIndexForFilename + 3, modeStringBytes, 0, modeStringBytes.length);
+
+			this.mFilename = new String(fileNameBytes);
+			this.mMode = ModeType.matchModeFromString(new String(modeStringBytes));
+		} catch (Exception e) {
+
 		}
-		byte[] fileNameBytes = new byte[endIndexForFilename];
-		System.out.println(this.mBuffer.length - endIndexForFilename - 4);
-		byte[] modeStringBytes = new byte[this.mBuffer.length - endIndexForFilename - 4];
-
-		System.arraycopy(this.mBuffer, 2, fileNameBytes, 0, endIndexForFilename);
-		System.arraycopy(this.mBuffer, endIndexForFilename + 3, modeStringBytes, 0, modeStringBytes.length);
-
-		this.mFilename = new String(fileNameBytes);
-		this.mMode = ModeType.matchModeFromString(new String(modeStringBytes));
 	}
 
 	/*
