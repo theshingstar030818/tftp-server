@@ -432,6 +432,21 @@ public class ErrorSimulatorService implements Runnable {
 				System.err.println("Attempting to lose packet.");
 				this.mPacketSendQueue.pop();
 				
+				if (this.mPacketOpCode == RequestType.ERROR) {
+					byte[] data = this.mLastPacket.getData();
+					this.directPacketToDestination();
+					data[1]+=10;
+					this.mLastPacket.setData(data);
+					try {
+						
+						forwardPacketToSocket(this.mLastPacket);
+						this.mLastPacket = this.retrievePacketFromSocket();
+						return;
+					} catch (IOException e) {
+						e.printStackTrace();
+					}
+				}
+				
 				if (mInPacket.getBlockNumber() == -1 && (mInPacket.getRequestType() == this.mInitialRequestType)) {
 					logger.print(Logger.VERBOSE, "Lost first request, unable to satisfy client on this thread due it's connection was from port 68.");
 					this.END_THREAD = true;
@@ -447,7 +462,6 @@ public class ErrorSimulatorService implements Runnable {
 						break;
 					}
 				} catch (SocketException e1) {
-					// TODO Auto-generated catch block
 					e1.printStackTrace();
 				}
 			
@@ -477,6 +491,25 @@ public class ErrorSimulatorService implements Runnable {
 				logger.print(Logger.ERROR,
 						String.format("Attempting to delay a packet with op code %d.", inPacket.getData()[1]));
 				// Delay a packet
+				if (this.mPacketOpCode == RequestType.ERROR) {
+					byte[] data = this.mLastPacket.getData();
+					this.directPacketToDestination();
+					data[1]+=10;
+					this.mLastPacket.setData(data);
+					try {
+						forwardPacketToSocket(this.mLastPacket);
+						this.mLastPacket = this.retrievePacketFromSocket();
+						System.out.println("Delaying error packet.");
+						TransmissionError transmissionError = new TransmissionError(this.mPacketSendQueue.pop(),
+								this.mErrorSettings.getTransmissionErrorFrequency(), this);
+						Thread delayPacketThread = new Thread(transmissionError);
+						delayPacketThread.start();
+						return;
+					} catch (IOException e) {
+						e.printStackTrace();
+					}
+				}
+				
 				TransmissionError transmissionError = new TransmissionError(this.mPacketSendQueue.pop(),
 						this.mErrorSettings.getTransmissionErrorFrequency(), this);
 				Thread delayPacketThread = new Thread(transmissionError);
@@ -503,6 +536,26 @@ public class ErrorSimulatorService implements Runnable {
 				logger.print(Logger.ERROR,
 						String.format("Attempting to duplicate a packet with op code %d.", inPacket.getData()[1]));
 				directPacketToDestination();
+				
+				if (this.mPacketOpCode == RequestType.ERROR) {
+					byte[] data = this.mLastPacket.getData();
+					this.directPacketToDestination();
+					data[1]+=10;
+					this.mLastPacket.setData(data);
+					try {
+						forwardPacketToSocket(this.mLastPacket);
+						this.mLastPacket = this.retrievePacketFromSocket();
+						this.directPacketToDestination();
+						//DatagramPacket newPacket = new DatagramPacket(this.mLastPacket.getData(), this.mLastPacket.getLength(), 
+						//		this.mLastPacket.getAddress(), this.mLastPacket.getPort());
+						forwardPacketToSocket(this.mLastPacket);
+						forwardPacketToSocket(this.mLastPacket);
+						return;
+					} catch (IOException e) {
+						e.printStackTrace();
+					}
+				}
+				
 				try {
 					directPacketToDestination();
 					this.mLastPacket = this.mPacketSendQueue.peek();
