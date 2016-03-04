@@ -119,6 +119,7 @@ public class ErrorSimulatorServer implements Callback {
 				} 
 				
 				this.mErrorOptionSettings = this.mErrorUI.getErrorCodeFromUser(testInstance);
+				//if (this.mErrorOptionSettings.getTransmissionErrorType())
 				this.LETS_GO = true;
 				if (this.mErrorOptionSettings.getMainErrorFamily() == ErrorType.EXIT) {
 					active.set(false);
