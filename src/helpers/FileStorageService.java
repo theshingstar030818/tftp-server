@@ -256,4 +256,10 @@ public class FileStorageService {
 			e.printStackTrace();
 		}
 	}
+	
+	/** Deletes file from disk*/
+	public void deleteFileFromDisk(){
+		File f = new File(this.mFilePath);
+		f.delete();
+	}
 }

@@ -92,7 +92,11 @@ public class TFTPNetworking {
 							if(vHasMore) {
 								logger.print(Logger.ERROR, String.format("Retries exceeded on last packet. Last Packet was lost. Otherside must had gotten finished with blocks."));
 							} else {
+
+								logger.print(Logger.ERROR, String.format("Re-transmission retried %d times, giving up due to network error.", retries));
+
 								logger.print(Logger.ERROR, String.format("Retransmission retried %d times, no reply, shutting down.", retries));
+
 							}
 							if (errorChecker.getExpectedBlockNumber() == 0) // Timeout on first block.
 								return null;
@@ -154,7 +158,11 @@ public class TFTPNetworking {
 					}
 					
 					if (error.getType() == ErrorType.SORCERERS_APPRENTICE) sendACK(lastPacket);
-					if (errorHandle(error, lastPacket, RequestType.DATA)) return error;
+					if (errorHandle(error, lastPacket, RequestType.DATA)){
+						this.storage.deleteFileFromDisk();
+						this.storage.finishedTransferingFile();
+						return error;
+					}
 				} catch (SocketTimeoutException e) {
 					if(++retries == Configurations.RETRANMISSION_TRY) {
 						logger.print(Logger.ERROR, String.format("Retransmission retried %d times, send file considered done.", retries));
@@ -227,7 +235,10 @@ public class TFTPNetworking {
 					if (error.getType() == ErrorType.SORCERERS_APPRENTICE) {
 						continue;
 					}
-					if (errorHandle(error, receivePacket, RequestType.ACK)) return error; 
+					if (errorHandle(error, receivePacket, RequestType.ACK)){
+						
+						return error; 
+					}
 				}
 				if(retriesExceeded) break;
 				retries = 0;

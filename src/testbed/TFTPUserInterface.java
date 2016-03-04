@@ -221,7 +221,7 @@ public class TFTPUserInterface {
 		int subOpt;
 		boolean validInput = false;
 		Set<Integer> nonValidChoices = new HashSet<>();
-		if (instance == InstanceType.CLIENT) {
+		if (instance == InstanceType.CLIENT && !(mUserErrorOption==ErrorType.TRANSMISSION_ERROR)) {
 			nonValidChoices.add(1);
 			nonValidChoices.add(2);
 			nonValidChoices.add(3);

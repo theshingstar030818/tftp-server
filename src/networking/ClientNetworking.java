@@ -64,7 +64,14 @@ public class ClientNetworking extends TFTPNetworking {
 					wrqFirstAck = new AckPacket(lastPacket);
 					BufferPrinter.printPacket(wrqFirstAck, Logger.VERBOSE, RequestType.ACK);
 				} catch (SocketTimeoutException e) {
+
+					if (++attempts == Configurations.RETRANMISSION_TRY) {
+						System.out.println("Unable to connect to server.");
+						return null;
+					}
+
 					lastPacket = lastWritePacket;
+
 					continue;
 				}
 				break;
