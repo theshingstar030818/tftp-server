@@ -71,8 +71,17 @@ public class TFTPClient {
 				case 1:
 					// Read file
 					net = new ClientNetworking();
-					logger.print(logger, Strings.PROMPT_ENTER_FILE_NAME);
-					String readFileName = Keyboard.getString();
+					String readFileName;
+					while(true){
+						logger.print(logger, Strings.PROMPT_ENTER_FILE_NAME);
+						readFileName = Keyboard.getString();
+					
+						if(ErrorChecker.isValidFilename(readFileName)){
+							break;
+						}
+						System.out.println("Invalid entry. So, re-prompting");	
+					}
+						
 					try {
 						TFTPErrorMessage result;
 						do {
@@ -97,8 +106,17 @@ public class TFTPClient {
 				case 2:
 					// Write file
 					net = new ClientNetworking();
-					logger.print(logger, Strings.PROMPT_FILE_NAME_PATH);
-					String writeFileNameOrFilePath = Keyboard.getString();
+					String writeFileNameOrFilePath;
+					
+					while(true){
+						logger.print(logger, Strings.PROMPT_FILE_NAME_PATH);
+						writeFileNameOrFilePath = Keyboard.getString();
+						if(ErrorChecker.isValidFilename(writeFileNameOrFilePath)){
+							break;
+						}
+						System.out.println("Invalid entry. So, re-prompting");	
+					}
+					
 					TFTPErrorMessage result = null;
 					File f = new File(writeFileNameOrFilePath);
 					if (!f.exists() || f.isDirectory()) {

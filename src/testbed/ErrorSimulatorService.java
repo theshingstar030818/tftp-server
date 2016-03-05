@@ -193,7 +193,7 @@ public class ErrorSimulatorService implements Runnable {
 		try {
 			// Wait on last ACK in case of the last data was lost.
 			System.out.println("Preparing to handle last ACK");
-			this.mSendReceiveSocket.setSoTimeout(Configurations.TRANMISSION_TIMEOUT * 6);
+			this.mSendReceiveSocket.setSoTimeout(Configurations.TRANMISSION_TIMEOUT * 2);
 			while(true) {
 				try{	
 					if (this.mInitialRequestType == RequestType.WRQ) {
@@ -447,8 +447,7 @@ public class ErrorSimulatorService implements Runnable {
 				
 				if (mInPacket.getBlockNumber() != this.mPacketBlock || mInPacket.getRequestType() != this.mPacketOpCode
 						|| this.mLostPacketPerformed) {
-					System.err.println(String.format("%d =? %d %d =? %d", mInPacket.getBlockNumber(),this.mPacketBlock, 
-							mInPacket.getRequestType().getOptCode(), this.mPacketOpCode.getOptCode() ));
+					logger.print(this.logger, "Not going to simulate error on this packet");
 					return;
 				}
 				System.err.println("Attempting to lose packet.");
