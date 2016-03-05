@@ -79,7 +79,7 @@ public class TFTPClient {
 						if(ErrorChecker.isValidFilename(readFileName)){
 							break;
 						}
-						System.out.println("Invalid entry. So, re-prompting");	
+						System.out.println("Invalid entry. So, re-prompting\n");	
 					}
 						
 					try {
@@ -109,7 +109,6 @@ public class TFTPClient {
 
 					logger.print(logger, Strings.PROMPT_FILE_NAME_PATH);
 					String writeFileNameOrFilePath = Keyboard.getString();
-			
 					
 					TFTPErrorMessage result = null;
 					File f = new File(writeFileNameOrFilePath);
