@@ -44,6 +44,18 @@ public class FileStorageService {
 		initializeNewFileChannel(fileNameOrFilePath);
 	}
 	
+	/**
+	 * This file encapsulates all disk IO operations that is required to 
+	 * read and write files. This classes should be created and destroyed 
+	 * each time the client class needs to operate on one file.
+	 * 
+	 * This function differs as it is primarily used for further customization of
+	 * client or server configurations
+	 *
+	 * @param fileNameOrFilePath - given to initialize this class for use on one file
+	 * @param instanceType	     - client or server
+	 * @throws FileNotFoundException
+	 */
 	public FileStorageService(String fileNameOrFilePath, InstanceType instanceType) throws FileNotFoundException {
 		
 		this.mDefaultStorageFolder = instanceType == InstanceType.CLIENT ? Configurations.CLIENT_ROOT_FILE_DIRECTORY : 
@@ -260,6 +272,11 @@ public class FileStorageService {
 	/** Deletes file from disk*/
 	public void deleteFileFromDisk(){
 		File f = new File(this.mFilePath);
-		f.delete();
+		System.out.println("Delete failed file transfer from path: " +this.mFilePath);
+		if(f.exists()) {
+			f.delete();
+		} else {
+			System.err.println("Tried to delete a file that does not exist.");
+		}
 	}
 }

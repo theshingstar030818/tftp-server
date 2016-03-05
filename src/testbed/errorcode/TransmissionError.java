@@ -17,12 +17,22 @@ public class TransmissionError implements Runnable {
 	protected ErrorSimulatorService mActiveMonitor;
 	protected int mFrozenMillis;
 	
+	/**
+	 * Construct this class with basic parameters needed
+	 * 
+	 * @param inPacket
+	 * @param ms
+	 * @param monitor
+	 */
 	public TransmissionError(DatagramPacket inPacket, int ms, ErrorSimulatorService monitor) {
 		this.mPacket = inPacket;
 		this.mActiveMonitor = monitor;
 		this.mFrozenMillis = ms;
 	}
 
+	/* (non-Javadoc)
+	 * @see java.lang.Runnable#run()
+	 */
 	@Override
 	public void run() {
 		try {

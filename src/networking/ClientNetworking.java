@@ -3,6 +3,7 @@ package networking;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.DatagramPacket;
+import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.SocketException;
 import java.net.SocketTimeoutException;
@@ -24,11 +25,50 @@ import types.InstanceType;
 import types.Logger;
 import types.RequestType;
 
+/**
+ * @author Team 3
+ * 
+ *         This class is responsible for handling all network aspects for the
+ *         client. ClientNetworking is a custom tailored version of
+ *         TFTPNetworking class which defines a new set initialization
+ *         functionality.
+ */
 public class ClientNetworking extends TFTPNetworking {
 
+	/**
+	 * See constructor from TFTPNetworking
+	 */
 	public ClientNetworking() {
+		super();
 	}
 
+	/**
+	 * See constructor from TFTPNetworking
+	 */
+	public ClientNetworking(ReadWritePacket p) {
+		super(p);
+	}
+
+	/**
+	 * See constructor from TFTPNetworking
+	 */
+	public ClientNetworking(ReadWritePacket p, DatagramSocket s) {
+		super(p, s);
+	}
+
+	/**
+	 * This function sets up the requirements for a write request. It takes care
+	 * of creating a file, initializing a channel to it, and streaming the first
+	 * byte block into the file. After connection is set up, this function
+	 * delegates the task of receiving files back to TFTPNetworking
+	 * 
+	 * @param fn
+	 *            - file name to process, this will be ensured a valid file name
+	 * @param portToSendTo
+	 *            - the port of send the request to
+	 * @return - TFTPErrorMessage with error type and error string (possible no
+	 *         error)
+	 */
 	public TFTPErrorMessage generateInitWRQ(String fn, int portToSendTo) {
 		TFTPErrorMessage error = null;
 		try {
@@ -94,11 +134,18 @@ public class ClientNetworking extends TFTPNetworking {
 	}
 
 	/**
-	 * This function create a read request for the client and stores the file
-	 * retrieved from the server on to the file system
+	 * This function create a initial read request for the client and stores the
+	 * file retrieved from the server on to the file system. It takes care of
+	 * creating a file, initializing a channel to it, and streaming the first
+	 * byte block into the file. After connection is set up, this function
+	 * delegates the task of receiving files back to TFTPNetworking
 	 * 
-	 * @param readFileName
+	 * @param fn
 	 *            - the name of the file that the client requests from server
+	 * @param portToSendTo
+	 *            - the port of send the request to
+	 * @return - TFTPErrorMessage with error type and error string (possible no
+	 *         error)
 	 */
 	public TFTPErrorMessage generateInitRRQ(String fn, int portToSendTo) {
 		try {
@@ -112,7 +159,8 @@ public class ClientNetworking extends TFTPNetworking {
 			}
 			// build read request packet
 
-			ReadPacket rpb = new ReadPacket(InetAddress.getLocalHost(), portToSendTo, fileName, Configurations.DEFAULT_RW_MODE);
+			ReadPacket rpb = new ReadPacket(InetAddress.getLocalHost(), portToSendTo, fileName,
+					Configurations.DEFAULT_RW_MODE);
 			DatagramPacket lastReadPacket = rpb.buildPacket();
 			// now get the packet from the ReadPacket
 			lastPacket = lastReadPacket;

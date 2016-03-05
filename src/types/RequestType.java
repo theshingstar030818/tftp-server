@@ -14,6 +14,10 @@ public enum RequestType {
 		public byte[] getHeaderByteArray() {
 			return new byte[] {0,1};
 		}
+		@Override
+		public String getRequestTypeString() {
+			return "RRQ";
+		}
 	},
 	WRQ {
 		@Override
@@ -23,6 +27,10 @@ public enum RequestType {
 		@Override
 		public byte[] getHeaderByteArray() {
 			return new byte[] {0,2};
+		}
+		@Override
+		public String getRequestTypeString() {
+			return "WRQ";
 		}
 	},
 	DATA {
@@ -34,6 +42,10 @@ public enum RequestType {
 		public byte[] getHeaderByteArray() {
 			return new byte[] {0,3};
 		}
+		@Override
+		public String getRequestTypeString() {
+			return "DATA";
+		}
 	},
 	ACK {
 		@Override
@@ -43,6 +55,10 @@ public enum RequestType {
 		@Override
 		public byte[] getHeaderByteArray() {
 			return new byte[] {0,4};
+		}
+		@Override
+		public String getRequestTypeString() {
+			return "ACK";
 		}
 	},
 	ERROR {
@@ -54,6 +70,10 @@ public enum RequestType {
 		public byte[] getHeaderByteArray() {
 			return new byte[] {0,5};
 		}
+		@Override
+		public String getRequestTypeString() {
+			return "ERROR";
+		}
 	},
 	NONE {
 		@Override
@@ -64,6 +84,11 @@ public enum RequestType {
 		// This is not a real Request Type
 		public byte[] getHeaderByteArray() {
 			return new byte[] {0,0};
+		}
+		
+		@Override
+		public String getRequestTypeString() {
+			return "NONE";
 		}
 	};
 	
@@ -100,6 +125,18 @@ public enum RequestType {
 	 */
 	public abstract byte[] getHeaderByteArray();
 	
+	/**
+	 * Get the opt code of the request type
+	 * 
+	 * @return
+	 */
 	public abstract int getOptCode();
 	
+	
+	/**
+	 * Gets the name of the request type
+	 * 
+	 * @return string name
+	 */
+	public abstract String getRequestTypeString();
 }

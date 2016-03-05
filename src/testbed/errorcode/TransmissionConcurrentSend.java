@@ -25,6 +25,17 @@ public class TransmissionConcurrentSend extends TransmissionError implements Run
 		private final String CLASS_TAG = "<Concurrent Send Thread>";
 		
 		
+		/**
+		 * This class constructor will set up a custom concurrent send operation 
+		 * 
+		 * @param inPacket
+		 * @param ms
+		 * @param monitor
+		 * @param logger
+		 * @param sAd
+		 * @param cAd
+		 * @param cPort
+		 */
 		public TransmissionConcurrentSend(DatagramPacket inPacket, int ms, ErrorSimulatorService monitor,
 				Logger logger, InetAddress sAd, InetAddress cAd, int cPort) {
 			super(inPacket, ms, monitor);
@@ -34,6 +45,9 @@ public class TransmissionConcurrentSend extends TransmissionError implements Run
 			this.logger = logger;
 		}
 
+		/* (non-Javadoc)
+		 * @see testbed.errorcode.TransmissionError#run()
+		 */
 		@Override
 		public void run() {
 			try {
@@ -45,6 +59,12 @@ public class TransmissionConcurrentSend extends TransmissionError implements Run
 			}
 		}
 		
+		/**
+		 * Handles one concurrent send activity which will generate an error code 5, unknown
+		 * transfer ID if the transfer has been started between the calling class
+		 * 
+		 * @param inPacket
+		 */
 		public void sendConcurrentPacket(DatagramPacket inPacket) {
 			logger.print(Logger.ERROR, "Preparing to handle delayed first packet.");
 		
