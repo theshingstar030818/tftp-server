@@ -66,7 +66,7 @@ public class ClientNetworking extends TFTPNetworking {
 				} catch (SocketTimeoutException e) {
 
 					if (++attempts == Configurations.RETRANMISSION_TRY) {
-						System.out.println("Unable to connect to server.");
+						System.out.println(Strings.CLIENT_CONNECTION_FAILURE);
 						return null;
 					}
 
@@ -129,10 +129,10 @@ public class ClientNetworking extends TFTPNetworking {
 				} catch (SocketTimeoutException e) {
 					lastPacket = lastReadPacket;
 					if(++retries == Configurations.RETRANMISSION_TRY) {
-						logger.print(Logger.ERROR, String.format("Retransmission retried %d times, send file considered done.", retries));
-						return new TFTPErrorMessage(ErrorType.TRANSMISSION_ERROR, "Network error, could not connect to server.");
+						logger.print(Logger.ERROR, String.format(Strings.RETRANSMISSION, retries));
+						return new TFTPErrorMessage(ErrorType.TRANSMISSION_ERROR, Strings.CLIENT_TRANSMISSION_ERROR);
 					}
-					logger.print(Logger.VERBOSE, "Time out occured, resending RRQ.");
+					logger.print(Logger.VERBOSE, Strings.CLIENT_TIME_OUT);
 					continue;
 				}
 			}
@@ -145,7 +145,7 @@ public class ClientNetworking extends TFTPNetworking {
 			logger.print(Logger.VERBOSE, Strings.RECEIVED);
 			BufferPrinter.printPacket(receivedPacket, logger, RequestType.DATA);
 			
-			if (error.getType() == ErrorType.NO_ERROR) return new TFTPErrorMessage(ErrorType.NO_ERROR, "Giddy up.");
+			if (error.getType() == ErrorType.NO_ERROR) return new TFTPErrorMessage(ErrorType.NO_ERROR, Strings.NO_ERROR);
 			if (error.getType() == ErrorType.SORCERERS_APPRENTICE) super.sendACK(lastPacket);
 			if (errorHandle(error, lastPacket, RequestType.DATA)) return error;
 			errorChecker.incrementExpectedBlockNumber();
@@ -156,7 +156,7 @@ public class ClientNetworking extends TFTPNetworking {
 			e.printStackTrace();
 		}
 		retries = 0;
-		return new TFTPErrorMessage(ErrorType.NO_ERROR, "Giddy up.");
+		return new TFTPErrorMessage(ErrorType.NO_ERROR, Strings.NO_ERROR);
 	}
 
 }
