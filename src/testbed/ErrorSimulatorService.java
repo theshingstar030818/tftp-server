@@ -192,7 +192,9 @@ public class ErrorSimulatorService implements Runnable {
 		// End ACK based on request type.
 		try {
 			// Wait on last ACK in case of the last data was lost.
-			System.out.println("Preparing to handle last ACK");
+
+			System.out.println("Preparing to handle the last packet.");
+			this.mTransmissionRetries = 0;
 			this.mSendReceiveSocket.setSoTimeout(Configurations.TRANMISSION_TIMEOUT * 2);
 			while(true) {
 				try{	
@@ -205,7 +207,6 @@ public class ErrorSimulatorService implements Runnable {
 						// Send the last ACK to server
 						this.mLastPacket.setPort(this.mForwardPort);
 						this.mLastPacket.setAddress(this.mServerHostAddress);
-						logger.print(Logger.VERBOSE, "Preparing to send packet to server at port " + this.mForwardPort);
 						this.forwardPacketToSocket(this.mLastPacket);
 					}
 					byte[] data = new byte[Configurations.MAX_BUFFER];
@@ -215,7 +216,7 @@ public class ErrorSimulatorService implements Runnable {
 					break;
 				} catch (SocketTimeoutException e) {
 					if(++this.mTransmissionRetries == Configurations.RETRANMISSION_TRY - 1) {
-						logger.print(Logger.ERROR, String.format("Retransmission retried %d times, send file considered done.",
+						logger.print(Logger.VERBOSE, String.format("Retransmission retried %d times, send file considered done.",
 								this.mTransmissionRetries));
 						break;
 					}
@@ -223,7 +224,7 @@ public class ErrorSimulatorService implements Runnable {
 			}
 			this.mSendReceiveSocket.setSoTimeout(0);
 		} catch(NullPointerException e) {
-			System.err.println("Null pointer on zombie thread. Shutting down.");
+			logger.print(Logger.VERBOSE, "Success full simulation of last packet.");
 		}catch (IOException e) {
 		
 			System.err.println("Something bad happened while transfering files.");
@@ -440,7 +441,7 @@ public class ErrorSimulatorService implements Runnable {
 			switch (this.mErrorSettings.getSubErrorFromFamily()) {
 			case 1:
 				// Lose a packet
-				System.err.println("Testing to lose.");
+				//System.err.println("Testing to lose.");
 				this.mPacketBlock = this.mErrorSettings.getTransmissionErrorOccurences();
 				this.mPacketOpCode = this.mErrorSettings.getTransmissionErrorType();
 				mInPacket = (new PacketBuilder()).constructPacket(mLastPacket);
@@ -475,6 +476,7 @@ public class ErrorSimulatorService implements Runnable {
 				}
 				this.mLostPacketPerformed = true;
 				try {
+					this.mTransmissionRetries = 0;
 					this.mSendReceiveSocket.setSoTimeout(Configurations.TRANMISSION_TIMEOUT * 2);
 					this.mLastPacket = this.retrievePacketFromSocket();
 					this.mSendReceiveSocket.setSoTimeout(0);
@@ -498,7 +500,7 @@ public class ErrorSimulatorService implements Runnable {
 				// mPacketsProcessed is always ahead of ErrorOccurrences by 1
 				// only gets incremented one way -> messing with client or
 				// server bound packets (set in ES)
-				System.err.println("Testing to delay.");
+				//System.err.println("Testing to delay.");
 				mInPacket = (new PacketBuilder()).constructPacket(mLastPacket);
 				if (mInPacket.getBlockNumber() != this.mErrorSettings.getTransmissionErrorOccurences()
 						|| mInPacket.getRequestType() != this.mErrorSettings.getTransmissionErrorType()
@@ -569,7 +571,7 @@ public class ErrorSimulatorService implements Runnable {
 				this.mDelayPacketPerformed = true;
 				break;
 			case 3:
-				System.err.println("Testing to duplicate.");
+				//System.err.println("Testing to duplicate.");
 				mInPacket = (new PacketBuilder()).constructPacket(this.mLastPacket);
 				if (mInPacket.getBlockNumber() != this.mErrorSettings.getTransmissionErrorOccurences()
 						|| mInPacket.getRequestType() != this.mErrorSettings.getTransmissionErrorType()
@@ -577,8 +579,8 @@ public class ErrorSimulatorService implements Runnable {
 					return;
 				logger.print(Logger.ERROR,
 						String.format("Attempting to duplicate a packet with op code %d.", inPacket.getData()[1]));
-				
-				directPacketToDestination();
+				System.out.println("Redirection happened before pop");
+
 				if (this.mPacketOpCode == RequestType.ERROR) {
 					byte[] data = this.mLastPacket.getData();
 					this.directPacketToDestination();
@@ -598,21 +600,25 @@ public class ErrorSimulatorService implements Runnable {
 					}
 				}
 				try {
+			
 					this.mLastPacket = this.mPacketSendQueue.pop();
+					System.out.println("Redirection happening after pop");
 					directPacketToDestination();
+					
 					DatagramPacket duplicatePacket = new DatagramPacket(this.mLastPacket.getData(),
 							this.mLastPacket.getLength(), this.mLastPacket.getAddress(), this.mLastPacket.getPort());
 					this.forwardPacketToSocket(duplicatePacket);
 					// This one is the correct one we want to save. We will take
 					// care of this one and add to Q
+					this.mTransmissionRetries = 0;
 					this.mSendReceiveSocket.setSoTimeout(Configurations.TRANMISSION_TIMEOUT);
 					this.mLastPacket = this.retrievePacketFromSocket();
-					this.mSendReceiveSocket.setSoTimeout(Configurations.TRANMISSION_TIMEOUT);
+					this.mSendReceiveSocket.setSoTimeout(0);
 					System.out.println("Got a reply from the host from a duplicate.");
 					if(mInPacket.getBlockNumber() == -1 && (mInPacket.getRequestType() == this.mInitialRequestType)) {
 						duplicatePacket.setPort(Configurations.SERVER_LISTEN_PORT);
 						TransmissionConcurrentSend transmissionError = new TransmissionConcurrentSend(duplicatePacket,
-								this.mErrorSettings.getTransmissionErrorFrequency(), this, logger, this.mServerHostAddress, this.mClientHostAddress,
+								0, this, logger, this.mServerHostAddress, this.mClientHostAddress,
 								this.mClientPort);
 						Thread duplicatePacketThread = new Thread(transmissionError);
 						duplicatePacketThread.start();
@@ -630,7 +636,10 @@ public class ErrorSimulatorService implements Runnable {
 						this.forwardPacketToSocket(this.mLastPacket);
 						// This one is the duplicated packet response, we will just
 						// forget about this one lol
+						this.mTransmissionRetries = 0;
+						this.mSendReceiveSocket.setSoTimeout(Configurations.TRANMISSION_TIMEOUT);
 						this.mLastPacket = this.retrievePacketFromSocket();
+						this.mTransmissionRetries = 0;
 						// Set our correct ref to the one first correct response.
 						this.mLastPacket = this.mPacketSendQueue.peek();
 					}

@@ -98,8 +98,10 @@ public class TFTPNetworking {
 								logger.print(Logger.ERROR, String.format("Retransmission retried %d times, no reply, shutting down.", retries));
 
 							}
-							if (errorChecker.getExpectedBlockNumber() == 0) // Timeout on first block.
+							if (errorChecker.getExpectedBlockNumber() == 0) {// Timeout on first block.
+								logger.print(Logger.VERBOSE, "Remove this later.");
 								return null;
+							}
 							retriesExceeded = true;
 							break;
 						}
