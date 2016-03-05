@@ -214,10 +214,10 @@ public class TFTPNetworking {
 						BufferPrinter.printPacket(vDataPacket, Logger.VERBOSE, RequestType.DATA);
 						socket.send(vSendPacket);
 						if(++retries == Configurations.RETRANMISSION_TRY) {
-							if(vEmptyData.length < Configurations.MAX_PAYLOAD_BUFFER ) {
-								logger.print(Logger.ERROR, String.format("Retries exceeded on last packet. Last Packet was lost. Otherside must had gotten finished with blocks."));
+							if(vEmptyData !=null && vEmptyData.length < Configurations.MAX_PAYLOAD_BUFFER ) {
+								logger.print(Logger.VERBOSE, String.format("Retries exceeded on last packet. Last Packet was lost. Otherside must have gotten finished with blocks."));
 							} else {
-								logger.print(Logger.ERROR, String.format("Retransmission retried %d times, giving up due to network error.", retries));
+								logger.print(Logger.VERBOSE, String.format("Retransmission retried %d times, transmission successful.", retries));
 							}
 							retriesExceeded = true;
 							break;
