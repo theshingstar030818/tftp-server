@@ -59,20 +59,20 @@ public class BufferPrinter {
 	public static void printPacket(Packet pb, Logger logger, RequestType requestType) {
 
 		PacketFactory pbf;
-
+		RequestType currentPacket = RequestType.matchRequestByNumber(pb.getPacket().getData()[1]);
 		switch (requestType) {
 		case ACK:
-			logger.print(Logger.VERBOSE, Strings.ACK_PACKET);
+			logger.print(Logger.VERBOSE, "Expected: " + Strings.ACK_PACKET +  " and got " + currentPacket.getRequestTypeString());
 			break;
 		case DATA:
-			logger.print(Logger.VERBOSE, Strings.DATA_PACKET);
+			logger.print(Logger.VERBOSE, "Expected: " + Strings.DATA_PACKET +  " and got " + currentPacket.getRequestTypeString());
 			break;
 		case RRQ:
-			logger.print(Logger.VERBOSE, Strings.RRQ);
+			logger.print(Logger.VERBOSE, "Expected: " + Strings.RRQ +  " and got " + currentPacket.getRequestTypeString());
 			logger.print(Logger.VERBOSE, "File Name : " + ((ReadWritePacket) pb).getFilename());
 			break;
 		case WRQ:
-			logger.print(Logger.VERBOSE, Strings.WRQ);
+			logger.print(Logger.VERBOSE, "Expected: " + Strings.WRQ +  " and got " + currentPacket.getRequestTypeString());
 			logger.print(Logger.VERBOSE, "File Name : " + ((ReadWritePacket) pb).getFilename());
 			break;
 		case ERROR:

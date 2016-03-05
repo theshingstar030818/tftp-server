@@ -1,11 +1,6 @@
-/**
- * 
- */
 package client;
 
 import java.io.File;
-import java.net.DatagramPacket;
-import java.net.DatagramSocket;
 import java.util.Scanner;
 
 import helpers.Keyboard;

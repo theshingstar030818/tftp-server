@@ -44,6 +44,9 @@ public class TFTPService implements Runnable {
 				"Server initializing client's write request on port " + this.mSendReceiveSocket.getLocalPort());
 	}
 
+	/* (non-Javadoc)
+	 * @see java.lang.Runnable#run()
+	 */
 	public void run() {
 
 		ReadWritePacket vClientRequestPacket = new ReadWritePacket(this.mLastPacket);

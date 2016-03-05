@@ -335,9 +335,22 @@ public class ErrorSimulatorService implements Runnable {
 					this.mLastPacket.setAddress(this.mClientHostAddress);
 				} else {
 					// It is from the client, so we send it to the server
-					logger.print(Logger.VERBOSE, "Tweaked the address to go to server: " + this.mForwardPort);
-					this.mLastPacket.setPort(this.mForwardPort);
-					this.mLastPacket.setAddress(this.mServerHostAddress);
+					
+					if(this.mLastPacket.getData()[1] == 1 || this.mLastPacket.getData()[1] == 2) {
+						if(this.mMessUpThisTransfer == InstanceType.CLIENT) {
+							logger.print(Logger.VERBOSE, "Tweaked the address to go to client: " + this.mClientPort);
+							this.mLastPacket.setPort(this.mClientPort);
+							this.mLastPacket.setAddress(this.mClientHostAddress);
+						} else {
+							logger.print(Logger.VERBOSE, "Tweaked the address to go to server: " + this.mForwardPort);
+							this.mLastPacket.setPort(this.mForwardPort);
+							this.mLastPacket.setAddress(this.mServerHostAddress);
+						}
+					} else {
+						logger.print(Logger.VERBOSE, "Tweaked the address to go to server: " + this.mForwardPort);
+						this.mLastPacket.setPort(this.mForwardPort);
+						this.mLastPacket.setAddress(this.mServerHostAddress);
+					}
 				}
 				logger.print(logger, "Unable to determine which entity to forward the packet on RRQ.");
 			}
@@ -362,9 +375,21 @@ public class ErrorSimulatorService implements Runnable {
 					this.mLastPacket.setAddress(this.mClientHostAddress);
 				} else {
 					// It is from the client, so we send it to the server
-					logger.print(Logger.VERBOSE, "Tweaked the address to go to server: " + this.mForwardPort);
-					this.mLastPacket.setPort(this.mForwardPort);
-					this.mLastPacket.setAddress(this.mServerHostAddress);
+					if(this.mLastPacket.getData()[1] == 1 || this.mLastPacket.getData()[1] == 2) {
+						if(this.mMessUpThisTransfer == InstanceType.CLIENT) {
+							logger.print(Logger.VERBOSE, "Tweaked the address to go to client: " + this.mClientPort);
+							this.mLastPacket.setPort(this.mClientPort);
+							this.mLastPacket.setAddress(this.mClientHostAddress);
+						} else {
+							logger.print(Logger.VERBOSE, "Tweaked the address to go to server: " + this.mForwardPort);
+							this.mLastPacket.setPort(this.mForwardPort);
+							this.mLastPacket.setAddress(this.mServerHostAddress);
+						}
+					} else {
+						logger.print(Logger.VERBOSE, "Tweaked the address to go to server: " + this.mForwardPort);
+						this.mLastPacket.setPort(this.mForwardPort);
+						this.mLastPacket.setAddress(this.mServerHostAddress);
+					}
 				}
 				logger.print(logger, "Unable to determine which entity to forward the packet on WRQ.");
 			}

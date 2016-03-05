@@ -175,10 +175,18 @@ public class TFTPUserInterface {
 		return InstanceType.SERVER;
 	}
 
+	/**
+	 * Prints the most basic error sim log level
+	 */
 	private static void printSelectLogLevelMenu() {
 		System.out.println(UIStrings.MENU_ERROR_SIMULATOR_LOG_LEVEL);
 	}
 	
+	/**
+	 * Gets the main transmission error menu
+	 * 
+	 * @param transmissionError settings
+	 */
 	private void getTransmissionMenu(int transmissionError) {
 		switch(transmissionError) {
 		case 1:
