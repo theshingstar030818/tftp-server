@@ -106,16 +106,10 @@ public class TFTPClient {
 				case 2:
 					// Write file
 					net = new ClientNetworking();
-					String writeFileNameOrFilePath;
-					
-					while(true){
-						logger.print(logger, Strings.PROMPT_FILE_NAME_PATH);
-						writeFileNameOrFilePath = Keyboard.getString();
-						if(ErrorChecker.isValidFilename(writeFileNameOrFilePath)){
-							break;
-						}
-						System.out.println("Invalid entry. So, re-prompting");	
-					}
+
+					logger.print(logger, Strings.PROMPT_FILE_NAME_PATH);
+					String writeFileNameOrFilePath = Keyboard.getString();
+			
 					
 					TFTPErrorMessage result = null;
 					File f = new File(writeFileNameOrFilePath);
