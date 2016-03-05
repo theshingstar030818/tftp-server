@@ -85,7 +85,7 @@ public class UIStrings {
 	 public static final String MENU_ERROR_SIMULATOR_PROMPT_AMOUNT
 	 						  = "How many transmission errors do you want to create?";
 	 public static final String MENU_ERROR_SIMULATOR_PROMPT_NUM_PACKET
-	 						  = "Enter the block number to %s (ie -1 for RRQ/WRQ and >= 0 for any ACK/DATA block if applicable):";
+	 						  = "Enter the block number (Please enter -1 to corrupt the RRQ/WRQ):";
 	 public static final String MENU_ERROR_SIMULATOR_PROMPT_TYPE
 	  						  = "Enter the op code of the packet to simulate error on:";
 }

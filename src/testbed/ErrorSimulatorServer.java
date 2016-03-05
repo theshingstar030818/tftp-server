@@ -89,9 +89,8 @@ public class ErrorSimulatorServer implements Callback {
 						&& this.mErrorOptionSettings.getTransmissionErrorFrequency() >= Configurations.TRANMISSION_TIMEOUT - 50 
 						&& this.mErrorOptionSettings.getTransmissionErrorOccurences() == -1) {
 					receivePacket = new DatagramPacket(buffer, buffer.length);
-					logger.print(Logger.VERBOSE, "Waiting on timeout from client during delayed initiating packet.");
+					logger.print(Logger.VERBOSE, Strings.ERROR_SERVER_WAITING_INIT);
 					errorSimulatorSock.receive(receivePacket);
-					System.out.println(String.format("Synchronizing with %s thread.", "blah"));
 					synchronized (vLastThread) {
 						vLastThread.addWorkToFrontOfQueue(receivePacket);
 					}
@@ -103,7 +102,7 @@ public class ErrorSimulatorServer implements Callback {
 						&& this.mErrorOptionSettings.getMainErrorFamily() == ErrorType.TRANSMISSION_ERROR
 						&& this.mErrorOptionSettings.getSubErrorFromFamily() == 1 
 						&& this.mErrorOptionSettings.getTransmissionErrorOccurences() == -1) {
-					logger.print(Logger.VERBOSE, "Waiting on timeout from client during lost first packet");
+					logger.print(Logger.VERBOSE, Strings.ERROR_SERVER_WAITING_LOST);
 					receivePacket = new DatagramPacket(buffer, buffer.length);
 					errorSimulatorSock.receive(receivePacket);
 					this.mErrorOptionSettings.setMainErrorFamily(3);

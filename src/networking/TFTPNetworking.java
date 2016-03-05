@@ -134,23 +134,24 @@ public class TFTPNetworking {
 					try {
 						socket.receive(receivePacket);
 					} catch (SocketTimeoutException e) {
-						logger.print(Logger.ERROR, "Socket Timeout on received file! Resending Ack!");
+						logger.print(Logger.ERROR, Strings.TFTPNETWORKING_SOCKET_TIMEOUT);
 						sendACK(lastPacket);
-						System.err.println("Sent a timeout packet.");
-						if (++retries == Configurations.RETRANMISSION_TRY) {
-							if (vHasMore) {
-								logger.print(Logger.ERROR, String.format(
-										"Retries exceeded on last packet. Last Packet was lost. Otherside must had gotten finished with blocks."));
+						System.err.println(Strings.TFTPNETWORKING_TIMEOUT_PACKET);
+						if(++retries == Configurations.RETRANMISSION_TRY) {
+							if(vHasMore) {
+								logger.print(Logger.ERROR, String.format(Strings.TFTPNETWORKING_RETRY));
 							} else {
 
-								logger.print(Logger.ERROR, String.format(
-										"Re-transmission retried %d times, giving up due to network error.", retries));
+								logger.print(Logger.ERROR, String.format(Strings.TFTPNETWORKING_RE_TRANSMISSION, retries));
+
+								logger.print(Logger.ERROR, String.format(Strings.TFTPNETWORKING_RE_TRAN_SHUT_DOWN, retries));
+
 
 								logger.print(Logger.ERROR, String
 										.format("Retransmission retried %d times, no reply, shutting down.", retries));
 							}
-							if (errorChecker.getExpectedBlockNumber() == 0) {
-								logger.print(Logger.VERBOSE, "Remove this later.");
+
+							if (errorChecker.getExpectedBlockNumber() == 0) {// Timeout on first block.
 								return null;
 							}
 							retriesExceeded = true;
@@ -227,9 +228,9 @@ public class TFTPNetworking {
 						return error;
 					}
 				} catch (SocketTimeoutException e) {
-					if (++retries == Configurations.RETRANMISSION_TRY) {
-						logger.print(Logger.ERROR,
-								String.format("Retransmission retried %d times, send file considered done.", retries));
+
+					if(++retries == Configurations.RETRANMISSION_TRY) {
+						logger.print(Logger.ERROR, String.format(Strings.RETRANSMISSION, retries));
 						retriesExceeded = true;
 						break;
 					}
@@ -285,16 +286,14 @@ public class TFTPNetworking {
 					try {
 						socket.receive(receivePacket);
 					} catch (SocketTimeoutException e) {
-						logger.print(Logger.ERROR, "Socket Timeout on send file! Resending Data!");
+						logger.print(Logger.ERROR, Strings.TFTPNETWORKING_TIME_OUT);
 						BufferPrinter.printPacket(vDataPacket, Logger.VERBOSE, RequestType.DATA);
 						socket.send(vSendPacket);
-						if (++retries == Configurations.RETRANMISSION_TRY) {
-							if (vEmptyData != null && vEmptyData.length < Configurations.MAX_PAYLOAD_BUFFER) {
-								logger.print(Logger.VERBOSE, String.format(
-										"Retries exceeded on last packet. Last Packet was lost. Otherside must have gotten finished with blocks."));
+						if(++retries == Configurations.RETRANMISSION_TRY) {
+							if(vEmptyData !=null && vEmptyData.length < Configurations.MAX_PAYLOAD_BUFFER ) {
+								logger.print(Logger.VERBOSE, String.format(Strings.TFTPNETWORKING_RETRY));
 							} else {
-								logger.print(Logger.VERBOSE, String
-										.format("Retransmission retried %d times, transmission successful.", retries));
+								logger.print(Logger.VERBOSE, String.format(Strings.TFTPNETWORKING_RE_TRAN_SUCCEED, retries));
 							}
 							retriesExceeded = true;
 							break;
@@ -370,48 +369,46 @@ public class TFTPNetworking {
 	public boolean errorHandle(TFTPErrorMessage error, DatagramPacket packet, RequestType recvType) {
 		ErrorPacket errorPacket = new ErrorPacket(packet);
 		switch (error.getType()) {
-		case ILLEGAL_OPERATION:
-			if (error.getString().equals(Strings.BLOCK_NUMBER_MISMATCH)) {
-				if (recvType == RequestType.DATA)
-					sendACK(packet);
-				return false;
-			}
-			logger.print(Logger.ERROR, "Handling an unrecoverable error.");
-			if (error.getString().equals(Strings.UNKNOWN_TRANSFER)) {
-				System.out.println("Other host no longer connected.");
+			case ILLEGAL_OPERATION:
+				if(error.getString().equals(Strings.BLOCK_NUMBER_MISMATCH)) {
+					if (recvType == RequestType.DATA)
+						sendACK(packet);
+					return false;
+				}
+				logger.print(Logger.ERROR, "Handling an unrecoverable error.");
+				if (error.getString().equals(Strings.UNKNOWN_TRANSFER)) {
+					System.out.println(Strings.TFTPNETWORKING_LOSE_CONNECTION);
+					return true;
+				}
+				
+				DatagramPacket illegalOpsError = errorPacket.buildPacket(ErrorType.ILLEGAL_OPERATION,
+						error.getString());
+				
+				try {
+					socket.send(illegalOpsError);
+				} catch (IOException e) { e.printStackTrace(); }
+				logger.print(Logger.ERROR, Strings.ILLEGAL_OPERATION_HELP_MESSAGE);
+				BufferPrinter.printPacket(new ErrorPacket(packet), Logger.ERROR, RequestType.ERROR);
 				return true;
-			}
-
-			DatagramPacket illegalOpsError = errorPacket.buildPacket(ErrorType.ILLEGAL_OPERATION, error.getString());
-
-			try {
-				socket.send(illegalOpsError);
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-			logger.print(Logger.ERROR, Strings.ILLEGAL_OPERATION_HELP_MESSAGE);
-			BufferPrinter.printPacket(new ErrorPacket(packet), Logger.ERROR, RequestType.ERROR);
-			return true;
-
-		case UNKNOWN_TRANSFER:
-			DatagramPacket unknownError = errorPacket.buildPacket(ErrorType.ILLEGAL_OPERATION, error.getString());
-
-			try {
-				socket.send(unknownError);
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-			logger.print(Logger.ERROR, Strings.UNKNOWN_TRANSFER_HELP_MESSAGE);
-			BufferPrinter.printPacket(new ErrorPacket(packet), Logger.ERROR, RequestType.ERROR);
-			return false;
-
-		case SORCERERS_APPRENTICE:
-			return false;
-
-		default:
-			System.out.println("Unhandled Exception.");
-			break;
-		}
+				
+			case UNKNOWN_TRANSFER:
+				DatagramPacket unknownError = errorPacket.buildPacket(ErrorType.ILLEGAL_OPERATION,
+						error.getString());
+				
+				try {
+					socket.send(unknownError);
+				} catch (IOException e) { e.printStackTrace(); }
+				logger.print(Logger.ERROR, Strings.UNKNOWN_TRANSFER_HELP_MESSAGE);
+				BufferPrinter.printPacket(new ErrorPacket(packet), Logger.ERROR, RequestType.ERROR);
+				return false;
+			
+			case SORCERERS_APPRENTICE:
+				return false;
+				
+			default:
+				System.out.println(Strings.UNHANDLED_EXCEPTION);
+				break;
+		}			
 		return true;
 	}
 }

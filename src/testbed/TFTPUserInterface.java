@@ -5,6 +5,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 import helpers.Keyboard;
+import resource.Configurations;
 import resource.Strings;
 import resource.UIStrings;
 import types.ErrorType;
@@ -27,6 +28,7 @@ public class TFTPUserInterface {
 	private int mNumPktToFkWit = 0;
 	private int mSpaceOfDelay = 0;
 	private int mOpCodeToMessWith = 0;
+	private InstanceType mInstanceSelected;
 
 	public TFTPUserInterface() {
 		this.mUserErrorOption = ErrorType.NO_ERROR;
@@ -44,6 +46,7 @@ public class TFTPUserInterface {
 	 *         produce
 	 */
 	public ErrorCommand getErrorCodeFromUser(InstanceType instance) {
+		this.mInstanceSelected = instance;
 		int optionSelected = 0;
 		boolean validInput = false;
 		
@@ -193,8 +196,13 @@ public class TFTPUserInterface {
 			// lose packet
 			System.out.println(String.format(UIStrings.MENU_ERROR_SIMULATOR_PROMPT_NUM_PACKET, "lose"));
 			this.mNumPktToFkWit = Keyboard.getInteger();
-			System.out.println(UIStrings.MENU_ERROR_SIMULATOR_PROMPT_TYPE);
-			this.mOpCodeToMessWith = Keyboard.getInteger();
+			while(true){
+				System.out.println(UIStrings.MENU_ERROR_SIMULATOR_PROMPT_TYPE);
+				this.mOpCodeToMessWith = Keyboard.getInteger();
+				if(checkBlockOpcode()){
+					break;
+					}
+			}
 			break;
 		case 2:
 			// delay packet
@@ -202,19 +210,50 @@ public class TFTPUserInterface {
 			System.out.println(UIStrings.MENU_ERROR_SIMULATOR_PROMPT_NUM_PACKET);
 			this.mNumPktToFkWit = Keyboard.getInteger();
 			// Picks the delay in milliseconds
-			System.out.println(UIStrings.MENU_ERROR_SIMULATOR_PROMPT_DELAY_AMOUNT);
-			this.mSpaceOfDelay = Keyboard.getInteger();
-			System.out.println(UIStrings.MENU_ERROR_SIMULATOR_PROMPT_TYPE);
-			this.mOpCodeToMessWith = Keyboard.getInteger();
+			while(true){
+				System.out.println(UIStrings.MENU_ERROR_SIMULATOR_PROMPT_DELAY_AMOUNT);
+				this.mSpaceOfDelay = Keyboard.getInteger();
+				if(mSpaceOfDelay>(Configurations.TRANMISSION_TIMEOUT+50)){
+					break;
+				}
+				System.out.print("The delay entered is too small. \n Please enter a delay that is greater than "+ (Configurations.TRANMISSION_TIMEOUT+50)+"\n");
+			}
+
+			while(true){
+				System.out.println(UIStrings.MENU_ERROR_SIMULATOR_PROMPT_TYPE);
+				this.mOpCodeToMessWith = Keyboard.getInteger();
+				if(checkBlockOpcode()){
+					break;
+					}
+			}
 			break;
 		case 3:
 			// duplicate
 			System.out.println(String.format(UIStrings.MENU_ERROR_SIMULATOR_PROMPT_NUM_PACKET, "duplicate"));
 			this.mNumPktToFkWit = Keyboard.getInteger();
-			System.out.println(UIStrings.MENU_ERROR_SIMULATOR_PROMPT_TYPE);
-			this.mOpCodeToMessWith = Keyboard.getInteger();
+			while(true){
+				System.out.println(UIStrings.MENU_ERROR_SIMULATOR_PROMPT_TYPE);
+				this.mOpCodeToMessWith = Keyboard.getInteger();
+				if(checkBlockOpcode()){
+					break;
+					}
+			}
 			break;
 		}
+	}
+	
+	private boolean checkBlockOpcode(){
+		if(mNumPktToFkWit==-1 && (mOpCodeToMessWith==1 || mOpCodeToMessWith==2)){
+			return true;
+			}
+		if(mNumPktToFkWit>=0 && (mOpCodeToMessWith>=1 && mOpCodeToMessWith<=5)){
+			return true;
+		}
+		if(this.mInstanceSelected==InstanceType.CLIENT && mNumPktToFkWit>=0 && (mOpCodeToMessWith>2 && mOpCodeToMessWith<=5)){
+			return true;
+		}
+		System.out.println("Please enter an appropriate opcode for your selected block number\n");
+		return false;
 	}
 	
 	/**
