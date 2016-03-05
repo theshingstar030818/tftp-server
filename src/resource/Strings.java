@@ -87,5 +87,55 @@ public class Strings {
 	public static final String WRQ = "WRITE PACKET";
 	public static final String ERROR = "ERROR PACKET";
 	public static final String NONE = "PACKET NOT DEFINED";
-
+	
+	//client networking
+	public static final String CLIENT_CONNECTION_FAILURE = "Unable to connect to server.";
+	public static final String RETRANSMISSION = "Retransmission retried %d times, send file considered done.";
+	public static final String CLIENT_TRANSMISSION_ERROR = "Network error, could not connect to server.";
+	public static final String CLIENT_TIME_OUT = "Time out occured, resending RRQ.";
+	
+	//TFTP networking
+	public static final String TFTPNETWORKING_SOCKET_TIMEOUT = "Socket Timeout on received file! Resending Ack!";
+	public static final String TFTPNETWORKING_RETRY = "Retries exceeded on last packet. Last Packet was lost. Otherside must had gotten finished with blocks.";
+	public static final String TFTPNETWORKING_TIMEOUT_PACKET = "Sent a timeout packet.";
+	public static final String TFTPNETWORKING_RE_TRANSMISSION = "Re-transmission retried %d times, giving up due to network error.";
+	public static final String TFTPNETWORKING_RE_TRAN_SHUT_DOWN = "Retransmission retried %d times, no reply, shutting down.";
+	public static final String TFTPNETWORKING_RE_TRAN_SUCCEED = "Retransmission retried %d times, transmission successful.";
+	public static final String TFTPNETWORKING_TIME_OUT = "Socket Timeout on send file! Resending Data!";
+	public static final String TFTPNETWORKING_LOSE_CONNECTION = "Other host no longer connected.";
+	public static final String UNHANDLED_EXCEPTION = "Unhandled Exception.";
+	
+	// Error Simulator Server
+	public static final String ERROR_SERVER_WAITING_INIT = "Waiting on timeout from client during delayed initiating packet.";
+	public static final String ERROR_SERVER_WAITING_LOST =  "Waiting on timeout from client during lost first packet";
+	
+	// Error Simulator Service
+	public static final String ERROR_SERVICE_PORT ="Initalized error sim service on port ";
+	public static final String ERROR_SERVICE_ENDING ="Ending thread for a lost initiating (RRQ/WRQ) packet.";
+	public static final String ERROR_SERVICE_ERROR = "Sending the first RRQ and WRQ was an issue!";
+	public static final String ERROR_SERVICE_ERROR_TRANS = "Something bad happened while transfering files";
+	public static final String ERROR_SERVICE_SUCCESS = "Success full simulation of last packet.";
+	public static final String ERROR_SERVICE_FORWARD_CLI_ERR = "Client sent a error packet, now forwarding it to the server!";
+	public static final String ERROR_SERVICE_FORWARD_CLI_ACK = "An ack packet was received from the client, forwarding to server!";
+	public static final String ERROR_SERVICE_FORWARD_SER_ERR = "Server sent a error packet, now forwarding it to the client!";
+	public static final String ERROR_SERVICE_FORWARD_SER_ACK = "An ack packet was received from the server, forwarding it to client!";
+	public static final String ERROR_SERVICE_ERR_CLI = "Client accidently created more than 1 server thread. 2nd thread has replied with message to the client.";
+	public static final String ERROR_SERVICE_ADD_SER ="Tweaked the address to go to server: ";
+	public static final String ERROR_SERVICE_ADD_CLI = "Tweaked the address to go to client: ";
+	public static final String ERROR_SERVICE_ADD_UNCLEAR_WRQ = "Unable to determine which entity to forward the packet on RRQ.";
+	public static final String ERROR_SERVICE_ADD_UNCLEAR_RRQ = "Unable to determine which entity to forward the packet on WRQ.";
+	public static final String ERROR_SERVICE_UNCLEAR = "The packet forwarded was not a RRQ or WRQ.";
+	public static final String ERROR_SERVICE_ERROR_TYPE ="Not making delay error because the type we want is %s and header we compare is %s";
+	public static final String ERROR_SERVICE_TOO_LONG = "Oops, you might have set your delay time for too long.";
+	public static final String ERROR_SERVICE_RETRY = "Retransmission retried %d times, simulator operation considered done.";
+	public static final String ERROR_SERVICE_DELAY = "Delaying error packet.";
+	public static final String ERROR_SERVICE_NO_ERROR = "Not going to simulate error on this packet";
+	public static final String ERROR_SERVICE_LOST ="Attempting to lose packet.";
+	public static final String ERROR_SERVICE_UNSATISFICATION = "Lost first request, unable to satisfy client on this thread due it's connection was from port 68.";
+	public static final String ERROR_SERVICE_SHUST_DOWN_THREAD = "After losing a packet, the thread had no replies after 3 retries. Shutting down thread.";
+	public static final String ERROR_SERVICE_TIMEOUT_DELAY = "Error catch entity timeouts form both sides during a delay.";
+	public static final String ERROR_SERVICE_DELAY_ATTEMP = "Attempting to delay a packet with op code %d.";
+	public static final String ERROR_SERVICE_HANDLE_DELAY ="Handling delay for first packet. Awaiting for first glimpse of the server thread port.";
+	public static final String ERROR_SERVICE_FIRST_CONTACT ="We have made our first contact with the server for delayed initial packet";
+	
 }

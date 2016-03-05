@@ -85,21 +85,20 @@ public class TFTPNetworking {
 					try { 
 						socket.receive(receivePacket);
 					} catch (SocketTimeoutException e) {
-						logger.print(Logger.ERROR, "Socket Timeout on received file! Resending Ack!");
+						logger.print(Logger.ERROR, Strings.TFTPNETWORKING_SOCKET_TIMEOUT);
 						sendACK(lastPacket);
-						System.err.println("Sent a timeout packet.");
+						System.err.println(Strings.TFTPNETWORKING_TIMEOUT_PACKET);
 						if(++retries == Configurations.RETRANMISSION_TRY) {
 							if(vHasMore) {
-								logger.print(Logger.ERROR, String.format("Retries exceeded on last packet. Last Packet was lost. Otherside must had gotten finished with blocks."));
+								logger.print(Logger.ERROR, String.format(Strings.TFTPNETWORKING_RETRY));
 							} else {
 
-								logger.print(Logger.ERROR, String.format("Re-transmission retried %d times, giving up due to network error.", retries));
+								logger.print(Logger.ERROR, String.format(Strings.TFTPNETWORKING_RE_TRANSMISSION, retries));
 
-								logger.print(Logger.ERROR, String.format("Retransmission retried %d times, no reply, shutting down.", retries));
+								logger.print(Logger.ERROR, String.format(Strings.TFTPNETWORKING_RE_TRAN_SHUT_DOWN, retries));
 
 							}
 							if (errorChecker.getExpectedBlockNumber() == 0) {// Timeout on first block.
-								logger.print(Logger.VERBOSE, "Remove this later.");
 								return null;
 							}
 							retriesExceeded = true;
@@ -167,7 +166,7 @@ public class TFTPNetworking {
 					}
 				} catch (SocketTimeoutException e) {
 					if(++retries == Configurations.RETRANMISSION_TRY) {
-						logger.print(Logger.ERROR, String.format("Retransmission retried %d times, send file considered done.", retries));
+						logger.print(Logger.ERROR, String.format(Strings.RETRANSMISSION, retries));
 						retriesExceeded = true;
 						break;
 					}
@@ -212,14 +211,14 @@ public class TFTPNetworking {
 					try {
 						socket.receive(receivePacket);
 					} catch (SocketTimeoutException e) {
-						logger.print(Logger.ERROR, "Socket Timeout on send file! Resending Data!");
+						logger.print(Logger.ERROR, Strings.TFTPNETWORKING_TIME_OUT);
 						BufferPrinter.printPacket(vDataPacket, Logger.VERBOSE, RequestType.DATA);
 						socket.send(vSendPacket);
 						if(++retries == Configurations.RETRANMISSION_TRY) {
 							if(vEmptyData !=null && vEmptyData.length < Configurations.MAX_PAYLOAD_BUFFER ) {
-								logger.print(Logger.VERBOSE, String.format("Retries exceeded on last packet. Last Packet was lost. Otherside must have gotten finished with blocks."));
+								logger.print(Logger.VERBOSE, String.format(Strings.TFTPNETWORKING_RETRY));
 							} else {
-								logger.print(Logger.VERBOSE, String.format("Retransmission retried %d times, transmission successful.", retries));
+								logger.print(Logger.VERBOSE, String.format(Strings.TFTPNETWORKING_RE_TRAN_SUCCEED, retries));
 							}
 							retriesExceeded = true;
 							break;
@@ -295,7 +294,7 @@ public class TFTPNetworking {
 				}
 				
 				if (error.getString().equals(Strings.UNKNOWN_TRANSFER)) {
-					System.out.println("Other host no longer connected.");
+					System.out.println(Strings.TFTPNETWORKING_LOSE_CONNECTION);
 					return true;
 				}
 				
@@ -324,7 +323,7 @@ public class TFTPNetworking {
 				return false;
 				
 			default:
-				System.out.println("Unhandled Exception.");
+				System.out.println(Strings.UNHANDLED_EXCEPTION);
 				break;
 		}			
 		return true;
