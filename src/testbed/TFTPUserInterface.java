@@ -194,8 +194,15 @@ public class TFTPUserInterface {
 		switch(transmissionError) {
 		case 1:
 			// lose packet
-			System.out.println(String.format(UIStrings.MENU_ERROR_SIMULATOR_PROMPT_NUM_PACKET, "lose"));
-			this.mNumPktToFkWit = Keyboard.getInteger();
+			while(true){
+				System.out.println(String.format(UIStrings.MENU_ERROR_SIMULATOR_PROMPT_NUM_PACKET, "lose"));
+				this.mNumPktToFkWit = Keyboard.getInteger();
+				if(this.mInstanceSelected == InstanceType.SERVER || (this.mInstanceSelected == InstanceType.CLIENT && mNumPktToFkWit!=-1)){
+					break;
+				}
+				System.out.println("Please select a block that is not a RRQ/WRQ");
+			}
+			
 			while(true){
 				System.out.println(UIStrings.MENU_ERROR_SIMULATOR_PROMPT_TYPE);
 				this.mOpCodeToMessWith = Keyboard.getInteger();
@@ -207,8 +214,14 @@ public class TFTPUserInterface {
 		case 2:
 			// delay packet
 			// Picks i-th packet to delay
-			System.out.println(UIStrings.MENU_ERROR_SIMULATOR_PROMPT_NUM_PACKET);
-			this.mNumPktToFkWit = Keyboard.getInteger();
+			while(true){
+				System.out.println(UIStrings.MENU_ERROR_SIMULATOR_PROMPT_NUM_PACKET);
+				this.mNumPktToFkWit = Keyboard.getInteger();
+				if(this.mInstanceSelected == InstanceType.SERVER || (this.mInstanceSelected == InstanceType.CLIENT && mNumPktToFkWit!=-1)){
+					break;
+				}
+				System.out.println("Please select a block that is not a RRQ/WRQ");
+			}
 			// Picks the delay in milliseconds
 			while(true){
 				System.out.println(UIStrings.MENU_ERROR_SIMULATOR_PROMPT_DELAY_AMOUNT);
@@ -229,8 +242,14 @@ public class TFTPUserInterface {
 			break;
 		case 3:
 			// duplicate
-			System.out.println(String.format(UIStrings.MENU_ERROR_SIMULATOR_PROMPT_NUM_PACKET, "duplicate"));
-			this.mNumPktToFkWit = Keyboard.getInteger();
+			while(true){
+				System.out.println(String.format(UIStrings.MENU_ERROR_SIMULATOR_PROMPT_NUM_PACKET, "duplicate"));
+				this.mNumPktToFkWit = Keyboard.getInteger();
+				if(this.mInstanceSelected == InstanceType.SERVER || (this.mInstanceSelected == InstanceType.CLIENT && mNumPktToFkWit!=-1)){
+					break;
+				}
+				System.out.println("Please select a block that is not a RRQ/WRQ");
+			}
 			while(true){
 				System.out.println(UIStrings.MENU_ERROR_SIMULATOR_PROMPT_TYPE);
 				this.mOpCodeToMessWith = Keyboard.getInteger();
@@ -243,7 +262,7 @@ public class TFTPUserInterface {
 	}
 	
 	private boolean checkBlockOpcode(){
-		if(mNumPktToFkWit==-1 && (mOpCodeToMessWith==1 || mOpCodeToMessWith==2)){
+		if(this.mInstanceSelected==InstanceType.SERVER && mNumPktToFkWit==-1 && (mOpCodeToMessWith==1 || mOpCodeToMessWith==2)){
 			return true;
 			}
 		if(mNumPktToFkWit>=0 && (mOpCodeToMessWith>=1 && mOpCodeToMessWith<=5)){
@@ -252,6 +271,7 @@ public class TFTPUserInterface {
 		if(this.mInstanceSelected==InstanceType.CLIENT && mNumPktToFkWit>=0 && (mOpCodeToMessWith>2 && mOpCodeToMessWith<=5)){
 			return true;
 		}
+			
 		System.out.println("Please enter an appropriate opcode for your selected block number\n");
 		return false;
 	}
