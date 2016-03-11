@@ -8,6 +8,7 @@ import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.file.Paths;
 
+import exceptions.DiskFullException;
 import resource.*;
 import types.InstanceType;
 
@@ -134,8 +135,9 @@ public class FileStorageService {
 	 * 
 	 * @param fileBuffer - 512 bytes of file content sent over in the TFTPPacket
 	 * @return boolean - if the file has been fully saved or not
+	 * @throws DiskFullException 
 	 */
-	public boolean saveFileByteBufferToDisk(byte[] fileBuffer) {
+	public boolean saveFileByteBufferToDisk(byte[] fileBuffer) throws DiskFullException {
 		if(fileBuffer == null) {
 			// We know that the last packet is an empty packet (512 byte case)
 			try {
@@ -153,6 +155,7 @@ public class FileStorageService {
 		try {
 			ByteBuffer wrappedBuffer = ByteBuffer.wrap(fileBuffer);
 			while(wrappedBuffer.hasRemaining()) {
+				if (new File(this.mFileName, "r").getUsableSpace() < 512) throw new DiskFullException();
 				bytesWritten += this.mFileChannel.write(wrappedBuffer, this.mBytesProcessed);
 			}
 		} catch (IOException e) {

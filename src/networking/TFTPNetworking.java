@@ -7,6 +7,7 @@ import java.net.DatagramSocket;
 import java.net.SocketException;
 import java.net.SocketTimeoutException;
 
+import exceptions.DiskFullException;
 import helpers.BufferPrinter;
 import helpers.FileStorageService;
 import packet.AckPacket;
@@ -238,9 +239,13 @@ public class TFTPNetworking {
 			}
 
 			socket.setSoTimeout(Configurations.TRANMISSION_TIMEOUT);
+		} catch (DiskFullException e) {
+			e.printStackTrace();
+			TFTPErrorMessage emsg = new TFTPErrorMessage(ErrorType.ALLOCATION_EXCEED, "Disk capacity reached during transfer.");
+			errorHandle(emsg, this.lastPacket);
 		} catch (IOException e) {
 			e.printStackTrace();
-		}
+		} 
 
 		return new TFTPErrorMessage(ErrorType.NO_ERROR, Strings.NO_ERROR);
 	}
