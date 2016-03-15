@@ -300,11 +300,12 @@ public class FileStorageService {
 			this.mWriteOnly = true;
 		}
 	}
-	
+	/**Indicates if a file read only*/
 	public boolean isReadOnly(){
 		return(this.mReadOnly);
 	}
 	
+	/**Indicates if a file write only*/
 	public boolean isWriteOnly(){
 		return(this.mWriteOnly);
 	}
