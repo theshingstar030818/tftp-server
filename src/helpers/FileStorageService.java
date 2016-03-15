@@ -26,7 +26,8 @@ public class FileStorageService {
 	private String mFileName = "";
 	private long mBytesProcessed = 0;
 	private String mDefaultStorageFolder = "";
-	
+	private boolean mReadOnly = false;
+	private boolean mWriteOnly = false;
 	// File utility classes
 	RandomAccessFile mFile = null;
 	FileChannel mFileChannel = null;
@@ -103,6 +104,7 @@ public class FileStorageService {
 	 */
 	public void initializeNewFileChannel(String filePathOrFileName) throws FileNotFoundException {
 		if(checkFileNameExists(filePathOrFileName)) {
+			this.setFileAccessRestrictions(filePathOrFileName);
 			this.mFileName = Paths.get(filePathOrFileName).getFileName().toString();
 			if(this.mFileName == "") {
 				// No filename in the path!
@@ -281,5 +283,25 @@ public class FileStorageService {
 		} else {
 			System.err.println("Tried to delete a file that does not exist.");
 		}
+	}
+	
+	private void setFileAccessRestrictions(String filePathName){
+		String filePath = Paths.get(filePathName).toString();
+		File fileToCheck = new File(filePath);
+		if(fileToCheck.canRead()&& !fileToCheck.canWrite()){
+			this.mReadOnly = true;
+		}
+		if(!fileToCheck.canRead()&& fileToCheck.canWrite()){
+			this.mWriteOnly = true;
+		}
+	}
+	/**Indicates if a file read only*/
+	public boolean isReadOnly(){
+		return(this.mReadOnly);
+	}
+	
+	/**Indicates if a file write only*/
+	public boolean isWriteOnly(){
+		return(this.mWriteOnly);
 	}
 }
