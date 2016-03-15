@@ -536,6 +536,7 @@ public class ErrorSimulatorService implements Runnable {
 				}
 				logger.print(Logger.ERROR,
 						String.format(Strings.ERROR_SERVICE_DELAY_ATTEMP, inPacket.getData()[1]));
+				
 				// Delay a packet
 				if (this.mPacketOpCode == RequestType.ERROR) {
 					byte[] data = this.mLastPacket.getData();
