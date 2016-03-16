@@ -40,7 +40,7 @@ public class TFTPService implements Runnable {
 			e.printStackTrace();
 		}
 		logger.setClassTag(CLASS_TAG);
-		logger.print(Logger.VERBOSE,
+		logger.print(logger,
 				"Server initializing client's write request on port " + this.mSendReceiveSocket.getLocalPort());
 	}
 
@@ -58,8 +58,8 @@ public class TFTPService implements Runnable {
 		case WRQ:
 			WritePacket vWritePacket = new WritePacket(this.mLastPacket);
 
-			logger.print(Logger.VERBOSE, Strings.RECEIVED);
-			BufferPrinter.printPacket(vWritePacket, Logger.VERBOSE, RequestType.WRQ);
+			logger.print(logger, Strings.RECEIVED);
+			BufferPrinter.printPacket(vWritePacket, logger, RequestType.WRQ);
 
 			net = new ServerNetworking(vWritePacket, mSendReceiveSocket);
 			result = net.handleInitWRQ(vWritePacket);
@@ -74,9 +74,9 @@ public class TFTPService implements Runnable {
 		case RRQ:
 			ReadPacket vReadPacket = new ReadPacket(this.mLastPacket);
 
-			logger.print(Logger.VERBOSE, "Server initializing client's read request ...");
-			logger.print(Logger.VERBOSE, Strings.RECEIVED);
-			BufferPrinter.printPacket(vReadPacket, Logger.VERBOSE, RequestType.RRQ);
+			logger.print(logger, "Server initializing client's read request ...");
+			logger.print(logger, Strings.RECEIVED);
+			BufferPrinter.printPacket(vReadPacket, logger, RequestType.RRQ);
 
 			net = new ServerNetworking(vReadPacket);
 
@@ -102,7 +102,7 @@ public class TFTPService implements Runnable {
 		synchronized (this.mClientFinishedCallback) {
 			this.mClientFinishedCallback.callback(Thread.currentThread().getId());
 		}
-		logger.print(Logger.VERBOSE, Strings.SS_TRANSFER_FINISHED);
+		logger.print(logger, Strings.SS_TRANSFER_FINISHED);
 
 	}
 }

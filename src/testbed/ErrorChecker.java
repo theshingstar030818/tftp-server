@@ -23,7 +23,7 @@ public class ErrorChecker {
 
 	private InetAddress mPacketOriginatingAddress;
 	private int mPacketOriginatingPort;
-	public int mExpectedBlockNumber;
+	public short mExpectedBlockNumber;
 	private Logger logger = Logger.ERROR;
 	private final String CLASS_TAG = "<Error Checker>";
 	
@@ -40,6 +40,9 @@ public class ErrorChecker {
 
 	public void incrementExpectedBlockNumber() {
 		mExpectedBlockNumber++;
+		if(this.mExpectedBlockNumber == 32767) {
+			this.mExpectedBlockNumber = 0;
+		}
 	}
 
 	/**
@@ -55,7 +58,7 @@ public class ErrorChecker {
 	 * @return TFTPErrorMessage message
 	 */
 	public TFTPErrorMessage check(Packet packet, RequestType expectedCommunicationType) {
-
+		
 		if (packet.getRequestType() == RequestType.ERROR) {
 			// We found an error packet, now print out the message.
 			ErrorPacket errorPacket = new ErrorPacket(packet.getPacket());

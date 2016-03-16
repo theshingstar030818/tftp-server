@@ -70,6 +70,8 @@ public class ServerNetworking extends TFTPNetworking {
 
 		try {
 			storage = new FileStorageService(fileName, InstanceType.SERVER);
+			storage.lockFile();
+			System.out.println("Locked the write file");
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
 		}

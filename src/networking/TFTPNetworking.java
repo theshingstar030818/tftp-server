@@ -33,7 +33,7 @@ public class TFTPNetworking {
 	protected DatagramSocket socket;
 	protected DatagramPacket lastPacket;
 	protected ErrorChecker errorChecker;
-	protected Logger logger = Logger.VERBOSE;
+	protected Logger logger = Logger.SILENT;
 	protected String fileName;
 	protected FileStorageService storage;
 	protected int retries = 0;
@@ -103,7 +103,7 @@ public class TFTPNetworking {
 	 * @return TFTPErrorMessgae from a call to the default sendFile function
 	 */
 	public TFTPErrorMessage sendFile(ReadWritePacket packet) {
-		BufferPrinter.printPacket(packet, Logger.VERBOSE, RequestType.RRQ);
+		BufferPrinter.printPacket(packet, logger, RequestType.RRQ);
 		fileName = packet.getFilename();
 		return sendFile();
 	}
@@ -133,7 +133,9 @@ public class TFTPNetworking {
 			while (vHasMore) {
 				while (true) {
 					try {
+						//System.out.println("Checking to receive packet");
 						socket.receive(receivePacket);
+						//System.out.println("recvied packet ok");
 					} catch (SocketTimeoutException e) {
 						logger.print(Logger.ERROR, Strings.TFTPNETWORKING_SOCKET_TIMEOUT);
 						sendACK(lastPacket);
@@ -170,7 +172,7 @@ public class TFTPNetworking {
 					// errorChecker.mExpectedBlockNumber);
 					DataPacket receivedPacket = new DataPacket(lastPacket);
 					error = errorChecker.check(receivedPacket, RequestType.DATA);
-					logger.print(Logger.VERBOSE, Strings.RECEIVED);
+					logger.print(logger, Strings.RECEIVED);
 					BufferPrinter.printPacket(receivedPacket, logger, RequestType.DATA);
 
 					if (error.getType() == ErrorType.NO_ERROR)
@@ -213,7 +215,7 @@ public class TFTPNetworking {
 					lastPacket = receivePacket;
 					DataPacket receivedPacket = new DataPacket(lastPacket);
 					error = errorChecker.check(receivedPacket, RequestType.DATA);
-					logger.print(Logger.VERBOSE, Strings.RECEIVED);
+					logger.print(logger, Strings.RECEIVED);
 					BufferPrinter.printPacket(receivedPacket, logger, RequestType.DATA);
 
 					if (error.getType() == ErrorType.NO_ERROR) {
@@ -278,10 +280,12 @@ public class TFTPNetworking {
 				// increment block number
 				DataPacket vDataPacket = new DataPacket(lastPacket);
 				vDataPacket.setBlockNumber(currentSendBlockNumber);
-				++currentSendBlockNumber; 
+				if(++currentSendBlockNumber == 32767) {
+					currentSendBlockNumber = 0;
+				}
 				DatagramPacket vSendPacket = vDataPacket.buildPacket(vEmptyData);
-				logger.print(Logger.VERBOSE, Strings.SENDING);
-				BufferPrinter.printPacket(vDataPacket, Logger.VERBOSE, RequestType.DATA);
+				logger.print(logger, Strings.SENDING);
+				BufferPrinter.printPacket(vDataPacket, logger, RequestType.DATA);
 				socket.send(vSendPacket);
 
 				while (true) {
@@ -292,13 +296,13 @@ public class TFTPNetworking {
 						socket.receive(receivePacket);
 					} catch (SocketTimeoutException e) {
 						logger.print(Logger.ERROR, Strings.TFTPNETWORKING_TIME_OUT);
-						BufferPrinter.printPacket(vDataPacket, Logger.VERBOSE, RequestType.DATA);
+						BufferPrinter.printPacket(vDataPacket, logger, RequestType.DATA);
 						socket.send(vSendPacket);
 						if(++retries == Configurations.RETRANMISSION_TRY) {
 							if(vEmptyData !=null && vEmptyData.length < Configurations.MAX_PAYLOAD_BUFFER ) {
-								//logger.print(Logger.VERBOSE, String.format(Strings.TFTPNETWORKING_RETRY));
+								//logger.print(logger, String.format(Strings.TFTPNETWORKING_RETRY));
 							} else {
-								logger.print(Logger.VERBOSE, String.format(Strings.TFTPNETWORKING_RE_TRAN_SUCCEED, retries));
+								logger.print(logger, String.format(Strings.TFTPNETWORKING_RE_TRAN_SUCCEED, retries));
 							}
 							retriesExceeded = true;
 							break;
@@ -307,8 +311,8 @@ public class TFTPNetworking {
 					}
 					ackPacket = new AckPacket(receivePacket);
 
-					logger.print(Logger.VERBOSE, Strings.RECEIVED);
-					BufferPrinter.printPacket(ackPacket, Logger.VERBOSE, RequestType.ACK);
+					logger.print(logger, Strings.RECEIVED);
+					BufferPrinter.printPacket(ackPacket, logger, RequestType.ACK);
 
 					error = errorChecker.check(ackPacket, RequestType.ACK);
 					if (error.getType() == ErrorType.NO_ERROR)
@@ -345,7 +349,7 @@ public class TFTPNetworking {
 	 *            - DatagramPacket to reply to
 	 */
 	protected void sendACK(DatagramPacket packet) {
-		logger.print(Logger.VERBOSE, Strings.SENDING);
+		logger.print(logger, Strings.SENDING);
 		AckPacket ackPacket = new AckPacket(packet);
 		ackPacket.buildPacket();
 		BufferPrinter.printPacket(ackPacket, logger, RequestType.ACK);
