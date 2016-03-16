@@ -6,6 +6,8 @@ import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
+import java.nio.channels.FileLock;
+import java.nio.channels.OverlappingFileLockException;
 import java.nio.file.Paths;
 
 import resource.*;
@@ -29,6 +31,7 @@ public class FileStorageService {
 	// File utility classes
 	RandomAccessFile mFile = null;
 	FileChannel mFileChannel = null;
+	FileLock mFileLock = null;
 
 	/**
 	 *  This file encapsulates all disk IO operations that is required to 
@@ -117,8 +120,16 @@ public class FileStorageService {
 		}
 		this.mBytesProcessed = 0;
 		// Open or create a our file name path and create a channel for us to access the file on
-		this.mFile = new RandomAccessFile(this.mFilePath, "rw");
-		this.mFileChannel = this.mFile.getChannel();
+		try {
+			this.mFile = new RandomAccessFile(this.mFilePath, "rw");
+			this.mFileChannel = this.mFile.getChannel();
+		}  catch (Exception e) {
+			// Access violation handle for Acces is denied
+			// Access violation handle for The process cannot access the file because it is being used by another process
+			e.printStackTrace();
+			
+		}
+		
 		try {
 			System.out.println("Opened a channel for a " + this.mFile.length() + " bytes long.");
 		} catch (IOException e) {
@@ -139,6 +150,10 @@ public class FileStorageService {
 		if(fileBuffer == null) {
 			// We know that the last packet is an empty packet (512 byte case)
 			try {
+				if(this.mFileLock != null) {
+					this.mFileLock.release();
+				}
+				this.mFileLock  = null;
 				this.mFileChannel.force(false);
 				this.mFileChannel.close();
 				this.mFile.close();
@@ -169,12 +184,18 @@ public class FileStorageService {
 			try {
 				// Force the changes into disk, without force(false) we would write 
 				// the last block with nulls.
+				if(this.mFileLock != null) {
+					this.mFileLock.release();
+				}
+				this.mFileLock  = null;
 				this.mFileChannel.force(false);
 				this.mFileChannel.close();
 				this.mFile.close();
 			} catch (IOException e) {
 				System.out.println(Strings.FILE_CHANNEL_CLOSE_ERROR);
 				e.printStackTrace();
+			} finally {
+				
 			}
 			return false;
 		}
@@ -195,6 +216,8 @@ public class FileStorageService {
 		int bytesRead = 0;
 		try {
 			bytesRead = this.mFileChannel.read(fileBuffer, this.mBytesProcessed);
+		} catch (OverlappingFileLockException e) {
+			e.printStackTrace();
 		} catch (IOException e) {
 			// An error will occur if the file is corrupt. We need to deal with it
 			System.out.println(Strings.FILE_READ_ERROR + " " + this.mFileName);
@@ -249,6 +272,28 @@ public class FileStorageService {
 		return this.mFileName;
 	}
 	
+	public boolean lockFile() {
+		if(this.mFileLock != null) return false; 
+		try {
+			this.mFileLock = this.mFileChannel.tryLock();
+			System.out.println("Got the lock");
+		} catch(OverlappingFileLockException e) {
+			System.err.println(e.getMessage());
+			
+			while(true) {
+				System.err.println(e.getMessage());
+			}
+			
+		} catch (IOException e) {
+		
+			e.printStackTrace();
+			return false;
+		} finally {
+			
+		}
+		return true;
+	}
+	
 	/**
 	 * This function should be called if you want to use the same instance of this class in
 	 * the event that any error occurred during writing or reading of a file. 
@@ -257,9 +302,14 @@ public class FileStorageService {
 	 */
 	public void finishedTransferingFile() {
 		try {
+			if(this.mFileLock != null) {
+				this.mFileLock.release();
+			}
+			this.mFileLock  = null;
 			if(this.mFileChannel.isOpen()) {
 				this.mFileChannel.close();
 			}
+			
 			this.mFile.close();		
 			this.mFile = null;
 			this.mFileChannel = null;

@@ -53,6 +53,7 @@ public class AckPacket extends Packet {
 	 */
 	@Override
 	public DatagramPacket buildPacket() {
+		//this.mBlockNumber = (short) ((this.mBlockNumber) % Short.MAX_VALUE);
 		this.mBuffer = new byte[Configurations.LEN_ACK_PACKET_BUFFER];
 		byte[] udpHeader = getRequestTypeHeaderByteArray();
 		byte[] blockNumber = Conversion.shortToBytes(this.mBlockNumber);
