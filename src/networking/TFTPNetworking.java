@@ -32,7 +32,7 @@ public class TFTPNetworking {
 	protected DatagramSocket socket;
 	protected DatagramPacket lastPacket;
 	protected ErrorChecker errorChecker;
-	protected Logger logger = Logger.SILENT;
+	protected Logger logger = Logger.VERBOSE;
 	protected String fileName;
 	protected FileStorageService storage;
 	protected int retries = 0;
@@ -179,7 +179,6 @@ public class TFTPNetworking {
 					if (error.getType() == ErrorType.SORCERERS_APPRENTICE)
 						sendACK(lastPacket);
 					if (errorHandle(error, lastPacket, RequestType.DATA)) {
-						this.storage.finishedTransferingFile();
 						this.storage.deleteFileFromDisk();
 						return error;
 					}
@@ -225,8 +224,7 @@ public class TFTPNetworking {
 					if (error.getType() == ErrorType.SORCERERS_APPRENTICE)
 						sendACK(lastPacket);
 					if (errorHandle(error, lastPacket, RequestType.DATA)) {
-						this.storage.finishedTransferingFile();
-						this.storage.deleteFileFromDisk();
+						this.storage.finishedTransferingFile();						this.storage.deleteFileFromDisk();
 						return error;
 					}
 				} catch (SocketTimeoutException e) {
@@ -312,12 +310,10 @@ public class TFTPNetworking {
 					error = errorChecker.check(ackPacket, RequestType.ACK);
 					if (error.getType() == ErrorType.NO_ERROR)
 						break;
-					if (error.getType() == ErrorType.ILLEGAL_OPERATION)
-						if (error.getType() == ErrorType.SORCERERS_APPRENTICE) {
-							continue;
-						}
+					if (error.getType() == ErrorType.SORCERERS_APPRENTICE) {
+						continue;
+					}
 					if (errorHandle(error, receivePacket, RequestType.ACK)) {
-
 						return error;
 					}
 				}
@@ -374,11 +370,12 @@ public class TFTPNetworking {
 		ErrorPacket errorPacket = new ErrorPacket(packet);
 		switch (error.getType()) {
 			case ILLEGAL_OPERATION:
-				if(error.getString().equals(Strings.BLOCK_NUMBER_MISMATCH)) {
-					if (recvType == RequestType.DATA)
-						sendACK(packet);
-					return false;
-				}
+//				if(error.getString().equals(Strings.BLOCK_NUMBER_MISMATCH)) {
+//					
+//					if (recvType == RequestType.DATA)
+//						sendACK(packet);
+//					return false;
+//				}
 				logger.print(Logger.ERROR, "Handling an unrecoverable error.");
 				if (error.getString().equals(Strings.UNKNOWN_TRANSFER)) {
 					System.out.println(Strings.TFTPNETWORKING_LOSE_CONNECTION);

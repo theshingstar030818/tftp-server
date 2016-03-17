@@ -249,6 +249,8 @@ public class ErrorSimulatorService implements Runnable {
 	private boolean continueHandlingPacket(DatagramPacket inPacket) {
 		if (inPacket == null)
 			return true;
+		if(inPacket.getData()[1] == 5) 
+			return false;
 		this.mLastPacket = inPacket;
 		if (inPacket.getPort() == this.mClientPort) {
 			// From Client
@@ -328,7 +330,7 @@ public class ErrorSimulatorService implements Runnable {
 				this.mLastPacket.setAddress(this.mClientHostAddress);
 			} else {
 				// Possible Error Packet
-				if (this.mLastPacket.getPort() == this.mServerListenPort) {
+				if (this.mLastPacket.getPort() == this.mForwardPort) {
 					// It is from the server, so we send it to the client
 					logger.print(Logger.VERBOSE, Strings.ERROR_SERVICE_ADD_CLI + this.mClientPort);
 					this.mLastPacket.setPort(this.mClientPort);
@@ -369,7 +371,7 @@ public class ErrorSimulatorService implements Runnable {
 				this.mLastPacket.setAddress(this.mServerHostAddress);
 			} else {
 				// Possible Error Packet
-				if (this.mLastPacket.getPort() == this.mServerListenPort) {
+				if (this.mLastPacket.getPort() == this.mForwardPort) {
 					// It is from the server, so we send it to the client
 					logger.print(Logger.VERBOSE, Strings.ERROR_SERVICE_ADD_CLI + this.mClientPort);
 					this.mLastPacket.setPort(this.mClientPort);

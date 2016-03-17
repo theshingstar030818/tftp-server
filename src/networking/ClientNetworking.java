@@ -200,7 +200,10 @@ public class ClientNetworking extends TFTPNetworking {
 				return new TFTPErrorMessage(ErrorType.NO_ERROR, Strings.NO_ERROR);
 			}
 			if (error.getType() == ErrorType.SORCERERS_APPRENTICE) super.sendACK(lastPacket);
-			if (errorHandle(error, lastPacket, RequestType.DATA)) return error;
+			if (errorHandle(error, lastPacket, RequestType.DATA)) {
+				this.storage.deleteFileFromDisk();
+				return error;
+			}
 			errorChecker.incrementExpectedBlockNumber();
 
 		} catch (FileNotFoundException e) {
