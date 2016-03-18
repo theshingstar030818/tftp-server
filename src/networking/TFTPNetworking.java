@@ -321,6 +321,7 @@ public class TFTPNetworking {
 						continue;
 					}
 					if (errorHandle(error, receivePacket, RequestType.ACK)) {
+						this.storage.finishedTransferingFile();
 						return error;
 					}
 				}

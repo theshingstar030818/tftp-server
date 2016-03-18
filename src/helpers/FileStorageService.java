@@ -269,7 +269,8 @@ public class FileStorageService {
 	public static boolean checkFileNameExists(String filePathName) {
 		String filePath = Paths.get(filePathName).toString();
 		File fileToCheck = new File(filePath);
-		return fileToCheck.exists() && !fileToCheck.isDirectory();
+		boolean exists = fileToCheck.exists() && !fileToCheck.isDirectory();
+		return exists;
 	}
 	
 	/**

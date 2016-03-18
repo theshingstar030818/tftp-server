@@ -66,7 +66,7 @@ public class ServerNetworking extends TFTPNetworking {
 
 		fileName = wrq.getFilename();
 		if( FileStorageService.checkFileNameExists(Configurations.SERVER_ROOT_FILE_DIRECTORY+"/"+fileName) ){
-			String message = String.format(Strings.PRE_FILE_NAME_EXSIT + Strings.FILE_EXISTS, fileName);
+			String message = String.format(Strings.PRE_FILE_NAME_EXIST + Strings.FILE_EXISTS, fileName);
 			return new TFTPErrorMessage(ErrorType.FILE_EXISTS, message);
 		}
 		TFTPErrorMessage error = errorChecker.check(wrq, RequestType.WRQ);
@@ -127,6 +127,7 @@ public class ServerNetworking extends TFTPNetworking {
 		fileName = rrq.getFilename();
 		if (!FileStorageService.checkFileNameExists(Configurations.SERVER_ROOT_FILE_DIRECTORY+"/"+fileName)){
 			String message = String.format(Strings.PRE_FILE_NAME_NOT_FOUND + Strings.FILE_NOT_FOUND, fileName);
+			
 			return new TFTPErrorMessage(ErrorType.FILE_NOT_FOUND, message);
 		}
 		TFTPErrorMessage error = errorChecker.check(rrq, RequestType.RRQ);
@@ -139,7 +140,6 @@ public class ServerNetworking extends TFTPNetworking {
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
 		} catch (AccessDeniedException e) {
-			this.storage.deleteFileFromDisk();
 			return new TFTPErrorMessage(ErrorType.ACCESS_VIOLATION, e.getFile());
 		} catch (SocketException e1) {
 			e1.printStackTrace();

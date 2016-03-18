@@ -229,6 +229,8 @@ public class ClientNetworking extends TFTPNetworking {
 
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
+		} catch (AccessDeniedException e) {
+			return new TFTPErrorMessage(ErrorType.ACCESS_VIOLATION, "You already have a copy of "+fileName+ " which you do not have permissions to change");
 		} catch (IOException e) {
 			e.printStackTrace();
 		} catch (DiskFullException e) {
