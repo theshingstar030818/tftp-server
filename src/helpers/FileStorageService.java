@@ -6,11 +6,15 @@ import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
+import java.nio.file.*;
+import java.nio.file.attribute.PosixFilePermission;
+import java.util.Set;
 import java.nio.channels.FileLock;
 import java.nio.channels.OverlappingFileLockException;
 import java.nio.file.AccessDeniedException;
 import java.nio.file.Paths;
 import resource.*;
+import types.DiskFullException;
 import types.InstanceType;
 
 /**
@@ -21,10 +25,6 @@ import types.InstanceType;
  *	each time the client class needs to operate on one file
  */
 
-/**
- * @author awesomeness
- *
- */
 public class FileStorageService {
 	
 	private String mFilePath = "";
@@ -45,9 +45,9 @@ public class FileStorageService {
 	 *	each time the client class needs to operate on one file
 	 *
 	 * @param fileName - given to initialize this class for use on one file
-	 * @throws FileNotFoundException
+	 * @throws IOException 
 	 */
-	public FileStorageService(String fileNameOrFilePath) throws FileNotFoundException {
+	public FileStorageService(String fileNameOrFilePath) throws IOException {
 		this.mDefaultStorageFolder = Configurations.SERVER_ROOT_FILE_DIRECTORY;
 		initializeFileServiceStorageLocation();
 		initializeNewFileChannel(fileNameOrFilePath);
@@ -63,9 +63,9 @@ public class FileStorageService {
 	 *
 	 * @param fileNameOrFilePath - given to initialize this class for use on one file
 	 * @param instanceType	     - client or server
-	 * @throws FileNotFoundException
+	 * @throws IOException 
 	 */
-	public FileStorageService(String fileNameOrFilePath, InstanceType instanceType) throws FileNotFoundException {
+	public FileStorageService(String fileNameOrFilePath, InstanceType instanceType) throws IOException {
 		
 		this.mDefaultStorageFolder = instanceType == InstanceType.CLIENT ? Configurations.CLIENT_ROOT_FILE_DIRECTORY : 
 			Configurations.SERVER_ROOT_FILE_DIRECTORY;
@@ -107,9 +107,9 @@ public class FileStorageService {
 	 * 		operate on the default directory. 
 	 * 
 	 * @param fileName - passed in through the constructor
-	 * @throws FileNotFoundException
+	 * @throws IOException 
 	 */
-	public void initializeNewFileChannel(String filePathOrFileName) throws FileNotFoundException {
+	public void initializeNewFileChannel(String filePathOrFileName) throws IOException{
 		if(checkFileNameExists(filePathOrFileName)) {
 			this.setFileAccessRestrictions(filePathOrFileName);
 			this.mFileName = Paths.get(filePathOrFileName).getFileName().toString();
@@ -126,21 +126,19 @@ public class FileStorageService {
 			this.mFilePath = Paths.get(this.mDefaultStorageFolder, this.mFileName).toString();
 		}
 		this.mBytesProcessed = 0;
-		// Open or create a our file name path and create a channel for us to access the file on
+
 		try {
 			this.mFile = new RandomAccessFile(this.mFilePath, "rw");
 			this.mFileChannel = this.mFile.getChannel();
-		}  catch (Exception e) {
-			// Access violation handle for Acces is denied
-			// Access violation handle for The process cannot access the file because it is being used by another process
-			e.printStackTrace();
-			
-		}
-		
-		try {
+
 			System.out.println("Opened a channel for a " + this.mFile.length() + " bytes long.");
 		} catch (IOException e) {
-			e.printStackTrace();
+			//e.printStackTrace();
+			System.err.println(e.getMessage());
+			if(e.getMessage().contains("Access is denied")) {
+				throw new AccessDeniedException(this.getFilePermissionsString());
+			}
+			this.finishedTransferingFile();
 		}
 	}
 	
@@ -148,13 +146,13 @@ public class FileStorageService {
 	 * This function will save the byte buffer given by the TFTPPacket message segment and write
 	 * each block into disk. It remembers where the last segment left off and will return false
 	 * when the operation is done. It will return true if it thinks there is more buffer to write.
-	 * In such case, the server is meant to be getting a fileBuffer lengthed zero to terminate.
+	 * In such case, the server is meant to be getting a fileBuffer length zero to terminate.
 	 * 
 	 * @param fileBuffer - 512 bytes of file content sent over in the TFTPPacket
 	 * @return boolean - if the file has been fully saved or not
 	 * @throws DiskFullException 
 	 */
-	public boolean saveFileByteBufferToDisk(byte[] fileBuffer) {
+	public boolean saveFileByteBufferToDisk(byte[] fileBuffer) throws DiskFullException {
 		if(fileBuffer == null) {
 			// We know that the last packet is an empty packet (512 byte case)
 			try {
@@ -179,8 +177,9 @@ public class FileStorageService {
 				bytesWritten += this.mFileChannel.write(wrappedBuffer, this.mBytesProcessed);
 			}
 		} catch (IOException e) {
-			//System.out.println(Strings.FILE_WRITE_ERROR + " " + this.mFileName);
-			//e.printStackTrace();
+			if (e.getMessage().contains("space")) { // weak i know but hopefully this is only temporary.
+				throw new DiskFullException("Attempted allocation exceeds remaining disk space. ("+ new File(this.mFilePath).getFreeSpace() +" remaining)");
+			}
 			return false;
 		}
 		// Increment processed, next round, continue where we left off
@@ -230,8 +229,8 @@ public class FileStorageService {
 			// An error will occur if the file is corrupt. We need to deal with it
 			System.out.println(Strings.FILE_READ_ERROR + " " + this.mFileName);
 			//e.printStackTrace();
-			if(e.getMessage().contains("Access is denied")) {
-				throw new AccessDeniedException("Hands off my file bch!");
+			if(e.getMessage().contains("The process cannot access the file because another process has locked a portion of the file")) {
+				throw new AccessDeniedException(e.getMessage());
 			}
 			this.finishedTransferingFile();
 			return null;
@@ -362,4 +361,25 @@ public class FileStorageService {
 	public boolean isWriteOnly(){
 		return(this.mWriteOnly);
 	}
+	
+	private Set<PosixFilePermission> getFilePermissionsSet() {
+		Set<PosixFilePermission> vFilePermissions = null;
+		try {
+			vFilePermissions = Files.getPosixFilePermissions(Paths.get(this.mDefaultStorageFolder, this.mFileName), LinkOption.NOFOLLOW_LINKS);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		
+		return vFilePermissions;
+		
+	}
+	private String getFilePermissionsString(){
+		Set<PosixFilePermission> vFilePermissions = getFilePermissionsSet();
+		String permissions = "This file is only allowed to \n";
+		for(PosixFilePermission p: vFilePermissions){
+			permissions.concat(p.toString()+"\n");
+		}
+		return permissions;
+	}
+	
 }

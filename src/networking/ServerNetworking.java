@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.SocketException;
+import java.nio.file.AccessDeniedException;
 
 import helpers.BufferPrinter;
 import helpers.FileStorageService;
@@ -59,12 +60,14 @@ public class ServerNetworking extends TFTPNetworking {
 	 *            - the read or write packet that comes in (in generality)
 	 * @return - TFTPErrorMessage with error type and error string (possible no
 	 *         error)
+	 * @throws IOException 
 	 */
-	public TFTPErrorMessage handleInitWRQ(ReadWritePacket wrq) {
+	public TFTPErrorMessage handleInitWRQ(ReadWritePacket wrq){
 
 		fileName = wrq.getFilename();
 		if( FileStorageService.checkFileNameExists(fileName) ){
-			return new TFTPErrorMessage(ErrorType.FILE_EXISTS,Strings.FILE_EXISTS);
+			String message = String.format(Strings.PRE_FILE_NAME_EXSIT + Strings.FILE_EXISTS, fileName);
+			return new TFTPErrorMessage(ErrorType.FILE_EXISTS, message);
 		}
 		TFTPErrorMessage error = errorChecker.check(wrq, RequestType.WRQ);
 		if (error.getType() != ErrorType.NO_ERROR) {
@@ -79,6 +82,9 @@ public class ServerNetworking extends TFTPNetworking {
 			System.out.println("Locked the write file");
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			//e.printStackTrace();
 		}
 
 		errorChecker.incrementExpectedBlockNumber();
@@ -109,12 +115,14 @@ public class ServerNetworking extends TFTPNetworking {
 	 *            - the read or write packet that comes in (in generality)
 	 * @return - TFTPErrorMessage with error type and error string (possible no
 	 *         error)
+	 * @throws IOException 
 	 */
-	public TFTPErrorMessage handleInitRRQ(ReadWritePacket rrq) {
+	public TFTPErrorMessage handleInitRRQ(ReadWritePacket rrq){
 
 		fileName = rrq.getFilename();
 		if (!FileStorageService.checkFileNameExists(fileName)){
-			return new TFTPErrorMessage(ErrorType.FILE_NOT_FOUND, Strings.FILE_NOT_FOUND);
+			String message = String.format(Strings.PRE_FILE_NAME_NOT_FOUND + Strings.FILE_NOT_FOUND, fileName);
+			return new TFTPErrorMessage(ErrorType.FILE_NOT_FOUND, message);
 		}
 		TFTPErrorMessage error = errorChecker.check(rrq, RequestType.RRQ);
 		if (error.getType() != ErrorType.NO_ERROR)
@@ -125,8 +133,13 @@ public class ServerNetworking extends TFTPNetworking {
 			super.socket.setSoTimeout(Configurations.TRANMISSION_TIMEOUT);
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
+		} catch (AccessDeniedException e) {
+			e.printStackTrace();
 		} catch (SocketException e1) {
 			e1.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			//e.printStackTrace();
 		}
 
 		errorChecker.incrementExpectedBlockNumber();

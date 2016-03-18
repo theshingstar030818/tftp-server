@@ -1,6 +1,8 @@
 package server;
 
+import java.io.IOException;
 import java.net.*;
+import java.nio.file.AccessDeniedException;
 
 import helpers.BufferPrinter;
 import networking.ServerNetworking;
@@ -52,7 +54,7 @@ public class TFTPService implements Runnable {
 		ReadWritePacket vClientRequestPacket = new ReadWritePacket(this.mLastPacket);
 		RequestType reqType = vClientRequestPacket.getRequestType();
 		ServerNetworking net;
-		TFTPErrorMessage result;
+		TFTPErrorMessage result = null;
 
 		switch (reqType) {
 		case WRQ:

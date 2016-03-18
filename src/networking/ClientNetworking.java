@@ -8,6 +8,7 @@ import java.net.InetAddress;
 import java.net.SocketException;
 import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
+import java.nio.file.AccessDeniedException;
 
 import helpers.BufferPrinter;
 import helpers.FileStorageService;
@@ -20,6 +21,7 @@ import resource.Configurations;
 import resource.Strings;
 import testbed.ErrorChecker;
 import testbed.TFTPErrorMessage;
+import types.DiskFullException;
 import types.ErrorType;
 import types.InstanceType;
 import types.Logger;
@@ -68,14 +70,18 @@ public class ClientNetworking extends TFTPNetworking {
 	 *            - the port of send the request to
 	 * @return - TFTPErrorMessage with error type and error string (possible no
 	 *         error)
+	 * @throws IOException 
+	 * @throws AccessDeniedException
 	 */
-	public TFTPErrorMessage generateInitWRQ(String fn, int portToSendTo) {
+	public TFTPErrorMessage generateInitWRQ(String fn, int portToSendTo) throws IOException {
 		TFTPErrorMessage error = null;
 		try {
 			socket.setSoTimeout(Configurations.TRANMISSION_TIMEOUT);
 			storage = new FileStorageService(fn, InstanceType.CLIENT);
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
+		} catch (AccessDeniedException e) {
+			return new TFTPErrorMessage(ErrorType.ACCESS_VIOLATION, e.getFile());
 		} catch (SocketException e) {
 			e.printStackTrace();
 		}
@@ -157,6 +163,7 @@ public class ClientNetworking extends TFTPNetworking {
 			} catch (FileNotFoundException e) {
 				e.printStackTrace();
 			}
+
 			// build read request packet
 
 			ReadPacket rpb = new ReadPacket(InetAddress.getLocalHost(), portToSendTo, fileName,
@@ -176,7 +183,7 @@ public class ClientNetworking extends TFTPNetworking {
 					break;
 				} catch (SocketTimeoutException e) {
 					lastPacket = lastReadPacket;
-					if(++retries == Configurations.RETRANMISSION_TRY) {
+					if (++retries == Configurations.RETRANMISSION_TRY) {
 						logger.print(Logger.ERROR, String.format(Strings.RETRANSMISSION, retries));
 						return new TFTPErrorMessage(ErrorType.TRANSMISSION_ERROR, Strings.CLIENT_TRANSMISSION_ERROR);
 					}
@@ -193,7 +200,7 @@ public class ClientNetworking extends TFTPNetworking {
 			TFTPErrorMessage error = errorChecker.check(receivedPacket, RequestType.DATA);
 			logger.print(Logger.VERBOSE, Strings.RECEIVED);
 			BufferPrinter.printPacket(receivedPacket, logger, RequestType.DATA);
-			
+
 			if (error.getType() == ErrorType.NO_ERROR) {
 				vEmptyData = receivedPacket.getDataBuffer();
 				storage.saveFileByteBufferToDisk(vEmptyData);
@@ -210,6 +217,12 @@ public class ClientNetworking extends TFTPNetworking {
 			e.printStackTrace();
 		} catch (IOException e) {
 			e.printStackTrace();
+		} catch (DiskFullException e) {
+			TFTPErrorMessage errMsg = new TFTPErrorMessage(ErrorType.ALLOCATION_EXCEEDED, e.getMessage());
+			if(this.errorHandle(errMsg, this.lastPacket)) {
+				this.storage.deleteFileFromDisk();
+				return errMsg;
+			}
 		}
 		retries = 0;
 		return new TFTPErrorMessage(ErrorType.NO_ERROR, Strings.NO_ERROR);

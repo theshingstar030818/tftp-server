@@ -17,6 +17,7 @@ import resource.Configurations;
 import resource.Strings;
 import testbed.ErrorChecker;
 import testbed.TFTPErrorMessage;
+import types.DiskFullException;
 import types.ErrorType;
 import types.Logger;
 import types.RequestType;
@@ -32,7 +33,7 @@ public class TFTPNetworking {
 	protected DatagramSocket socket;
 	protected DatagramPacket lastPacket;
 	protected ErrorChecker errorChecker;
-	protected Logger logger = Logger.VERBOSE;
+	protected Logger logger = Logger.SILENT;
 	protected String fileName;
 	protected FileStorageService storage;
 	protected int retries = 0;
@@ -236,6 +237,12 @@ public class TFTPNetworking {
 			socket.setSoTimeout(Configurations.TRANMISSION_TIMEOUT);
 		} catch (IOException e) {
 			e.printStackTrace();
+		} catch (DiskFullException e) {
+			TFTPErrorMessage errMsg = new TFTPErrorMessage(ErrorType.ALLOCATION_EXCEEDED, e.getMessage());
+			if(this.errorHandle(errMsg, this.lastPacket)) {
+				this.storage.deleteFileFromDisk();
+				return errMsg;
+			}
 		} 
 
 		return new TFTPErrorMessage(ErrorType.NO_ERROR, Strings.NO_ERROR);
@@ -370,23 +377,34 @@ public class TFTPNetworking {
 	public boolean errorHandle(TFTPErrorMessage error, DatagramPacket packet, RequestType recvType) {
 		ErrorPacket errorPacket = new ErrorPacket(packet);
 		switch (error.getType()) {
+			case ALLOCATION_EXCEEDED:
+				logger.print(Logger.ERROR, error.getString());
+				DatagramPacket allocationExceeded = errorPacket.buildPacket(ErrorType.ALLOCATION_EXCEEDED , 
+						error.getString());
+				try {
+					socket.send(allocationExceeded);
+				} catch (IOException e) { e.printStackTrace(); }
+				return true;
 			case FILE_EXISTS:
 				logger.print(Logger.ERROR, error.getString());
-				DatagramPacket fileExists = errorPacket.buildPacket(ErrorType.FILE_EXISTS);
+				DatagramPacket fileExists = errorPacket.buildPacket(ErrorType.FILE_EXISTS , 
+						error.getString());
 				try {
 					socket.send(fileExists);
 				} catch (IOException e) { e.printStackTrace(); }
 				return true;
 			case FILE_NOT_FOUND:
 				logger.print(Logger.ERROR, error.getString());
-				DatagramPacket fileNotFound = errorPacket.buildPacket(ErrorType.FILE_NOT_FOUND);
+				DatagramPacket fileNotFound = errorPacket.buildPacket(ErrorType.FILE_NOT_FOUND, 
+						error.getString());
 				try {
 					socket.send(fileNotFound);
 				} catch (IOException e) { e.printStackTrace(); }
 				return true;
 			case ACCESS_VIOLATION:
 				logger.print(Logger.ERROR, error.getString());
-				DatagramPacket accessViolation = errorPacket.buildPacket(ErrorType.ACCESS_VIOLATION);
+				DatagramPacket accessViolation = errorPacket.buildPacket(ErrorType.ACCESS_VIOLATION, 
+						error.getString());
 				try {
 					socket.send(accessViolation);
 				} catch (IOException e) { e.printStackTrace(); }

@@ -12,7 +12,7 @@ import types.ModeType;
 public class Configurations {
 	public static final String USER_HOME = System.getProperty("user.home");
 	public static final String CLIENT_ROOT_FILE_DIRECTORY = Configurations.USER_HOME + "/TFTP-Client-Storage-Folder";
-	public static final String SERVER_ROOT_FILE_DIRECTORY = Configurations.USER_HOME + "/TFTP-Server-Storage-Folder";
+	public static final String SERVER_ROOT_FILE_DIRECTORY = "D:"; // Configurations.USER_HOME + "/TFTP-Server-Storage-Folder";
 	public static final int MAX_BUFFER = 1024;  // Max buffer size is 4092 (Disk
 												// block size lulz)
 	public static final int MAX_MESSAGE_SIZE = 516;
