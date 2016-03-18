@@ -9,7 +9,6 @@ import java.net.SocketException;
 import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
 
-import exceptions.DiskFullException;
 import helpers.BufferPrinter;
 import helpers.FileStorageService;
 import packet.AckPacket;
@@ -211,10 +210,6 @@ public class ClientNetworking extends TFTPNetworking {
 			e.printStackTrace();
 		} catch (IOException e) {
 			e.printStackTrace();
-		} catch (DiskFullException e) {
-			e.printStackTrace();
-			TFTPErrorMessage emsg = new TFTPErrorMessage(ErrorType.ALLOCATION_EXCEED, "Disk capacity reached during transfer.");
-			errorHandle(emsg, this.lastPacket);
 		}
 		retries = 0;
 		return new TFTPErrorMessage(ErrorType.NO_ERROR, Strings.NO_ERROR);

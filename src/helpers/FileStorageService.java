@@ -8,9 +8,8 @@ import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.channels.FileLock;
 import java.nio.channels.OverlappingFileLockException;
+import java.nio.file.AccessDeniedException;
 import java.nio.file.Paths;
-
-import exceptions.DiskFullException;
 import resource.*;
 import types.InstanceType;
 
@@ -155,7 +154,7 @@ public class FileStorageService {
 	 * @return boolean - if the file has been fully saved or not
 	 * @throws DiskFullException 
 	 */
-	public boolean saveFileByteBufferToDisk(byte[] fileBuffer) throws DiskFullException {
+	public boolean saveFileByteBufferToDisk(byte[] fileBuffer) {
 		if(fileBuffer == null) {
 			// We know that the last packet is an empty packet (512 byte case)
 			try {
@@ -177,7 +176,6 @@ public class FileStorageService {
 		try {
 			ByteBuffer wrappedBuffer = ByteBuffer.wrap(fileBuffer);
 			while(wrappedBuffer.hasRemaining()) {
-				if (new File(this.mFileName, "r").getUsableSpace() < 512) throw new DiskFullException();
 				bytesWritten += this.mFileChannel.write(wrappedBuffer, this.mBytesProcessed);
 			}
 		} catch (IOException e) {
@@ -221,7 +219,7 @@ public class FileStorageService {
 	 * @param inByteBufferToFile - an initialized empty byte array sized 512 bytes
 	 * @return boolean - if there is or is not any more file content to buffer 
 	 */
-	public byte[] getFileByteBufferFromDisk() {
+	public byte[] getFileByteBufferFromDisk() throws AccessDeniedException {
 		ByteBuffer fileBuffer = ByteBuffer.allocate(Configurations.MAX_PAYLOAD_BUFFER);
 		int bytesRead = 0;
 		try {
@@ -231,7 +229,11 @@ public class FileStorageService {
 		} catch (IOException e) {
 			// An error will occur if the file is corrupt. We need to deal with it
 			System.out.println(Strings.FILE_READ_ERROR + " " + this.mFileName);
-			e.printStackTrace();
+			//e.printStackTrace();
+			if(e.getMessage().contains("Access is denied")) {
+				throw new AccessDeniedException("Hands off my file bch!");
+			}
+			this.finishedTransferingFile();
 			return null;
 		}
 		
