@@ -230,8 +230,8 @@ public class FileStorageService {
 			// An error will occur if the file is corrupt. We need to deal with it
 			System.out.println(Strings.FILE_READ_ERROR + " " + this.mFileName);
 			//e.printStackTrace();
-			if(e.getMessage().contains("Access is denied")) {
-				throw new AccessDeniedException("Hands off my file bch!");
+			if(e.getMessage().contains("The process cannot access the file because another process has locked a portion of the file")) {
+				throw new AccessDeniedException(e.getMessage());
 			}
 			this.finishedTransferingFile();
 			return null;
