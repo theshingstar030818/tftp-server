@@ -228,7 +228,7 @@ public class FileStorageService {
 			System.out.println(Strings.FILE_READ_ERROR + " " + this.mFileName);
 			//e.printStackTrace();
 			if(e.getMessage().contains("The process cannot access the file because another process has locked a portion of the file")) {
-				throw new AccessDeniedException(e.getMessage());
+				throw new AccessDeniedException("The file you're currently trying to read is in the process of being updated. Please try again later.");
 			}
 			this.finishedTransferingFile();
 			return null;
