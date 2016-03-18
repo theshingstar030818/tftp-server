@@ -17,6 +17,7 @@ import resource.Configurations;
 import resource.Strings;
 import testbed.ErrorChecker;
 import testbed.TFTPErrorMessage;
+import types.DiskFullException;
 import types.ErrorType;
 import types.Logger;
 import types.RequestType;
@@ -236,6 +237,9 @@ public class TFTPNetworking {
 			socket.setSoTimeout(Configurations.TRANMISSION_TIMEOUT);
 		} catch (IOException e) {
 			e.printStackTrace();
+		} catch (DiskFullException e) {
+			TFTPErrorMessage errMsg = new TFTPErrorMessage(ErrorType.ALLOCATION_EXCEED, e.getMessage());
+			this.errorHandle(errMsg, this.lastPacket);
 		} 
 
 		return new TFTPErrorMessage(ErrorType.NO_ERROR, Strings.NO_ERROR);
