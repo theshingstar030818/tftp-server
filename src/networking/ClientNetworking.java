@@ -9,6 +9,8 @@ import java.net.SocketException;
 import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
 import java.nio.file.AccessDeniedException;
+import java.util.Arrays;
+import java.util.HashSet;
 
 import helpers.BufferPrinter;
 import helpers.FileStorageService;
@@ -25,6 +27,7 @@ import types.DiskFullException;
 import types.ErrorType;
 import types.InstanceType;
 import types.Logger;
+import types.ModeType;
 import types.RequestType;
 
 /**
@@ -37,6 +40,9 @@ import types.RequestType;
  */
 public class ClientNetworking extends TFTPNetworking {
 
+	HashSet<String> textExtensions = new HashSet<String>(Arrays.asList("txt", "java", "c", "h", "cc"));
+	
+	
 	/**
 	 * See constructor from TFTPNetworking
 	 */
@@ -56,6 +62,12 @@ public class ClientNetworking extends TFTPNetworking {
 	 */
 	public ClientNetworking(ReadWritePacket p, DatagramSocket s) {
 		super(p, s);
+	}
+	
+	private ModeType getMode(String fn) {
+		String[] parts = fn.split("\\.");
+		//return Configurations.DEFAULT_RW_MODE;
+		return textExtensions.contains(parts[parts.length-1]) ? ModeType.NETASCII : ModeType.OCTET;
 	}
 
 	/**
@@ -93,7 +105,7 @@ public class ClientNetworking extends TFTPNetworking {
 			logger.print(logger, Strings.CLIENT_INITIATING_FIE_STORAGE_SERVICE);
 
 			wpb = new WritePacket(InetAddress.getLocalHost(), portToSendTo, storage.getFileName(),
-					Configurations.DEFAULT_RW_MODE);
+					getMode(storage.getFileName()));
 			fileName = storage.getFileName();
 			DatagramPacket lastWritePacket = wpb.buildPacket();
 			lastPacket = lastWritePacket;
@@ -167,7 +179,7 @@ public class ClientNetworking extends TFTPNetworking {
 			// build read request packet
 
 			ReadPacket rpb = new ReadPacket(InetAddress.getLocalHost(), portToSendTo, fileName,
-					Configurations.DEFAULT_RW_MODE);
+					getMode(fileName));
 			DatagramPacket lastReadPacket = rpb.buildPacket();
 			// now get the packet from the ReadPacket
 			lastPacket = lastReadPacket;
