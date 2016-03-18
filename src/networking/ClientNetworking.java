@@ -216,9 +216,11 @@ public class ClientNetworking extends TFTPNetworking {
 			if (error.getType() == ErrorType.NO_ERROR) {
 				vEmptyData = receivedPacket.getDataBuffer();
 				storage.saveFileByteBufferToDisk(vEmptyData);
+				this.sendACK(lastPacket);
+				errorChecker.incrementExpectedBlockNumber();
 				return new TFTPErrorMessage(ErrorType.NO_ERROR, Strings.NO_ERROR);
 			}
-			if (error.getType() == ErrorType.SORCERERS_APPRENTICE) super.sendACK(lastPacket);
+			if (error.getType() == ErrorType.SORCERERS_APPRENTICE) super.sendACK(lastPacket); // This can't happen
 			if (errorHandle(error, lastPacket, RequestType.DATA)) {
 				this.storage.deleteFileFromDisk();
 				return error;

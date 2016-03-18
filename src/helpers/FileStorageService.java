@@ -111,7 +111,6 @@ public class FileStorageService {
 	 */
 	public void initializeNewFileChannel(String filePathOrFileName) throws IOException{
 		if(checkFileNameExists(filePathOrFileName)) {
-			this.setFileAccessRestrictions(filePathOrFileName);
 			this.mFileName = Paths.get(filePathOrFileName).getFileName().toString();
 			if(this.mFileName == "") {
 				// No filename in the path!
@@ -133,10 +132,9 @@ public class FileStorageService {
 
 			System.out.println("Opened a channel for a " + this.mFile.length() + " bytes long.");
 		} catch (IOException e) {
-			//e.printStackTrace();
-			System.err.println(e.getMessage());
+
 			if(e.getMessage().contains("Access is denied")) {
-				throw new AccessDeniedException(this.getFilePermissionsString());
+				throw new AccessDeniedException(String.format(Strings.ACCESS_VIOLATION_FILE, this.mFileName));
 			}
 			this.finishedTransferingFile();
 		}
@@ -341,45 +339,4 @@ public class FileStorageService {
 			System.err.println("Tried to delete a file that does not exist.");
 		}
 	}
-	
-	private void setFileAccessRestrictions(String filePathName){
-		String filePath = Paths.get(filePathName).toString();
-		File fileToCheck = new File(filePath);
-		if(fileToCheck.canRead()&& !fileToCheck.canWrite()){
-			this.mReadOnly = true;
-		}
-		if(!fileToCheck.canRead()&& fileToCheck.canWrite()){
-			this.mWriteOnly = true;
-		}
-	}
-	/**Indicates if a file read only*/
-	public boolean isReadOnly(){
-		return(this.mReadOnly);
-	}
-	
-	/**Indicates if a file write only*/
-	public boolean isWriteOnly(){
-		return(this.mWriteOnly);
-	}
-	
-	private Set<PosixFilePermission> getFilePermissionsSet() {
-		Set<PosixFilePermission> vFilePermissions = null;
-		try {
-			vFilePermissions = Files.getPosixFilePermissions(Paths.get(this.mDefaultStorageFolder, this.mFileName), LinkOption.NOFOLLOW_LINKS);
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-		
-		return vFilePermissions;
-		
-	}
-	private String getFilePermissionsString(){
-		Set<PosixFilePermission> vFilePermissions = getFilePermissionsSet();
-		String permissions = "This file is only allowed to \n";
-		for(PosixFilePermission p: vFilePermissions){
-			permissions.concat(p.toString()+"\n");
-		}
-		return permissions;
-	}
-	
 }

@@ -65,16 +65,16 @@ public class ServerNetworking extends TFTPNetworking {
 	public TFTPErrorMessage handleInitWRQ(ReadWritePacket wrq){
 
 		fileName = wrq.getFilename();
-		if( FileStorageService.checkFileNameExists(fileName) ){
+		if( FileStorageService.checkFileNameExists(Configurations.SERVER_ROOT_FILE_DIRECTORY+"/"+fileName) ){
 			String message = String.format(Strings.PRE_FILE_NAME_EXSIT + Strings.FILE_EXISTS, fileName);
 			return new TFTPErrorMessage(ErrorType.FILE_EXISTS, message);
 		}
 		TFTPErrorMessage error = errorChecker.check(wrq, RequestType.WRQ);
 		if (error.getType() != ErrorType.NO_ERROR) {
-			if (errorHandle(error, wrq.getPacket())) {
-				this.storage.deleteFileFromDisk();
-				return error;
-			}
+			
+			this.storage.deleteFileFromDisk();
+			return error;
+			
 		}
 		try {
 			storage = new FileStorageService(fileName, InstanceType.SERVER);
@@ -82,9 +82,14 @@ public class ServerNetworking extends TFTPNetworking {
 			System.out.println("Locked the write file");
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			//e.printStackTrace();
+		} catch (AccessDeniedException e) {
+			error = new TFTPErrorMessage(ErrorType.ACCESS_VIOLATION, e.getFile());
+			this.storage.deleteFileFromDisk();
+			return error;
+		}catch (IOException e) {
+			error = new TFTPErrorMessage(ErrorType.NOT_DEFINED, "Unknown IO Exception occurred.");
+			this.storage.deleteFileFromDisk();
+			return error;
 		}
 
 		errorChecker.incrementExpectedBlockNumber();
@@ -120,7 +125,7 @@ public class ServerNetworking extends TFTPNetworking {
 	public TFTPErrorMessage handleInitRRQ(ReadWritePacket rrq){
 
 		fileName = rrq.getFilename();
-		if (!FileStorageService.checkFileNameExists(fileName)){
+		if (!FileStorageService.checkFileNameExists(Configurations.SERVER_ROOT_FILE_DIRECTORY+"/"+fileName)){
 			String message = String.format(Strings.PRE_FILE_NAME_NOT_FOUND + Strings.FILE_NOT_FOUND, fileName);
 			return new TFTPErrorMessage(ErrorType.FILE_NOT_FOUND, message);
 		}
@@ -134,7 +139,8 @@ public class ServerNetworking extends TFTPNetworking {
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
 		} catch (AccessDeniedException e) {
-			e.printStackTrace();
+			this.storage.deleteFileFromDisk();
+			return new TFTPErrorMessage(ErrorType.ACCESS_VIOLATION, e.getFile());
 		} catch (SocketException e1) {
 			e1.printStackTrace();
 		} catch (IOException e) {

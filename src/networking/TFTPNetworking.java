@@ -118,6 +118,7 @@ public class TFTPNetworking {
 	 *            - DatagramSocket to listen on
 	 * @return TFTPErrorMessage defining the state of the transfer
 	 */
+	@SuppressWarnings("unused")
 	public TFTPErrorMessage receiveFile(DatagramSocket vSocket) {
 
 		// when we get a write request, we need to acknowledge client first
@@ -133,13 +134,10 @@ public class TFTPNetworking {
 			while (vHasMore) {
 				while (true) {
 					try {
-						//System.out.println("Checking to receive packet");
 						socket.receive(receivePacket);
-						//System.out.println("recvied packet ok");
 					} catch (SocketTimeoutException e) {
 						logger.print(Logger.ERROR, Strings.TFTPNETWORKING_SOCKET_TIMEOUT);
 						sendACK(lastPacket);
-						//System.err.println(Strings.TFTPNETWORKING_TIMEOUT_PACKET);
 						if(++retries == Configurations.RETRANMISSION_TRY) {
 							if(vHasMore) {
 								//logger.print(Logger.ERROR, String.format(Strings.TFTPNETWORKING_RETRY));
@@ -164,8 +162,6 @@ public class TFTPNetworking {
 						errorChecker = new ErrorChecker(new DataPacket(lastPacket));
 						errorChecker.incrementExpectedBlockNumber();
 					}
-					// System.err.println("Excepted block number = " +
-					// errorChecker.mExpectedBlockNumber);
 					DataPacket receivedPacket = new DataPacket(lastPacket);
 					error = errorChecker.check(receivedPacket, RequestType.DATA);
 					logger.print(logger, Strings.RECEIVED);
@@ -201,6 +197,9 @@ public class TFTPNetworking {
 			}
 			// Wait on last DATA in case of the last data was lost.
 			socket.setSoTimeout(Configurations.TRANMISSION_TIMEOUT * 2);
+			if(Configurations.TRANMISSION_TIMEOUT == 0) {
+				return new TFTPErrorMessage(ErrorType.NO_ERROR, Strings.NO_ERROR);
+			}
 			while (true) {
 				try {
 
@@ -220,14 +219,14 @@ public class TFTPNetworking {
 
 					if (error.getType() == ErrorType.SORCERERS_APPRENTICE)
 						sendACK(lastPacket);
-					if (errorHandle(error, lastPacket, RequestType.DATA)) {
-						this.storage.finishedTransferingFile();						this.storage.deleteFileFromDisk();
+					if (errorHandle(error, lastPacket, RequestType.DATA)) {					
+						this.storage.deleteFileFromDisk();
 						return error;
 					}
 				} catch (SocketTimeoutException e) {
 
 					if(++retries == Configurations.RETRANMISSION_TRY) {
-						logger.print(Logger.ERROR, String.format(Strings.RETRANSMISSION, retries));
+						logger.print(Logger.VERBOSE, String.format("Waited enough time, file transfer considered done.", retries));
 						retriesExceeded = true;
 						break;
 					}
