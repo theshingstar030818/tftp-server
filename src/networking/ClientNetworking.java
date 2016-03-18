@@ -212,7 +212,7 @@ public class ClientNetworking extends TFTPNetworking {
 		} catch (IOException e) {
 			e.printStackTrace();
 		} catch (DiskFullException e) {
-			TFTPErrorMessage errMsg = new TFTPErrorMessage(ErrorType.ALLOCATION_EXCEED, e.getMessage());
+			TFTPErrorMessage errMsg = new TFTPErrorMessage(ErrorType.ALLOCATION_EXCEEDED, e.getMessage());
 			this.errorHandle(errMsg, this.lastPacket);
 		}
 		retries = 0;

@@ -425,7 +425,7 @@ public class ErrorSimulatorService implements Runnable {
 		case ACCESS_VIOLATION:
 			// error code 2
 			break;
-		case ALLOCATION_EXCEED:
+		case ALLOCATION_EXCEEDED:
 			// error code 3
 			break;
 		case ILLEGAL_OPERATION:

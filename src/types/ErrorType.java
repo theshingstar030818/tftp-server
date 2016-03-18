@@ -42,7 +42,7 @@ public enum ErrorType {
 			return Strings.ACCESS_VIOLATION;
 		}
 	},
-	ALLOCATION_EXCEED {
+	ALLOCATION_EXCEEDED {
 		@Override
 		public short getErrorCodeShort() {
 			return 3;
@@ -159,7 +159,7 @@ public enum ErrorType {
 			case 2:
 				return ErrorType.ACCESS_VIOLATION;
 			case 3: 
-				return ErrorType.ALLOCATION_EXCEED;
+				return ErrorType.ALLOCATION_EXCEEDED;
 			case 4:
 				return ErrorType.ILLEGAL_OPERATION;
 			case 5:
