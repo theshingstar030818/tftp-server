@@ -70,7 +70,6 @@ public class ServerNetworking extends TFTPNetworking {
 				return error;
 			}
 		}
-
 		try {
 			storage = new FileStorageService(fileName, InstanceType.SERVER);
 			storage.lockFile();
