@@ -65,6 +65,10 @@ public class ServerNetworking extends TFTPNetworking {
 	public TFTPErrorMessage handleInitWRQ(ReadWritePacket wrq){
 
 		fileName = wrq.getFilename();
+		if( FileStorageService.checkFileNameExists(Configurations.SERVER_ROOT_FILE_DIRECTORY+"/"+fileName) ){
+			String message = String.format(Strings.PRE_FILE_NAME_EXSIT + Strings.FILE_EXISTS, fileName);
+			return new TFTPErrorMessage(ErrorType.FILE_EXISTS, message);
+		}
 		TFTPErrorMessage error = errorChecker.check(wrq, RequestType.WRQ);
 		if (error.getType() != ErrorType.NO_ERROR) {
 			
@@ -121,6 +125,10 @@ public class ServerNetworking extends TFTPNetworking {
 	public TFTPErrorMessage handleInitRRQ(ReadWritePacket rrq){
 
 		fileName = rrq.getFilename();
+		if (!FileStorageService.checkFileNameExists(Configurations.SERVER_ROOT_FILE_DIRECTORY+"/"+fileName)){
+			String message = String.format(Strings.PRE_FILE_NAME_NOT_FOUND + Strings.FILE_NOT_FOUND, fileName);
+			return new TFTPErrorMessage(ErrorType.FILE_NOT_FOUND, message);
+		}
 		TFTPErrorMessage error = errorChecker.check(rrq, RequestType.RRQ);
 		if (error.getType() != ErrorType.NO_ERROR)
 			if (errorHandle(error, rrq.getPacket()))
