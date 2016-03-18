@@ -47,7 +47,7 @@ public class ErrorPacket extends Packet {
 	 */
 	public DatagramPacket buildPacket(ErrorType errorType) {
 		this.mErrorType = errorType;
-		byte[] errorHeaderBytes = this.mRequestType.getHeaderByteArray();
+		byte[] errorHeaderBytes = RequestType.ERROR.getHeaderByteArray();
 		byte[] errorCodeBytes = Conversion.shortToBytes(errorType.getErrorCodeShort());
 		byte[] errorMessageBytes = errorType.getErrorMessageString().getBytes();
 		int bufferLength = errorHeaderBytes.length + errorCodeBytes.length + errorMessageBytes.length + 1;
@@ -93,7 +93,7 @@ public class ErrorPacket extends Packet {
 	@Override
 	public void deconstructPacket(DatagramPacket inDatagramPacket) {
 		// Only using this to deconstruct to send back to sender
-		setRequestTypeFromBuffer(this.mBuffer);
+		this.mRequestType = RequestType.ERROR;
 		if (this.mRequestType == RequestType.ERROR) {
 			byte[] errorOpCode = new byte[2];
 			System.arraycopy(this.mBuffer, 2, errorOpCode, 0, 2);

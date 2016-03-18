@@ -6,8 +6,7 @@ import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.SocketException;
 import java.net.SocketTimeoutException;
-
-import exceptions.DiskFullException;
+import java.nio.file.AccessDeniedException;
 import helpers.BufferPrinter;
 import helpers.FileStorageService;
 import packet.AckPacket;
@@ -18,6 +17,7 @@ import resource.Configurations;
 import resource.Strings;
 import testbed.ErrorChecker;
 import testbed.TFTPErrorMessage;
+import types.DiskFullException;
 import types.ErrorType;
 import types.Logger;
 import types.RequestType;
@@ -33,7 +33,7 @@ public class TFTPNetworking {
 	protected DatagramSocket socket;
 	protected DatagramPacket lastPacket;
 	protected ErrorChecker errorChecker;
-	protected Logger logger = Logger.VERBOSE;
+	protected Logger logger = Logger.SILENT;
 	protected String fileName;
 	protected FileStorageService storage;
 	protected int retries = 0;
@@ -103,7 +103,7 @@ public class TFTPNetworking {
 	 * @return TFTPErrorMessgae from a call to the default sendFile function
 	 */
 	public TFTPErrorMessage sendFile(ReadWritePacket packet) {
-		BufferPrinter.printPacket(packet, Logger.VERBOSE, RequestType.RRQ);
+		BufferPrinter.printPacket(packet, logger, RequestType.RRQ);
 		fileName = packet.getFilename();
 		return sendFile();
 	}
@@ -133,7 +133,9 @@ public class TFTPNetworking {
 			while (vHasMore) {
 				while (true) {
 					try {
+						//System.out.println("Checking to receive packet");
 						socket.receive(receivePacket);
+						//System.out.println("recvied packet ok");
 					} catch (SocketTimeoutException e) {
 						logger.print(Logger.ERROR, Strings.TFTPNETWORKING_SOCKET_TIMEOUT);
 						sendACK(lastPacket);
@@ -142,12 +144,8 @@ public class TFTPNetworking {
 							if(vHasMore) {
 								//logger.print(Logger.ERROR, String.format(Strings.TFTPNETWORKING_RETRY));
 							} else {
-
 								logger.print(Logger.ERROR, String.format(Strings.TFTPNETWORKING_RE_TRANSMISSION, retries));
-
 								logger.print(Logger.ERROR, String.format(Strings.TFTPNETWORKING_RE_TRAN_SHUT_DOWN, retries));
-
-
 								logger.print(Logger.ERROR, String
 										.format("Retransmission retried %d times, no reply, shutting down.", retries));
 							}
@@ -170,7 +168,7 @@ public class TFTPNetworking {
 					// errorChecker.mExpectedBlockNumber);
 					DataPacket receivedPacket = new DataPacket(lastPacket);
 					error = errorChecker.check(receivedPacket, RequestType.DATA);
-					logger.print(Logger.VERBOSE, Strings.RECEIVED);
+					logger.print(logger, Strings.RECEIVED);
 					BufferPrinter.printPacket(receivedPacket, logger, RequestType.DATA);
 
 					if (error.getType() == ErrorType.NO_ERROR)
@@ -178,7 +176,6 @@ public class TFTPNetworking {
 					if (error.getType() == ErrorType.SORCERERS_APPRENTICE)
 						sendACK(lastPacket);
 					if (errorHandle(error, lastPacket, RequestType.DATA)) {
-						this.storage.finishedTransferingFile();
 						this.storage.deleteFileFromDisk();
 						return error;
 					}
@@ -213,7 +210,7 @@ public class TFTPNetworking {
 					lastPacket = receivePacket;
 					DataPacket receivedPacket = new DataPacket(lastPacket);
 					error = errorChecker.check(receivedPacket, RequestType.DATA);
-					logger.print(Logger.VERBOSE, Strings.RECEIVED);
+					logger.print(logger, Strings.RECEIVED);
 					BufferPrinter.printPacket(receivedPacket, logger, RequestType.DATA);
 
 					if (error.getType() == ErrorType.NO_ERROR) {
@@ -224,8 +221,7 @@ public class TFTPNetworking {
 					if (error.getType() == ErrorType.SORCERERS_APPRENTICE)
 						sendACK(lastPacket);
 					if (errorHandle(error, lastPacket, RequestType.DATA)) {
-						this.storage.finishedTransferingFile();
-						this.storage.deleteFileFromDisk();
+						this.storage.finishedTransferingFile();						this.storage.deleteFileFromDisk();
 						return error;
 					}
 				} catch (SocketTimeoutException e) {
@@ -239,12 +235,14 @@ public class TFTPNetworking {
 			}
 
 			socket.setSoTimeout(Configurations.TRANMISSION_TIMEOUT);
-		} catch (DiskFullException e) {
-			e.printStackTrace();
-			TFTPErrorMessage emsg = new TFTPErrorMessage(ErrorType.ALLOCATION_EXCEED, "Disk capacity reached during transfer.");
-			errorHandle(emsg, this.lastPacket);
 		} catch (IOException e) {
 			e.printStackTrace();
+		} catch (DiskFullException e) {
+			TFTPErrorMessage errMsg = new TFTPErrorMessage(ErrorType.ALLOCATION_EXCEEDED, e.getMessage());
+			if(this.errorHandle(errMsg, this.lastPacket)) {
+				this.storage.deleteFileFromDisk();
+				return errMsg;
+			}
 		} 
 
 		return new TFTPErrorMessage(ErrorType.NO_ERROR, Strings.NO_ERROR);
@@ -272,16 +270,23 @@ public class TFTPNetworking {
 			TFTPErrorMessage error;
 			boolean retriesExceeded = false;
 			while (vEmptyData != null && vEmptyData.length >= Configurations.MAX_PAYLOAD_BUFFER) {
-
-				vEmptyData = storage.getFileByteBufferFromDisk();
+				try {
+					vEmptyData = storage.getFileByteBufferFromDisk();
+				} catch (AccessDeniedException e) {
+					error = new TFTPErrorMessage(ErrorType.ACCESS_VIOLATION, e.getFile());
+					this.errorHandle(error, this.lastPacket, RequestType.ACK);
+					return error;
+				}
 				// Building a data packet from the last packet ie. will
 				// increment block number
 				DataPacket vDataPacket = new DataPacket(lastPacket);
 				vDataPacket.setBlockNumber(currentSendBlockNumber);
-				++currentSendBlockNumber; 
+				if(++currentSendBlockNumber == 32767) {
+					currentSendBlockNumber = 0;
+				}
 				DatagramPacket vSendPacket = vDataPacket.buildPacket(vEmptyData);
-				logger.print(Logger.VERBOSE, Strings.SENDING);
-				BufferPrinter.printPacket(vDataPacket, Logger.VERBOSE, RequestType.DATA);
+				logger.print(logger, Strings.SENDING);
+				BufferPrinter.printPacket(vDataPacket, logger, RequestType.DATA);
 				socket.send(vSendPacket);
 
 				while (true) {
@@ -292,13 +297,13 @@ public class TFTPNetworking {
 						socket.receive(receivePacket);
 					} catch (SocketTimeoutException e) {
 						logger.print(Logger.ERROR, Strings.TFTPNETWORKING_TIME_OUT);
-						BufferPrinter.printPacket(vDataPacket, Logger.VERBOSE, RequestType.DATA);
+						BufferPrinter.printPacket(vDataPacket, logger, RequestType.DATA);
 						socket.send(vSendPacket);
 						if(++retries == Configurations.RETRANMISSION_TRY) {
 							if(vEmptyData !=null && vEmptyData.length < Configurations.MAX_PAYLOAD_BUFFER ) {
-								//logger.print(Logger.VERBOSE, String.format(Strings.TFTPNETWORKING_RETRY));
+								//logger.print(logger, String.format(Strings.TFTPNETWORKING_RETRY));
 							} else {
-								logger.print(Logger.VERBOSE, String.format(Strings.TFTPNETWORKING_RE_TRAN_SUCCEED, retries));
+								logger.print(logger, String.format(Strings.TFTPNETWORKING_RE_TRAN_SUCCEED, retries));
 							}
 							retriesExceeded = true;
 							break;
@@ -307,18 +312,16 @@ public class TFTPNetworking {
 					}
 					ackPacket = new AckPacket(receivePacket);
 
-					logger.print(Logger.VERBOSE, Strings.RECEIVED);
-					BufferPrinter.printPacket(ackPacket, Logger.VERBOSE, RequestType.ACK);
+					logger.print(logger, Strings.RECEIVED);
+					BufferPrinter.printPacket(ackPacket, logger, RequestType.ACK);
 
 					error = errorChecker.check(ackPacket, RequestType.ACK);
 					if (error.getType() == ErrorType.NO_ERROR)
 						break;
-					if (error.getType() == ErrorType.ILLEGAL_OPERATION)
-						if (error.getType() == ErrorType.SORCERERS_APPRENTICE) {
-							continue;
-						}
+					if (error.getType() == ErrorType.SORCERERS_APPRENTICE) {
+						continue;
+					}
 					if (errorHandle(error, receivePacket, RequestType.ACK)) {
-
 						return error;
 					}
 				}
@@ -345,7 +348,7 @@ public class TFTPNetworking {
 	 *            - DatagramPacket to reply to
 	 */
 	protected void sendACK(DatagramPacket packet) {
-		logger.print(Logger.VERBOSE, Strings.SENDING);
+		logger.print(logger, Strings.SENDING);
 		AckPacket ackPacket = new AckPacket(packet);
 		ackPacket.buildPacket();
 		BufferPrinter.printPacket(ackPacket, logger, RequestType.ACK);
@@ -374,42 +377,63 @@ public class TFTPNetworking {
 	public boolean errorHandle(TFTPErrorMessage error, DatagramPacket packet, RequestType recvType) {
 		ErrorPacket errorPacket = new ErrorPacket(packet);
 		switch (error.getType()) {
+			case ALLOCATION_EXCEEDED:
+				logger.print(Logger.ERROR, error.getString());
+				DatagramPacket allocationExceeded = errorPacket.buildPacket(ErrorType.ALLOCATION_EXCEEDED , 
+						error.getString());
+				try {
+					socket.send(allocationExceeded);
+				} catch (IOException e) { e.printStackTrace(); }
+				return true;
+			case FILE_EXISTS:
+				logger.print(Logger.ERROR, error.getString());
+				DatagramPacket fileExists = errorPacket.buildPacket(ErrorType.FILE_EXISTS , 
+						error.getString());
+				try {
+					socket.send(fileExists);
+				} catch (IOException e) { e.printStackTrace(); }
+				return true;
+			case FILE_NOT_FOUND:
+				logger.print(Logger.ERROR, error.getString());
+				DatagramPacket fileNotFound = errorPacket.buildPacket(ErrorType.FILE_NOT_FOUND, 
+						error.getString());
+				try {
+					socket.send(fileNotFound);
+				} catch (IOException e) { e.printStackTrace(); }
+				return true;
+			case ACCESS_VIOLATION:
+				logger.print(Logger.ERROR, error.getString());
+				DatagramPacket accessViolation = errorPacket.buildPacket(ErrorType.ACCESS_VIOLATION, 
+						error.getString());
+				try {
+					socket.send(accessViolation);
+				} catch (IOException e) { e.printStackTrace(); }
+				return true;
 			case ILLEGAL_OPERATION:
-				if(error.getString().equals(Strings.BLOCK_NUMBER_MISMATCH)) {
-					if (recvType == RequestType.DATA)
-						sendACK(packet);
-					return false;
-				}
-				logger.print(Logger.ERROR, "Handling an unrecoverable error.");
+				logger.print(Logger.ERROR, "Illegal Operation, unrecoverable error.");
 				if (error.getString().equals(Strings.UNKNOWN_TRANSFER)) {
 					System.out.println(Strings.TFTPNETWORKING_LOSE_CONNECTION);
 					return true;
 				}
-				
 				DatagramPacket illegalOpsError = errorPacket.buildPacket(ErrorType.ILLEGAL_OPERATION,
 						error.getString());
-				
 				try {
 					socket.send(illegalOpsError);
 				} catch (IOException e) { e.printStackTrace(); }
 				logger.print(Logger.ERROR, Strings.ILLEGAL_OPERATION_HELP_MESSAGE);
 				BufferPrinter.printPacket(new ErrorPacket(packet), Logger.ERROR, RequestType.ERROR);
 				return true;
-				
 			case UNKNOWN_TRANSFER:
 				DatagramPacket unknownError = errorPacket.buildPacket(ErrorType.ILLEGAL_OPERATION,
 						error.getString());
-				
 				try {
 					socket.send(unknownError);
 				} catch (IOException e) { e.printStackTrace(); }
 				logger.print(Logger.ERROR, Strings.UNKNOWN_TRANSFER_HELP_MESSAGE);
 				BufferPrinter.printPacket(new ErrorPacket(packet), Logger.ERROR, RequestType.ERROR);
 				return false;
-			
 			case SORCERERS_APPRENTICE:
 				return false;
-				
 			default:
 				System.out.println(Strings.UNHANDLED_EXCEPTION);
 				break;

@@ -10,7 +10,6 @@ import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
 import java.nio.file.AccessDeniedException;
 
-import exceptions.DiskFullException;
 import helpers.BufferPrinter;
 import helpers.FileStorageService;
 import packet.AckPacket;
@@ -22,6 +21,7 @@ import resource.Configurations;
 import resource.Strings;
 import testbed.ErrorChecker;
 import testbed.TFTPErrorMessage;
+import types.DiskFullException;
 import types.ErrorType;
 import types.InstanceType;
 import types.Logger;
@@ -206,10 +206,11 @@ public class ClientNetworking extends TFTPNetworking {
 				storage.saveFileByteBufferToDisk(vEmptyData);
 				return new TFTPErrorMessage(ErrorType.NO_ERROR, Strings.NO_ERROR);
 			}
-			if (error.getType() == ErrorType.SORCERERS_APPRENTICE)
-				super.sendACK(lastPacket);
-			if (errorHandle(error, lastPacket, RequestType.DATA))
+			if (error.getType() == ErrorType.SORCERERS_APPRENTICE) super.sendACK(lastPacket);
+			if (errorHandle(error, lastPacket, RequestType.DATA)) {
+				this.storage.deleteFileFromDisk();
 				return error;
+			}
 			errorChecker.incrementExpectedBlockNumber();
 
 		} catch (FileNotFoundException e) {
@@ -217,10 +218,11 @@ public class ClientNetworking extends TFTPNetworking {
 		} catch (IOException e) {
 			e.printStackTrace();
 		} catch (DiskFullException e) {
-			e.printStackTrace();
-			TFTPErrorMessage emsg = new TFTPErrorMessage(ErrorType.ALLOCATION_EXCEED,
-					"Disk capacity reached during transfer.");
-			errorHandle(emsg, this.lastPacket);
+			TFTPErrorMessage errMsg = new TFTPErrorMessage(ErrorType.ALLOCATION_EXCEEDED, e.getMessage());
+			if(this.errorHandle(errMsg, this.lastPacket)) {
+				this.storage.deleteFileFromDisk();
+				return errMsg;
+			}
 		}
 		retries = 0;
 		return new TFTPErrorMessage(ErrorType.NO_ERROR, Strings.NO_ERROR);

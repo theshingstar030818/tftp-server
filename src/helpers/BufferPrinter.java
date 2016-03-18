@@ -86,7 +86,6 @@ public class BufferPrinter {
 			logger.print(Logger.FATAL, Strings.INVALID_PACKET_NONE_TYPE);
 			break;
 		}
-
 		logger.print(Logger.VERBOSE, "IP Address : " + pb.getPacket().getAddress());
 		logger.print(Logger.VERBOSE, "Port : " + pb.getPacket().getPort());
 
@@ -97,7 +96,8 @@ public class BufferPrinter {
 		logger.print(Logger.VERBOSE, "Packet length : " + pb.getPacketLength());
 		logger.print(Logger.VERBOSE, "Raw packet value : " + Arrays.toString(pb.getPacketBuffer()));
 		logger.print(Logger.VERBOSE, "String value : " + bufferToString(pb.getPacketBuffer()));
-		System.out.println();
+		if(logger != Logger.SILENT) 
+			System.out.println();
 	}
 
 	/**

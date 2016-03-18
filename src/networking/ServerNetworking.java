@@ -66,12 +66,16 @@ public class ServerNetworking extends TFTPNetworking {
 
 		fileName = wrq.getFilename();
 		TFTPErrorMessage error = errorChecker.check(wrq, RequestType.WRQ);
-		if (error.getType() != ErrorType.NO_ERROR)
-			if (errorHandle(error, wrq.getPacket()))
+		if (error.getType() != ErrorType.NO_ERROR) {
+			if (errorHandle(error, wrq.getPacket())) {
+				this.storage.deleteFileFromDisk();
 				return error;
-
+			}
+		}
 		try {
 			storage = new FileStorageService(fileName, InstanceType.SERVER);
+			storage.lockFile();
+			System.out.println("Locked the write file");
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
 		} catch (IOException e) {

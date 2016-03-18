@@ -9,9 +9,12 @@ import java.nio.channels.FileChannel;
 import java.nio.file.*;
 import java.nio.file.attribute.PosixFilePermission;
 import java.util.Set;
-
-import exceptions.DiskFullException;
+import java.nio.channels.FileLock;
+import java.nio.channels.OverlappingFileLockException;
+import java.nio.file.AccessDeniedException;
+import java.nio.file.Paths;
 import resource.*;
+import types.DiskFullException;
 import types.InstanceType;
 
 /**
@@ -34,6 +37,7 @@ public class FileStorageService {
 	// File utility classes
 	RandomAccessFile mFile = null;
 	FileChannel mFileChannel = null;
+	FileLock mFileLock = null;
 
 	/**
 	 *  This file encapsulates all disk IO operations that is required to 
@@ -122,9 +126,11 @@ public class FileStorageService {
 			this.mFilePath = Paths.get(this.mDefaultStorageFolder, this.mFileName).toString();
 		}
 		this.mBytesProcessed = 0;
+
 		try {
-		this.mFile = new RandomAccessFile(this.mFilePath, "rw");
-		this.mFileChannel = this.mFile.getChannel();
+			this.mFile = new RandomAccessFile(this.mFilePath, "rw");
+			this.mFileChannel = this.mFile.getChannel();
+
 			System.out.println("Opened a channel for a " + this.mFile.length() + " bytes long.");
 		} catch (IOException e) {
 			//e.printStackTrace();
@@ -150,6 +156,10 @@ public class FileStorageService {
 		if(fileBuffer == null) {
 			// We know that the last packet is an empty packet (512 byte case)
 			try {
+				if(this.mFileLock != null) {
+					this.mFileLock.release();
+				}
+				this.mFileLock  = null;
 				this.mFileChannel.force(false);
 				this.mFileChannel.close();
 				this.mFile.close();
@@ -164,12 +174,12 @@ public class FileStorageService {
 		try {
 			ByteBuffer wrappedBuffer = ByteBuffer.wrap(fileBuffer);
 			while(wrappedBuffer.hasRemaining()) {
-				if (new File(this.mFileName, "r").getUsableSpace() < 512) throw new DiskFullException();
 				bytesWritten += this.mFileChannel.write(wrappedBuffer, this.mBytesProcessed);
 			}
 		} catch (IOException e) {
-			//System.out.println(Strings.FILE_WRITE_ERROR + " " + this.mFileName);
-			//e.printStackTrace();
+			if (e.getMessage().contains("space")) { // weak i know but hopefully this is only temporary.
+				throw new DiskFullException("Attempted allocation exceeds remaining disk space. ("+ new File(this.mFilePath).getFreeSpace() +" remaining)");
+			}
 			return false;
 		}
 		// Increment processed, next round, continue where we left off
@@ -181,12 +191,18 @@ public class FileStorageService {
 			try {
 				// Force the changes into disk, without force(false) we would write 
 				// the last block with nulls.
+				if(this.mFileLock != null) {
+					this.mFileLock.release();
+				}
+				this.mFileLock  = null;
 				this.mFileChannel.force(false);
 				this.mFileChannel.close();
 				this.mFile.close();
 			} catch (IOException e) {
 				System.out.println(Strings.FILE_CHANNEL_CLOSE_ERROR);
 				e.printStackTrace();
+			} finally {
+				
 			}
 			return false;
 		}
@@ -202,15 +218,21 @@ public class FileStorageService {
 	 * @param inByteBufferToFile - an initialized empty byte array sized 512 bytes
 	 * @return boolean - if there is or is not any more file content to buffer 
 	 */
-	public byte[] getFileByteBufferFromDisk() {
+	public byte[] getFileByteBufferFromDisk() throws AccessDeniedException {
 		ByteBuffer fileBuffer = ByteBuffer.allocate(Configurations.MAX_PAYLOAD_BUFFER);
 		int bytesRead = 0;
 		try {
 			bytesRead = this.mFileChannel.read(fileBuffer, this.mBytesProcessed);
+		} catch (OverlappingFileLockException e) {
+			e.printStackTrace();
 		} catch (IOException e) {
 			// An error will occur if the file is corrupt. We need to deal with it
 			System.out.println(Strings.FILE_READ_ERROR + " " + this.mFileName);
-			e.printStackTrace();
+			//e.printStackTrace();
+			if(e.getMessage().contains("The process cannot access the file because another process has locked a portion of the file")) {
+				throw new AccessDeniedException(e.getMessage());
+			}
+			this.finishedTransferingFile();
 			return null;
 		}
 		
@@ -261,6 +283,28 @@ public class FileStorageService {
 		return this.mFileName;
 	}
 	
+	public boolean lockFile() {
+		if(this.mFileLock != null) return false; 
+		try {
+			this.mFileLock = this.mFileChannel.tryLock();
+			System.out.println("Got the lock");
+		} catch(OverlappingFileLockException e) {
+			System.err.println(e.getMessage());
+			
+			while(true) {
+				System.err.println(e.getMessage());
+			}
+			
+		} catch (IOException e) {
+		
+			e.printStackTrace();
+			return false;
+		} finally {
+			
+		}
+		return true;
+	}
+	
 	/**
 	 * This function should be called if you want to use the same instance of this class in
 	 * the event that any error occurred during writing or reading of a file. 
@@ -269,9 +313,14 @@ public class FileStorageService {
 	 */
 	public void finishedTransferingFile() {
 		try {
+			if(this.mFileLock != null) {
+				this.mFileLock.release();
+			}
+			this.mFileLock  = null;
 			if(this.mFileChannel.isOpen()) {
 				this.mFileChannel.close();
 			}
+			
 			this.mFile.close();		
 			this.mFile = null;
 			this.mFileChannel = null;
@@ -283,15 +332,14 @@ public class FileStorageService {
 	
 	/** Deletes file from disk*/
 	public void deleteFileFromDisk(){
-		File here = new File(".");
-		System.err.println(here.getAbsolutePath());
-		/*File f = new File(this.mFilePath);
+		this.finishedTransferingFile();
+		File f = new File(this.mFilePath);
 		System.out.println("Delete failed file transfer from path: " +this.mFilePath);
 		if(f.exists()) {
 			f.delete();
 		} else {
 			System.err.println("Tried to delete a file that does not exist.");
-		}*/
+		}
 	}
 	
 	private void setFileAccessRestrictions(String filePathName){
