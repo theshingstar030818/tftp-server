@@ -24,7 +24,7 @@ public class Strings {
 
 	// Client messages.
 	public static final String PROMPT_ENTER_FILE_NAME = "Please enter file name:";
-	public static final String PROMPT_FILE_NAME_PATH = "Please enter file name or file path:";
+	public static final String PROMPT_FILE_NAME_PATH = "Please enter file path:";
 	public static final String ERROR_INPUT = "ERROR : Please select a valid option.";
 	public static final String EXIT_BYE = "Bye bye.";
 	public static final String TRANSFER_SUCCESSFUL = "File transfer was successful.";
@@ -69,6 +69,7 @@ public class Strings {
 	public static final String INVALID_PACKET_SIZE = "Invalid packet size.";
 	public static final String UNKOWN_ERROR_CODE = "Unknown error code.";
 	public static final String INVALID_ERROR_CODE_FORMAT = "Error code does not begin with 0.";
+	public static final String FILE_ALREADY_EXSIT = "File already exsit.";
 
 	// Error simulator messages
 	public static final String ES_START_LISTENING = "Starting to listen for traffic";
@@ -104,6 +105,8 @@ public class Strings {
 	public static final String TFTPNETWORKING_TIME_OUT = "Socket Timeout on send file! Resending Data!";
 	public static final String TFTPNETWORKING_LOSE_CONNECTION = "Other host no longer connected.";
 	public static final String UNHANDLED_EXCEPTION = "Unhandled Exception.";
+	public static final String PRE_FILE_NAME_EXSIT = "The file name you entered %s already exsit and cause an error: ";
+	public static final String PRE_FILE_NAME_NOT_FOUND = "The file name you entered %s cannot be found and cause an error: ";
 	
 	// Error Simulator Server
 	public static final String ERROR_SERVER_WAITING_INIT = "Waiting on timeout from client during delayed initiating packet.";

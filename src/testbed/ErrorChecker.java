@@ -1,6 +1,8 @@
 package testbed;
 
+import java.io.File;
 import java.net.InetAddress;
+import java.nio.file.Paths;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -76,6 +78,7 @@ public class ErrorChecker {
 			logger.print(logger, String.format("Dealing with the special sorcerors apprentice bug. Not going to reply with a duplicate DATA..."));
 			return new TFTPErrorMessage(ErrorType.SORCERERS_APPRENTICE, Strings.SORCERERS_APPRENTICE);
 		}
+		
 		if (!formatErrorMessage.isEmpty())
 			return new TFTPErrorMessage(ErrorType.ILLEGAL_OPERATION, formatErrorMessage);
 

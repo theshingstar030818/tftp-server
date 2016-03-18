@@ -44,7 +44,7 @@ public class UIStrings {
 			   				   + "\t 2. Interfere with packets going to the Server\n"
 			   				   + "Select option : ";
 	 public static final String MENU_CLIENT_SELECTION 
-							   = "----------------------\n"
+							   = "\n----------------------\n"
 							   +"| Client Select Menu |\n"
 							   +"----------------------\n"
 							   +"Options : \n"
