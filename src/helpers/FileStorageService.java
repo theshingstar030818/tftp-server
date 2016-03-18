@@ -11,6 +11,7 @@ import java.nio.channels.OverlappingFileLockException;
 import java.nio.file.AccessDeniedException;
 import java.nio.file.Paths;
 import resource.*;
+import types.DiskFullException;
 import types.InstanceType;
 
 /**
@@ -154,7 +155,7 @@ public class FileStorageService {
 	 * @return boolean - if the file has been fully saved or not
 	 * @throws DiskFullException 
 	 */
-	public boolean saveFileByteBufferToDisk(byte[] fileBuffer) {
+	public boolean saveFileByteBufferToDisk(byte[] fileBuffer) throws DiskFullException {
 		if(fileBuffer == null) {
 			// We know that the last packet is an empty packet (512 byte case)
 			try {
@@ -179,8 +180,9 @@ public class FileStorageService {
 				bytesWritten += this.mFileChannel.write(wrappedBuffer, this.mBytesProcessed);
 			}
 		} catch (IOException e) {
-			//System.out.println(Strings.FILE_WRITE_ERROR + " " + this.mFileName);
-			//e.printStackTrace();
+			if (e.getMessage().contains("space")) { // weak i know but hopefully this is only temporary.
+				throw new DiskFullException("Attempted allocation exceeds remaining disk space. ("+ new File(this.mFilePath).getFreeSpace() +" remaining)");
+			}
 			return false;
 		}
 		// Increment processed, next round, continue where we left off

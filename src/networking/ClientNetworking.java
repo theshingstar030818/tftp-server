@@ -20,6 +20,7 @@ import resource.Configurations;
 import resource.Strings;
 import testbed.ErrorChecker;
 import testbed.TFTPErrorMessage;
+import types.DiskFullException;
 import types.ErrorType;
 import types.InstanceType;
 import types.Logger;
@@ -210,6 +211,9 @@ public class ClientNetworking extends TFTPNetworking {
 			e.printStackTrace();
 		} catch (IOException e) {
 			e.printStackTrace();
+		} catch (DiskFullException e) {
+			TFTPErrorMessage errMsg = new TFTPErrorMessage(ErrorType.ALLOCATION_EXCEED, e.getMessage());
+			this.errorHandle(errMsg, this.lastPacket);
 		}
 		retries = 0;
 		return new TFTPErrorMessage(ErrorType.NO_ERROR, Strings.NO_ERROR);
