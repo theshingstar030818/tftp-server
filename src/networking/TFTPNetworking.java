@@ -32,7 +32,7 @@ public class TFTPNetworking {
 	protected DatagramSocket socket;
 	protected DatagramPacket lastPacket;
 	protected ErrorChecker errorChecker;
-	protected Logger logger = Logger.VERBOSE;
+	protected Logger logger = Logger.SILENT;
 	protected String fileName;
 	protected FileStorageService storage;
 	protected int retries = 0;
@@ -372,21 +372,24 @@ public class TFTPNetworking {
 		switch (error.getType()) {
 			case FILE_EXISTS:
 				logger.print(Logger.ERROR, error.getString());
-				DatagramPacket fileExists = errorPacket.buildPacket(ErrorType.FILE_EXISTS);
+				DatagramPacket fileExists = errorPacket.buildPacket(ErrorType.FILE_EXISTS , 
+						error.getString());
 				try {
 					socket.send(fileExists);
 				} catch (IOException e) { e.printStackTrace(); }
 				return true;
 			case FILE_NOT_FOUND:
 				logger.print(Logger.ERROR, error.getString());
-				DatagramPacket fileNotFound = errorPacket.buildPacket(ErrorType.FILE_NOT_FOUND);
+				DatagramPacket fileNotFound = errorPacket.buildPacket(ErrorType.FILE_NOT_FOUND, 
+						error.getString());
 				try {
 					socket.send(fileNotFound);
 				} catch (IOException e) { e.printStackTrace(); }
 				return true;
 			case ACCESS_VIOLATION:
 				logger.print(Logger.ERROR, error.getString());
-				DatagramPacket accessViolation = errorPacket.buildPacket(ErrorType.ACCESS_VIOLATION);
+				DatagramPacket accessViolation = errorPacket.buildPacket(ErrorType.ACCESS_VIOLATION, 
+						error.getString());
 				try {
 					socket.send(accessViolation);
 				} catch (IOException e) { e.printStackTrace(); }
