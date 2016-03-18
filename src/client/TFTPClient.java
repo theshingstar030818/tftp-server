@@ -84,7 +84,11 @@ public class TFTPClient {
 							if(result.getType() != ErrorType.NO_ERROR) break;
 							result = net.receiveFile();
 						} while(result == null);
-						
+						if (result.getType() == ErrorType.NO_ERROR) {
+							logger.print(Logger.VERBOSE, Strings.TRANSFER_SUCCESSFUL);
+						} else {
+							logger.print(Logger.ERROR, result.getString());
+						}
 						if (result.getType() != ErrorType.NO_ERROR) {
 							logger.print(Logger.ERROR, Strings.TRANSFER_FAILED);
 							logger.print(Logger.ERROR, result.getString());
@@ -116,7 +120,11 @@ public class TFTPClient {
 					if ((result.getType() == ErrorType.NO_ERROR) || 
 							(result.getType() == ErrorType.SORCERERS_APPRENTICE)) {
 						result = net.sendFile();
-						logger.print(Logger.VERBOSE, Strings.TRANSFER_SUCCESSFUL);
+						if (result.getType() == ErrorType.NO_ERROR) {
+							logger.print(Logger.VERBOSE, Strings.TRANSFER_SUCCESSFUL);
+						} else {
+							logger.print(Logger.ERROR, result.getString());
+						}
 					} else {
 						logger.print(Logger.ERROR, Strings.TRANSFER_FAILED);
 						logger.print(Logger.ERROR, result.getString());

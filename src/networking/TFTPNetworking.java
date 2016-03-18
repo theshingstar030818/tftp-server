@@ -238,8 +238,11 @@ public class TFTPNetworking {
 		} catch (IOException e) {
 			e.printStackTrace();
 		} catch (DiskFullException e) {
-			TFTPErrorMessage errMsg = new TFTPErrorMessage(ErrorType.ALLOCATION_EXCEED, e.getMessage());
-			this.errorHandle(errMsg, this.lastPacket);
+			TFTPErrorMessage errMsg = new TFTPErrorMessage(ErrorType.ALLOCATION_EXCEEDED, e.getMessage());
+			if(this.errorHandle(errMsg, this.lastPacket)) {
+				this.storage.deleteFileFromDisk();
+				return errMsg;
+			}
 		} 
 
 		return new TFTPErrorMessage(ErrorType.NO_ERROR, Strings.NO_ERROR);
@@ -374,6 +377,14 @@ public class TFTPNetworking {
 	public boolean errorHandle(TFTPErrorMessage error, DatagramPacket packet, RequestType recvType) {
 		ErrorPacket errorPacket = new ErrorPacket(packet);
 		switch (error.getType()) {
+			case ALLOCATION_EXCEEDED:
+				logger.print(Logger.ERROR, error.getString());
+				DatagramPacket allocationExceeded = errorPacket.buildPacket(ErrorType.ALLOCATION_EXCEEDED , 
+						error.getString());
+				try {
+					socket.send(allocationExceeded);
+				} catch (IOException e) { e.printStackTrace(); }
+				return true;
 			case FILE_EXISTS:
 				logger.print(Logger.ERROR, error.getString());
 				DatagramPacket fileExists = errorPacket.buildPacket(ErrorType.FILE_EXISTS , 
