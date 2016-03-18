@@ -1,6 +1,7 @@
 package client;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.Scanner;
 
 import helpers.Keyboard;
@@ -111,7 +112,12 @@ public class TFTPClient {
 						logger.print(logger, Strings.FILE_NOT_EXIST);
 						break;
 					}
-					result= net.generateInitWRQ(writeFileNameOrFilePath, this.mPortToSendTo);
+					try {
+						result= net.generateInitWRQ(writeFileNameOrFilePath, this.mPortToSendTo);
+					} catch (IOException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
 					if (result == null) break;
 					if ((result.getType() == ErrorType.NO_ERROR) || 
 							(result.getType() == ErrorType.SORCERERS_APPRENTICE)) {
