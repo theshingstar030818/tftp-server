@@ -69,6 +69,7 @@ public class Strings {
 	public static final String INVALID_PACKET_SIZE = "Invalid packet size.";
 	public static final String UNKOWN_ERROR_CODE = "Unknown error code.";
 	public static final String INVALID_ERROR_CODE_FORMAT = "Error code does not begin with 0.";
+	public static final String FILE_ALREADY_EXSIT = "File already exsit.";
 
 	// Error simulator messages
 	public static final String ES_START_LISTENING = "Starting to listen for traffic";
