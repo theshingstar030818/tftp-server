@@ -33,7 +33,7 @@ public class TFTPNetworking {
 	protected DatagramSocket socket;
 	protected DatagramPacket lastPacket;
 	protected ErrorChecker errorChecker;
-	protected Logger logger = Logger.SILENT;
+	protected Logger logger = Logger.VERBOSE;
 	protected String fileName;
 	protected FileStorageService storage;
 	protected int retries = 0;
@@ -196,7 +196,7 @@ public class TFTPNetworking {
 				sendACK(lastPacket);
 			}
 			// Wait on last DATA in case of the last data was lost.
-			socket.setSoTimeout(Configurations.TRANMISSION_TIMEOUT * 2);
+			socket.setSoTimeout(Configurations.TRANMISSION_TIMEOUT);
 			if(Configurations.TRANMISSION_TIMEOUT == 0) {
 				return new TFTPErrorMessage(ErrorType.NO_ERROR, Strings.NO_ERROR);
 			}

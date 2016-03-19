@@ -218,6 +218,8 @@ public class ClientNetworking extends TFTPNetworking {
 				storage.saveFileByteBufferToDisk(vEmptyData);
 				this.sendACK(lastPacket);
 				errorChecker.incrementExpectedBlockNumber();
+				// Test first block if smaller than 512, then we know we got a packet less than 512 bytes and is the only packet.
+				if(vEmptyData.length < Configurations.MAX_PAYLOAD_BUFFER) return new TFTPErrorMessage(ErrorType.NOT_DEFINED, Strings.NO_ERROR);; 
 				return new TFTPErrorMessage(ErrorType.NO_ERROR, Strings.NO_ERROR);
 			}
 			if (error.getType() == ErrorType.SORCERERS_APPRENTICE) super.sendACK(lastPacket); // This can't happen

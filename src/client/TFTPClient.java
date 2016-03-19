@@ -71,7 +71,6 @@ public class TFTPClient {
 					while(true){
 						logger.print(logger, Strings.PROMPT_ENTER_FILE_NAME);
 						readFileName = Keyboard.getString();
-					
 						if(ErrorChecker.isValidFilename(readFileName)){
 							break;
 						}
@@ -83,9 +82,10 @@ public class TFTPClient {
 						do {
 							result = net.generateInitRRQ(readFileName, this.mPortToSendTo);
 							if(result.getType() != ErrorType.NO_ERROR) break;
+							if(result.getType() == ErrorType.NOT_DEFINED) break;
 							result = net.receiveFile();
 						} while(result == null);
-						if (result.getType() == ErrorType.NO_ERROR) {
+						if (result.getType() == ErrorType.NO_ERROR || result.getType() == ErrorType.NOT_DEFINED) {
 							logger.print(Logger.VERBOSE, Strings.TRANSFER_SUCCESSFUL);
 						} else {
 							logger.print(Logger.ERROR, Strings.TRANSFER_FAILED);

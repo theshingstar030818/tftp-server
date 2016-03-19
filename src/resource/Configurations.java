@@ -10,7 +10,7 @@ import types.ModeType;
  *         system
  */
 public class Configurations {
-	public static final String USER_HOME = "D:";//System.getProperty("user.home");
+	public static final String USER_HOME = System.getProperty("user.home");
 	public static final String CLIENT_ROOT_FILE_DIRECTORY = Configurations.USER_HOME + "/TFTP-Client-Storage-Folder";
 	public static final String SERVER_ROOT_FILE_DIRECTORY = Configurations.USER_HOME + "/TFTP-Server-Storage-Folder";
 	public static final int MAX_BUFFER = 1024;  // Max buffer size is 4092 (Disk
@@ -26,7 +26,7 @@ public class Configurations {
 	public static final int LEN_ACK_PACKET_BUFFER = 4;
 	public static final String SERVER_INET_HOST = "localhost";
 	public static final int ERROR_PACKET_USELESS_VALUES = 5;
-	public static final int TRANMISSION_TIMEOUT = 0; // 1000 ms
+	public static final int TRANMISSION_TIMEOUT = 1000; // 1000 ms
 	public static final int RETRANMISSION_TRY = 4;
 	
 	/* Important keys for Error Simulator command */
