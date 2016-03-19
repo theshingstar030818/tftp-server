@@ -104,7 +104,7 @@ public class ClientNetworking extends TFTPNetworking {
 		try {
 			logger.print(logger, Strings.CLIENT_INITIATING_FIE_STORAGE_SERVICE);
 
-			wpb = new WritePacket(InetAddress.getLocalHost(), portToSendTo, storage.getFileName(),
+			wpb = new WritePacket(getInetAddress(), portToSendTo, storage.getFileName(),
 					getMode(storage.getFileName()));
 			fileName = storage.getFileName();
 			DatagramPacket lastWritePacket = wpb.buildPacket();
@@ -178,7 +178,7 @@ public class ClientNetworking extends TFTPNetworking {
 
 			// build read request packet
 
-			ReadPacket rpb = new ReadPacket(InetAddress.getLocalHost(), portToSendTo, fileName,
+			ReadPacket rpb = new ReadPacket(getInetAddress(), portToSendTo, fileName,
 					getMode(fileName));
 			DatagramPacket lastReadPacket = rpb.buildPacket();
 			// now get the packet from the ReadPacket
@@ -244,6 +244,20 @@ public class ClientNetworking extends TFTPNetworking {
 		}
 		retries = 0;
 		return new TFTPErrorMessage(ErrorType.NO_ERROR, Strings.NO_ERROR);
+	}
+	
+	private InetAddress getInetAddress() {
+		InetAddress serverAddress = null;
+		try {
+			if (Configurations.SERVER_INET_HOST == "localhost") {
+				serverAddress = InetAddress.getLocalHost();
+			} else {
+				serverAddress = InetAddress.getByName(Configurations.SERVER_INET_HOST);
+			}
+		} catch (UnknownHostException e) {
+			e.printStackTrace();
+		}
+		return serverAddress;
 	}
 
 }
