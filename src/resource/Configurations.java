@@ -17,10 +17,8 @@ public class Configurations {
 												// block size lulz)
 	public static final int MAX_MESSAGE_SIZE = 516;
 	public static final int MAX_PAYLOAD_BUFFER = 512;
-	public static final int ERROR_SIM_LISTEN_PORT = 68; // Change this to
-														// something your Unix
-														// systems like
-	public static final int SERVER_LISTEN_PORT = 69;    // Ditto line above
+	public static final int ERROR_SIM_LISTEN_PORT = 68;
+	public static final int SERVER_LISTEN_PORT = 69;
 	public static final ModeType DEFAULT_RW_MODE = ModeType.OCTET;
 	public static final String DEFAULT_FILENAME = "file";
 	public static final int LEN_ACK_PACKET_BUFFER = 4;

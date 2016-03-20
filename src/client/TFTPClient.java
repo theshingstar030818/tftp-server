@@ -2,6 +2,8 @@ package client;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.util.Scanner;
 
 import helpers.Keyboard;
@@ -21,7 +23,7 @@ public class TFTPClient {
 	private boolean isClientAlive = true;
 	private final String CLASS_TAG = "<TFTP Client>";
 	private int mPortToSendTo;
-
+	private InetAddress mAddressToSendTo;
 	private int mode;
 
 	// by default the logger is set to VERBOSE level
@@ -45,10 +47,25 @@ public class TFTPClient {
 		ClientNetworking net = null;
 		try {
 			mode = getSendPort();
-			if (mode == 1) {
-				this.mPortToSendTo = Configurations.SERVER_LISTEN_PORT;
-			} else {
-				this.mPortToSendTo = Configurations.ERROR_SIM_LISTEN_PORT;
+			try {
+				if (mode == 1) {
+					this.mPortToSendTo = Configurations.SERVER_LISTEN_PORT;
+					while(true) {
+						System.out.println("Enter valid host ip:"); 
+						try {
+							String ip = Keyboard.getString();
+							this.mAddressToSendTo = InetAddress.getByName(ip);
+							break;
+						} catch (UnknownHostException e) {
+							System.out.println("Not a valid host, try again.");
+						}
+					}
+				} else {
+					this.mPortToSendTo = Configurations.ERROR_SIM_LISTEN_PORT;
+					this.mAddressToSendTo = InetAddress.getLocalHost();
+				}
+			} catch (UnknownHostException e) {
+				System.err.println("Could not find host at the address you entered.");
 			}
 			setLogLevel();
 
@@ -68,23 +85,25 @@ public class TFTPClient {
 					// Read file
 					net = new ClientNetworking();
 					String readFileName;
-					while(true){
+					while (true) {
 						logger.print(logger, Strings.PROMPT_ENTER_FILE_NAME);
 						readFileName = Keyboard.getString();
-						if(ErrorChecker.isValidFilename(readFileName)){
+						if (ErrorChecker.isValidFilename(readFileName)) {
 							break;
 						}
-						System.out.println("Invalid entry. So, re-prompting\n");	
+						System.out.println("Invalid entry. So, re-prompting\n");
 					}
-						
+
 					try {
 						TFTPErrorMessage result;
 						do {
-							result = net.generateInitRRQ(readFileName, this.mPortToSendTo);
-							if(result.getType() != ErrorType.NO_ERROR) break;
-							if(result.getType() == ErrorType.NOT_DEFINED) break;
+							result = net.generateInitRRQ(readFileName, this.mPortToSendTo, this.mAddressToSendTo);
+							if (result.getType() != ErrorType.NO_ERROR)
+								break;
+							if (result.getType() == ErrorType.NOT_DEFINED)
+								break;
 							result = net.receiveFile();
-						} while(result == null);
+						} while (result == null);
 						if (result.getType() == ErrorType.NO_ERROR || result.getType() == ErrorType.NOT_DEFINED) {
 							logger.print(Logger.VERBOSE, Strings.TRANSFER_SUCCESSFUL);
 						} else {
@@ -104,7 +123,7 @@ public class TFTPClient {
 
 					logger.print(logger, Strings.PROMPT_FILE_NAME_PATH);
 					String writeFileNameOrFilePath = Keyboard.getString();
-					
+
 					TFTPErrorMessage result = null;
 					File f = new File(writeFileNameOrFilePath);
 					if (!f.exists() || f.isDirectory()) {
@@ -112,14 +131,15 @@ public class TFTPClient {
 						break;
 					}
 					try {
-						result= net.generateInitWRQ(writeFileNameOrFilePath, this.mPortToSendTo);
+						result = net.generateInitWRQ(writeFileNameOrFilePath, this.mPortToSendTo, this.mAddressToSendTo);
 					} catch (IOException e) {
 						// TODO Auto-generated catch block
 						e.printStackTrace();
 					}
-					if (result == null) break;
-					if ((result.getType() == ErrorType.NO_ERROR) || 
-							(result.getType() == ErrorType.SORCERERS_APPRENTICE)) {
+					if (result == null)
+						break;
+					if ((result.getType() == ErrorType.NO_ERROR)
+							|| (result.getType() == ErrorType.SORCERERS_APPRENTICE)) {
 						result = net.sendFile();
 						if (result.getType() == ErrorType.NO_ERROR) {
 							logger.print(Logger.VERBOSE, Strings.TRANSFER_SUCCESSFUL);
@@ -129,7 +149,7 @@ public class TFTPClient {
 					} else {
 						logger.print(Logger.ERROR, Strings.TRANSFER_FAILED);
 						logger.print(Logger.ERROR, result.getString());
-						
+
 					}
 					break;
 				case 3:
@@ -169,7 +189,7 @@ public class TFTPClient {
 
 		}
 	}
-
+	
 	/**
 	 * This function only prints the client side selection menu
 	 */
