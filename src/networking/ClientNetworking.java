@@ -40,8 +40,8 @@ import types.RequestType;
  */
 public class ClientNetworking extends TFTPNetworking {
 
-	HashSet<String> textExtensions = new HashSet<String>(Arrays.asList("txt", "java", "c", "h", "cc"));
-	
+	private HashSet<String> textExtensions = new HashSet<String>(Arrays.asList("txt", "java", "c", "h", "cc"));
+	private InetAddress mAddressToSendTo;
 	
 	/**
 	 * See constructor from TFTPNetworking
@@ -85,7 +85,8 @@ public class ClientNetworking extends TFTPNetworking {
 	 * @throws IOException 
 	 * @throws AccessDeniedException
 	 */
-	public TFTPErrorMessage generateInitWRQ(String fn, int portToSendTo) throws IOException {
+	public TFTPErrorMessage generateInitWRQ(String fn, int portToSendTo, InetAddress address) throws IOException {
+		this.mAddressToSendTo = address;
 		TFTPErrorMessage error = null;
 		try {
 			socket.setSoTimeout(Configurations.TRANMISSION_TIMEOUT);
@@ -104,7 +105,7 @@ public class ClientNetworking extends TFTPNetworking {
 		try {
 			logger.print(logger, Strings.CLIENT_INITIATING_FIE_STORAGE_SERVICE);
 
-			wpb = new WritePacket(getInetAddress(), portToSendTo, storage.getFileName(),
+			wpb = new WritePacket(this.mAddressToSendTo, portToSendTo, storage.getFileName(),
 					getMode(storage.getFileName()));
 			fileName = storage.getFileName();
 			DatagramPacket lastWritePacket = wpb.buildPacket();
@@ -165,7 +166,8 @@ public class ClientNetworking extends TFTPNetworking {
 	 * @return - TFTPErrorMessage with error type and error string (possible no
 	 *         error)
 	 */
-	public TFTPErrorMessage generateInitRRQ(String fn, int portToSendTo) {
+	public TFTPErrorMessage generateInitRRQ(String fn, int portToSendTo, InetAddress address) {
+		this.mAddressToSendTo = address;
 		try {
 			logger.print(logger, Strings.CLIENT_INITIATING_FIE_STORAGE_SERVICE);
 			fileName = fn;
@@ -178,7 +180,7 @@ public class ClientNetworking extends TFTPNetworking {
 
 			// build read request packet
 
-			ReadPacket rpb = new ReadPacket(getInetAddress(), portToSendTo, fileName,
+			ReadPacket rpb = new ReadPacket(this.mAddressToSendTo, portToSendTo, fileName,
 					getMode(fileName));
 			DatagramPacket lastReadPacket = rpb.buildPacket();
 			// now get the packet from the ReadPacket

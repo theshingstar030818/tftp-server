@@ -4,11 +4,14 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
+import java.net.InetAddress;
 import java.net.SocketException;
 import java.net.SocketTimeoutException;
+import java.net.UnknownHostException;
 import java.nio.file.AccessDeniedException;
 import helpers.BufferPrinter;
 import helpers.FileStorageService;
+import helpers.Keyboard;
 import packet.AckPacket;
 import packet.DataPacket;
 import packet.ErrorPacket;
@@ -439,5 +442,33 @@ public class TFTPNetworking {
 				break;
 		}			
 		return true;
+	}
+	
+	public static InetAddress promptAddress() {
+		System.out.println("Hosting at:\n\t 1. Local host\n\t 2. Remote host");
+		Logger logger = Logger.VERBOSE;
+		while(true) {
+			int mode = Keyboard.getInteger();
+			if (mode == 1) {
+				try {
+					return InetAddress.getLocalHost();
+				} catch (UnknownHostException e) {
+					System.err.println("Unknown local host...");
+				}
+			} else if (mode == 2) {
+				while(true) {
+					System.out.println("Enter valid host ip:"); 
+					try {
+						String ip = Keyboard.getString();
+						InetAddress a = InetAddress.getByName(ip);
+						return a;
+					} catch (UnknownHostException e) {
+						System.out.println("Not a valid host, try again.");
+					}
+				}
+			} else {
+				logger.print(Logger.ERROR, Strings.ERROR_INPUT);
+			}
+		}
 	}
 }

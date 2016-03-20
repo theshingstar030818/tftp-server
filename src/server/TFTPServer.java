@@ -74,6 +74,7 @@ public class TFTPServer implements Callback {
 	public TFTPServer() {
 		threads = new Vector<Thread>();
 		logger.setClassTag(CLASS_TAG);
+		//hostAddress = TFTPNetworking.promptAddress();
 	}
 
 	/**

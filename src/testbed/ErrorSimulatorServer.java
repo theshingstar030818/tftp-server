@@ -3,6 +3,7 @@ package testbed;
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
+import java.net.InetAddress;
 import java.net.SocketException;
 import java.net.SocketTimeoutException;
 import java.util.Vector;
@@ -15,6 +16,7 @@ import types.ErrorType;
 import types.InstanceType;
 import types.Logger;
 import helpers.BufferPrinter;
+import networking.TFTPNetworking;
 
 /**
  * @author Team 3
@@ -39,6 +41,7 @@ public class ErrorSimulatorServer implements Callback {
 	private final String CLASS_TAG = "<Error Simulator Server>";
 	private InstanceType testInstance;
 	private boolean LETS_GO;
+	private InetAddress address;
 
 	public static AtomicBoolean active = new AtomicBoolean(true);
 	Vector<Thread> threads;
@@ -52,6 +55,7 @@ public class ErrorSimulatorServer implements Callback {
 	public ErrorSimulatorServer() {
 		threads = new Vector<Thread>();
 		this.mErrorUI = new TFTPUserInterface();
+		this.address = TFTPNetworking.promptAddress();
 		testInstance = this.mErrorUI.printTestableProcess();
 		logger.setClassTag(CLASS_TAG);
 		this.mErrorOptionSettings = null;
@@ -85,8 +89,9 @@ public class ErrorSimulatorServer implements Callback {
 				// Handle delayed initiating packet
 				if (this.mErrorOptionSettings != null && vLastThread != null && this.LETS_GO
 						&& this.mErrorOptionSettings.getMainErrorFamily() == ErrorType.TRANSMISSION_ERROR
-						&& this.mErrorOptionSettings.getSubErrorFromFamily() == 2 
-						&& this.mErrorOptionSettings.getTransmissionErrorFrequency() >= Configurations.TRANMISSION_TIMEOUT - 50 
+						&& this.mErrorOptionSettings.getSubErrorFromFamily() == 2
+						&& this.mErrorOptionSettings
+								.getTransmissionErrorFrequency() >= Configurations.TRANMISSION_TIMEOUT - 50
 						&& this.mErrorOptionSettings.getTransmissionErrorOccurences() == -1) {
 					receivePacket = new DatagramPacket(buffer, buffer.length);
 					logger.print(Logger.VERBOSE, Strings.ERROR_SERVER_WAITING_INIT);
@@ -94,19 +99,20 @@ public class ErrorSimulatorServer implements Callback {
 						errorSimulatorSock.setSoTimeout(Configurations.TRANMISSION_TIMEOUT * 4);
 						errorSimulatorSock.receive(receivePacket);
 						errorSimulatorSock.setSoTimeout(0);
-						
+
 						synchronized (vLastThread) {
 							vLastThread.addWorkToFrontOfQueue(receivePacket);
 						}
-						this.LETS_GO = false; // We won't product this error after
+						this.LETS_GO = false; // We won't product this error
+												// after
 					} catch (SocketTimeoutException e) {
-						
+
 					}
 				}
 				// Handles lost initiating packet
 				if (this.mErrorOptionSettings != null && vLastThread != null && this.LETS_GO
 						&& this.mErrorOptionSettings.getMainErrorFamily() == ErrorType.TRANSMISSION_ERROR
-						&& this.mErrorOptionSettings.getSubErrorFromFamily() == 1 
+						&& this.mErrorOptionSettings.getSubErrorFromFamily() == 1
 						&& this.mErrorOptionSettings.getTransmissionErrorOccurences() == -1) {
 					logger.print(Logger.VERBOSE, Strings.ERROR_SERVER_WAITING_LOST);
 					receivePacket = new DatagramPacket(buffer, buffer.length);
@@ -117,18 +123,19 @@ public class ErrorSimulatorServer implements Callback {
 						this.mErrorOptionSettings.setSubErrorFromFamily(-1);
 						System.out.println(BufferPrinter.acceptConnectionMessage(Strings.SERVER_ACCEPT_CONNECTION,
 								receivePacket.getSocketAddress().toString()));
-						vLastThread = new ErrorSimulatorService(receivePacket, this, this.mErrorOptionSettings, testInstance);
+						vLastThread = new ErrorSimulatorService(receivePacket, this, this.mErrorOptionSettings,
+								testInstance, this.address);
 						Thread service = new Thread(vLastThread, CLASS_TAG);
 						threads.addElement(service);
 						service.start();
 						this.LETS_GO = false;
 					} catch (SocketTimeoutException e) {
-											
-										}
-				} 
-				
+
+					}
+				}
+
 				this.mErrorOptionSettings = this.mErrorUI.getErrorCodeFromUser(testInstance);
-				//if (this.mErrorOptionSettings.getTransmissionErrorType())
+				// if (this.mErrorOptionSettings.getTransmissionErrorType())
 				this.LETS_GO = true;
 				if (this.mErrorOptionSettings.getMainErrorFamily() == ErrorType.EXIT) {
 					active.set(false);
@@ -151,11 +158,12 @@ public class ErrorSimulatorServer implements Callback {
 			}
 			System.out.println(BufferPrinter.acceptConnectionMessage(Strings.SERVER_ACCEPT_CONNECTION,
 					receivePacket.getSocketAddress().toString()));
-			vLastThread = new ErrorSimulatorService(receivePacket, this, this.mErrorOptionSettings, testInstance);
+			vLastThread = new ErrorSimulatorService(receivePacket, this, this.mErrorOptionSettings, testInstance,
+					this.address);
 			Thread service = new Thread(vLastThread, CLASS_TAG);
 			threads.addElement(service);
 			service.start();
-			
+
 		}
 		this.errorSimulatorSock.close();
 		// Wait for all service threads to close before completely exiting.

@@ -31,9 +31,7 @@ public class FileStorageService {
 	private String mFileName = "";
 	private long mBytesProcessed = 0;
 	private String mDefaultStorageFolder = "";
-	private boolean mReadOnly =false;
-	private boolean mWriteOnly =false;
-	
+
 	// File utility classes
 	RandomAccessFile mFile = null;
 	FileChannel mFileChannel = null;
