@@ -424,7 +424,7 @@ public class TFTPNetworking {
 					socket.send(illegalOpsError);
 				} catch (IOException e) { e.printStackTrace(); }
 				logger.print(Logger.ERROR, Strings.ILLEGAL_OPERATION_HELP_MESSAGE);
-				BufferPrinter.printPacket(new ErrorPacket(packet), Logger.ERROR, RequestType.ERROR);
+				BufferPrinter.printPacket(errorPacket, Logger.ERROR, RequestType.ERROR);
 				return true;
 			case UNKNOWN_TRANSFER:
 				DatagramPacket unknownError = errorPacket.buildPacket(ErrorType.ILLEGAL_OPERATION,
