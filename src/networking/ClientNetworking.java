@@ -199,6 +199,7 @@ public class ClientNetworking extends TFTPNetworking {
 					lastPacket = lastReadPacket;
 					if (++retries == Configurations.RETRANMISSION_TRY) {
 						logger.print(Logger.ERROR, String.format(Strings.RETRANSMISSION, retries));
+						this.storage.deleteFileFromDisk();
 						return new TFTPErrorMessage(ErrorType.TRANSMISSION_ERROR, Strings.CLIENT_TRANSMISSION_ERROR);
 					}
 					logger.print(Logger.VERBOSE, Strings.CLIENT_TIME_OUT);
@@ -246,20 +247,6 @@ public class ClientNetworking extends TFTPNetworking {
 		}
 		retries = 0;
 		return new TFTPErrorMessage(ErrorType.NO_ERROR, Strings.NO_ERROR);
-	}
-	
-	private InetAddress getInetAddress() {
-		InetAddress serverAddress = null;
-		try {
-			if (Configurations.SERVER_INET_HOST == "localhost") {
-				serverAddress = InetAddress.getLocalHost();
-			} else {
-				serverAddress = InetAddress.getByName(Configurations.SERVER_INET_HOST);
-			}
-		} catch (UnknownHostException e) {
-			e.printStackTrace();
-		}
-		return serverAddress;
 	}
 
 }
