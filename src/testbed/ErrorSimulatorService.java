@@ -177,7 +177,27 @@ public class ErrorSimulatorService implements Runnable {
 		} catch (IOException e) {
 			System.err.println(Strings.ERROR_SERVICE_ERROR);
 		}
-		this.simulateError(this.mLastPacket);
+		if(this.mErrorSettings.getMainErrorFamily() == ErrorType.TRANSMISSION_ERROR)
+			this.simulateError(this.mLastPacket);
+		
+		// This is where we want to simulate an error with an error packet
+		if(!isTransfering) {
+			// This packet was an error packet. Lets bail out now. 
+			try {
+				this.mSendReceiveSocket.setSoTimeout(Configurations.TRANMISSION_TIMEOUT);
+				while(true) {
+					this.forwardPacketToSocket(this.mLastPacket);
+					this.mLastPacket = this.retrievePacketFromSocket();
+					if(this.mLastPacket == null) break;
+				}
+				System.err.println("Success full simulation of first packet RRQ/WRQ error");
+				logger.print(Logger.VERBOSE, Strings.ES_TRANSFER_SUCCESS);
+				return;
+				
+			} catch (IOException e) {
+				System.err.println("Issue with sending first error packet from first request");
+			}
+		}
 		// Main while loop to facilitate transfer and create error
 		// First packet will be from client
 		while (isTransfering) {
@@ -419,7 +439,7 @@ public class ErrorSimulatorService implements Runnable {
 			System.err.println("Simulate error called on null packet!");
 			return;
 		}
-
+		//this.simulatePacketOverSize = false;
 		ErrorType vErrType = this.mErrorSettings.getMainErrorFamily();
 		int subOpt = this.mErrorSettings.getSubErrorFromFamily();
 		switch (vErrType) {
@@ -437,6 +457,7 @@ public class ErrorSimulatorService implements Runnable {
 			// error code 4
 			if (this.mEPFour == null) {
 				this.mEPFour = new ErrorCodeFour(inPacket, subOpt);
+				//if(subOpt == 6) this.simulatePacketOverSize = true;
 			} else {
 				this.mEPFour.setReceivePacket(inPacket);
 			}
@@ -795,7 +816,7 @@ public class ErrorSimulatorService implements Runnable {
 					logger.print(Logger.ERROR, String.format(Strings.ERROR_SERVICE_RETRY, this.mTransmissionRetries));
 					return null;
 				}
-				System.out.println("Time out caught.");
+				//System.out.println("Time out caught.");
 			} catch (IOException e) {
 				logger.print(Logger.ERROR, "IOException during receive of packet");
 			}
