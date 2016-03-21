@@ -65,22 +65,25 @@ public class ServerNetworking extends TFTPNetworking {
 	public TFTPErrorMessage handleInitWRQ(ReadWritePacket wrq){
 
 		fileName = wrq.getFilename();
-		if( FileStorageService.checkFileNameExists(Configurations.SERVER_ROOT_FILE_DIRECTORY+"/"+fileName) ){
-			String message = String.format(Strings.PRE_FILE_NAME_EXIST + Strings.FILE_EXISTS, fileName);
-			return new TFTPErrorMessage(ErrorType.FILE_EXISTS, message);
-		}
 		TFTPErrorMessage error = errorChecker.check(wrq, RequestType.WRQ);
 		if (error.getType() != ErrorType.NO_ERROR) {
-			
-			this.storage.deleteFileFromDisk();
-			return error;
-			
+			if (errorHandle(error, wrq.getPacket())) {
+				//this.storage.deleteFileFromDisk();
+				return error;
+			}
 		}
+		if( FileStorageService.checkFileNameExists(Configurations.SERVER_ROOT_FILE_DIRECTORY+"/"+fileName) ){
+			String message = String.format(Strings.PRE_FILE_NAME_EXIST + Strings.FILE_EXISTS, fileName);
+			
+			return new TFTPErrorMessage(ErrorType.FILE_EXISTS, message);
+		}
+		
 		try {
 			storage = new FileStorageService(fileName, InstanceType.SERVER);
 			storage.lockFile();
 			System.out.println("Locked the write file");
 		} catch (FileNotFoundException e) {
+			this.storage.deleteFileFromDisk();
 			e.printStackTrace();
 		} catch (AccessDeniedException e) {
 			error = new TFTPErrorMessage(ErrorType.ACCESS_VIOLATION, e.getFile());
@@ -125,15 +128,16 @@ public class ServerNetworking extends TFTPNetworking {
 	public TFTPErrorMessage handleInitRRQ(ReadWritePacket rrq){
 
 		fileName = rrq.getFilename();
+		TFTPErrorMessage error = errorChecker.check(rrq, RequestType.RRQ);
+		if (error.getType() != ErrorType.NO_ERROR)
+			if (errorHandle(error, rrq.getPacket()))
+				return error;
 		if (!FileStorageService.checkFileNameExists(Configurations.SERVER_ROOT_FILE_DIRECTORY+"/"+fileName)){
 			String message = String.format(Strings.PRE_FILE_NAME_NOT_FOUND + Strings.FILE_NOT_FOUND, fileName);
 			
 			return new TFTPErrorMessage(ErrorType.FILE_NOT_FOUND, message);
 		}
-		TFTPErrorMessage error = errorChecker.check(rrq, RequestType.RRQ);
-		if (error.getType() != ErrorType.NO_ERROR)
-			if (errorHandle(error, rrq.getPacket()))
-				return error;
+		
 		try {
 			storage = new FileStorageService(fileName, InstanceType.SERVER);
 			super.socket.setSoTimeout(Configurations.TRANMISSION_TIMEOUT);
