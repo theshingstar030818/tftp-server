@@ -56,7 +56,7 @@ public class AckPacket extends Packet {
 		//this.mBlockNumber = (short) ((this.mBlockNumber) % Short.MAX_VALUE);
 		this.mBuffer = new byte[Configurations.LEN_ACK_PACKET_BUFFER];
 		byte[] udpHeader = getRequestTypeHeaderByteArray();
-		byte[] blockNumber = Conversion.shortToBytes(this.mBlockNumber);
+		byte[] blockNumber = Conversion.intToBytes(this.mBlockNumber);
 		
 		// Copy everything into the new buffer
 		System.arraycopy(udpHeader, 0, this.mBuffer, 0, udpHeader.length);
@@ -73,7 +73,7 @@ public class AckPacket extends Packet {
 		setRequestTypeFromBuffer(this.mBuffer);
 		if(this.mRequestType == RequestType.DATA || this.mRequestType == RequestType.ACK) {
 			byte[] byteBlockNumber = Arrays.copyOfRange(this.mBuffer, 2, 4);
-			this.mBlockNumber = Conversion.bytesToShort(byteBlockNumber);
+			this.mBlockNumber = Conversion.bytesToInt(byteBlockNumber);
 		} else if(this.mRequestType == RequestType.RRQ) {
 			this.mBlockNumber = 1;
 		} else {
@@ -95,7 +95,7 @@ public class AckPacket extends Packet {
 	 * 
 	 * @return a short - of the block number associated with the transfer
 	 */
-	public short getBlockNumber() {
+	public int getBlockNumber() {
 		return this.mBlockNumber;
 	}
 	
@@ -105,7 +105,7 @@ public class AckPacket extends Packet {
 	 * 
 	 * @param blockNumber
 	 */
-	public void setBlockNumber(short blockNumber) {
+	public void setBlockNumber(int blockNumber) {
 		this.mBlockNumber = blockNumber;
 	}
 	
