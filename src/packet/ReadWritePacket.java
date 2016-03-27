@@ -245,7 +245,7 @@ public class ReadWritePacket extends Packet {
 	 * 
 	 * @param blockNumber
 	 */
-	public void setBlockNumber(short blockNumber) {
+	public void setBlockNumber(int blockNumber) {
 		this.mBlockNumber = blockNumber;
 	}
 
@@ -255,7 +255,7 @@ public class ReadWritePacket extends Packet {
 	 * 
 	 * @return a short - of the block number associated with the transfer
 	 */
-	public short getBlockNumber() {
+	public int getBlockNumber() {
 		return this.mBlockNumber;
 	}
 }

@@ -17,14 +17,14 @@ public class Configurations {
 												// block size lulz)
 	public static final int MAX_MESSAGE_SIZE = 516;
 	public static final int MAX_PAYLOAD_BUFFER = 512;
-	public static final int ERROR_SIM_LISTEN_PORT = 68;
-	public static final int SERVER_LISTEN_PORT = 69;
+	public static final int ERROR_SIM_LISTEN_PORT = 5068;
+	public static final int SERVER_LISTEN_PORT = 5069;
 	public static final ModeType DEFAULT_RW_MODE = ModeType.OCTET;
 	public static final String DEFAULT_FILENAME = "file";
 	public static final int LEN_ACK_PACKET_BUFFER = 4;
 	public static final String SERVER_INET_HOST = "localhost";
 	public static final int ERROR_PACKET_USELESS_VALUES = 5;
-	public static final int TRANMISSION_TIMEOUT = 1000; // 1000 ms
+	public static final int TRANMISSION_TIMEOUT = 0; // 1000 ms
 	public static final int RETRANMISSION_TRY = 4;
 	
 	/* Important keys for Error Simulator command */

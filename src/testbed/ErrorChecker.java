@@ -25,7 +25,7 @@ public class ErrorChecker {
 
 	private InetAddress mPacketOriginatingAddress;
 	private int mPacketOriginatingPort;
-	public short mExpectedBlockNumber;
+	public int mExpectedBlockNumber;
 	private Logger logger = Logger.ERROR;
 	private final String CLASS_TAG = "<Error Checker>";
 	
@@ -42,7 +42,7 @@ public class ErrorChecker {
 
 	public void incrementExpectedBlockNumber() {
 		mExpectedBlockNumber++;
-		if(this.mExpectedBlockNumber == 32767) {
+		if(this.mExpectedBlockNumber == 65536) {
 			this.mExpectedBlockNumber = 0;
 		}
 	}

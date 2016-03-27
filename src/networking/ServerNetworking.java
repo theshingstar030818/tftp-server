@@ -62,8 +62,9 @@ public class ServerNetworking extends TFTPNetworking {
 	 *         error)
 	 * @throws IOException 
 	 */
-	public TFTPErrorMessage handleInitWRQ(ReadWritePacket wrq){
+	public TFTPErrorMessage handleInitWRQ(ReadWritePacket wrq, Logger log){
 
+		this.logger = log;
 		fileName = wrq.getFilename();
 		TFTPErrorMessage error = errorChecker.check(wrq, RequestType.WRQ);
 		if (error.getType() != ErrorType.NO_ERROR) {
@@ -79,7 +80,7 @@ public class ServerNetworking extends TFTPNetworking {
 		}
 		
 		try {
-			storage = new FileStorageService(fileName, InstanceType.SERVER);
+			storage = new FileStorageService(fileName, InstanceType.SERVER, RequestType.WRQ);
 			storage.lockFile();
 			System.out.println("Locked the write file");
 		} catch (FileNotFoundException e) {
@@ -125,8 +126,9 @@ public class ServerNetworking extends TFTPNetworking {
 	 *         error)
 	 * @throws IOException 
 	 */
-	public TFTPErrorMessage handleInitRRQ(ReadWritePacket rrq){
+	public TFTPErrorMessage handleInitRRQ(ReadWritePacket rrq, Logger log){
 
+		this.logger = log;
 		fileName = rrq.getFilename();
 		TFTPErrorMessage error = errorChecker.check(rrq, RequestType.RRQ);
 		if (error.getType() != ErrorType.NO_ERROR)
@@ -138,7 +140,7 @@ public class ServerNetworking extends TFTPNetworking {
 		}
 		
 		try {
-			storage = new FileStorageService(fileName, InstanceType.SERVER);
+			storage = new FileStorageService(fileName, InstanceType.SERVER, RequestType.RRQ);
 			super.socket.setSoTimeout(Configurations.TRANMISSION_TIMEOUT);
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
