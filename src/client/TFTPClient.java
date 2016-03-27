@@ -27,7 +27,7 @@ public class TFTPClient {
 	private int mode;
 
 	// by default the logger is set to VERBOSE level
-	private Logger logger = Logger.VERBOSE;
+	private Logger logger;
 
 	// Error checker
 	ErrorChecker errorChecker = null;
@@ -37,14 +37,41 @@ public class TFTPClient {
 		vClient.initialize();
 	}
 
+	private Logger getVerbosity() {
+		int v;
+		do {
+			System.out.println("Logging should be (1) silent or (2) verbose?");
+			v = Keyboard.getInteger();
+		} while (v != 1 && v != 2);
+		
+		return (v == 1 ? Logger.SILENT : Logger.VERBOSE);
+	}
+	
+	private String getClientFilePath() {
+		String path = null;
+		do {
+			System.out.print("Enter a directory to use as your default directory to write from: ");
+			path = Keyboard.getString();
+		} while (!(new File(path).isDirectory()));
+		
+		if (!path.endsWith("/"))
+			path += "/";
+		
+		return path;
+	}
+	
 	/**
 	 * This function initializes the client's functionality and block the rest
 	 * of the program from running until a exit command was given.
 	 */
 	public void initialize() {
+		setLogLevel();
 		logger.setClassTag(this.CLASS_TAG);
 		Scanner scan = new Scanner(System.in);
 		ClientNetworking net = null;
+		
+		String clientFilePath = getClientFilePath();
+		
 		try {
 			mode = getSendPort();
 			try {
@@ -67,7 +94,6 @@ public class TFTPClient {
 			} catch (UnknownHostException e) {
 				System.err.println("Could not find host at the address you entered.");
 			}
-			setLogLevel();
 
 			int optionSelected = 0;
 
@@ -91,13 +117,13 @@ public class TFTPClient {
 						if (ErrorChecker.isValidFilename(readFileName)) {
 							break;
 						}
-						System.out.println("Invalid entry. So, re-prompting\n");
+						System.out.println("Invalid entry. Try again.\n");
 					}
 
 					try {
 						TFTPErrorMessage result;
 						do {
-							result = net.generateInitRRQ(readFileName, this.mPortToSendTo, this.mAddressToSendTo);
+							result = net.generateInitRRQ(readFileName, this.mPortToSendTo, this.mAddressToSendTo, this.logger);
 							if (result.getType() != ErrorType.NO_ERROR)
 								break;
 							if (result.getType() == ErrorType.NOT_DEFINED)
@@ -124,14 +150,22 @@ public class TFTPClient {
 					logger.print(logger, Strings.PROMPT_FILE_NAME_PATH);
 					String writeFileNameOrFilePath = Keyboard.getString();
 
+					if (!writeFileNameOrFilePath.contains("/")) { // We were only given a filename.
+						System.out.println("Given only filename.");
+						writeFileNameOrFilePath = clientFilePath + writeFileNameOrFilePath;
+						System.out.println(writeFileNameOrFilePath);
+					}
+					
 					TFTPErrorMessage result = null;
 					File f = new File(writeFileNameOrFilePath);
+					
 					if (!f.exists() || f.isDirectory()) {
 						logger.print(logger, Strings.FILE_NOT_EXIST);
 						break;
 					}
+					
 					try {
-						result = net.generateInitWRQ(writeFileNameOrFilePath, this.mPortToSendTo, this.mAddressToSendTo);
+						result = net.generateInitWRQ(writeFileNameOrFilePath, this.mPortToSendTo, this.mAddressToSendTo, this.logger);
 					} catch (IOException e) {
 						// TODO Auto-generated catch block
 						e.printStackTrace();

@@ -11,7 +11,7 @@ public class Strings {
 	public static final String FILE_WRITE_ERROR = "An error occurred while writing the file.";
 	public static final String FILE_READ_ERROR = "An error occurred while reading the file.";
 	public static final String DIRECTORY_MAKE_ERROR = "An error occured while making a new directory.";
-	public static final String FILE_WRITE_COMPLETE = "Received a block size zero, terminating write procedure.";
+	public static final String FILE_WRITE_COMPLETE = "Received block size less than 516, terminating write procedure.";
 	public static final String FILE_CHANNEL_CLOSE_ERROR = "Closing file channel failed.";
 	public static final String FILE_NOT_EXIST = "File does not exist.";
 	public static final String DELETE_FILE = "File transfer failed.  Deleting file from the path: ";
