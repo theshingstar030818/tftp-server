@@ -373,7 +373,7 @@ public class FileStorageService {
 	public void deleteFileFromDisk(){
 		this.finishedTransferingFile();
 		File f = new File(this.mFilePath);
-		System.out.println("Delete failed file transfer from path: " +this.mFilePath);
+		System.out.println(Strings.DELETE_FILE +this.mFilePath);
 		if(f.exists()) {
 			f.delete();
 		} else {

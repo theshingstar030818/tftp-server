@@ -161,7 +161,7 @@ public class ErrorChecker {
 		case DATA:
 			currentBlockNumber = ((DataPacket) packet).getBlockNumber();
 			if(this.mExpectedBlockNumber > currentBlockNumber) {
-				logger.print(logger, String.format("We received a delayed DATA packet with blk %d when expected %d, going to ack this packet.", 
+				logger.print(logger, String.format("We've seen this DATA packet with blk %d when expected %d, going to ack this packet.", 
 						currentBlockNumber, this.mExpectedBlockNumber));
 				return "-1";
 			}else if (mExpectedBlockNumber != currentBlockNumber) {
@@ -178,7 +178,7 @@ public class ErrorChecker {
 				return Strings.INVALID_PACKET_SIZE;
 			}
 			if(this.mExpectedBlockNumber > currentBlockNumber) {
-				logger.print(logger, String.format("We received a delayed ACK packet with blk %d when expected %d. We should not resend a DATA to correspond to this ACK.", 
+				logger.print(logger, String.format("We've seen this ACK packet with blk %d when expected %d. We should not resend a DATA to correspond to this ACK.", 
 						currentBlockNumber, this.mExpectedBlockNumber));
 				return "-1";
 			}
