@@ -35,4 +35,6 @@ public class Configurations {
 	public static final String TE_NUM_PACKETS = "NUM_PACKETS_SELECTION";
 	public static final String TE_FREQ_ERROR = "FREQ_ERROR_SELECTION";
 	public static final String TE_TYPE_ERROR = "TYPE_ERROR_SELECTION";
+	public static final String TE_ERROR_PACKET = "ERROR_BLOCK_NUMBER";
+	public static final String TE_SUB_SUB_OPTION = "SUB_SUB_OPTION";
 }

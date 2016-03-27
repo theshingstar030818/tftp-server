@@ -55,9 +55,9 @@ public class ErrorSimulatorService implements Runnable {
 	private DatagramPacket mLastPacket;
 	private DatagramSocket mSendReceiveSocket;
 	private RequestType mInitialRequestType;
-	private InstanceType mMessUpThisTransfer;
 	private byte[] mBuffer = null;
 	private int mTransmissionRetries;
+	private int mSimulatedPacketCounter;
 
 	/* Section of uninitialized Error Producers */
 	private ErrorCodeFour mEPFour = null;
@@ -89,7 +89,7 @@ public class ErrorSimulatorService implements Runnable {
 	 */
 	@SuppressWarnings("unused")
 	public ErrorSimulatorService(DatagramPacket inDatagram, Callback cb, ErrorCommand errorSetting,
-			InstanceType instance, InetAddress servAddress) {
+			InetAddress servAddress) {
 		this.mLastPacket = inDatagram;
 		this.mErrorSettings = errorSetting;
 		this.mCallback = cb;
@@ -114,11 +114,12 @@ public class ErrorSimulatorService implements Runnable {
 		} catch (SocketException e) {
 			e.printStackTrace();
 		}
-		this.mMessUpThisTransfer = instance;
+		// this.mMessUpThisTransfer = instance;
 		logger.setClassTag(CLASS_TAG);
 		logger.print(Logger.VERBOSE, Strings.ERROR_SERVICE_PORT + this.mSendReceiveSocket.getLocalPort() + "\n");
 		this.mPacketSendQueue = new LinkedList<>();
-		mTransmissionRetries = 0;
+		this.mTransmissionRetries = 0;
+		this.mSimulatedPacketCounter = 0;
 	}
 
 	/**
@@ -139,10 +140,11 @@ public class ErrorSimulatorService implements Runnable {
 		try {
 			// Facilitate the first WRQ/RRQ request and set server thread port
 			this.mPacketSendQueue.addLast(this.mLastPacket);
-			if (this.mMessUpThisTransfer == InstanceType.SERVER)
-				this.simulateError(this.mLastPacket); // only can mess with
-														// server packs on first
-														// go.
+			// if (this.mMessUpThisTransfer == InstanceType.SERVER)
+			if (this.mErrorSettings.getTransmissionErrorType() == RequestType.WRQ
+					|| this.mErrorSettings.getTransmissionErrorType() == RequestType.RRQ)
+				this.simulateError(this.mLastPacket);
+
 			if (this.mLastPacket == null || this.END_THREAD) {
 				this.mSendReceiveSocket.close();
 				logger.print(Logger.ERROR, Strings.ERROR_SERVICE_ENDING);
@@ -155,8 +157,8 @@ public class ErrorSimulatorService implements Runnable {
 				this.mLastPacket.setAddress(this.mServerHostAddress);
 			}
 			this.mSendReceiveSocket.setSoTimeout(0);
-//			while (this.mPacketSendQueue.size() == 0) {
-//			}
+			// while (this.mPacketSendQueue.size() == 0) {
+			// }
 			this.forwardPacketToSocket(this.mPacketSendQueue.pop());
 			receivedPacket = this.retrievePacketFromSocket();
 			this.mLastPacket = receivedPacket;
@@ -178,23 +180,24 @@ public class ErrorSimulatorService implements Runnable {
 		} catch (IOException e) {
 			System.err.println(Strings.ERROR_SERVICE_ERROR);
 		}
-		if(this.mErrorSettings.getMainErrorFamily() == ErrorType.TRANSMISSION_ERROR)
+		if (this.mErrorSettings.getMainErrorFamily() == ErrorType.TRANSMISSION_ERROR)
 			this.simulateError(this.mLastPacket);
-		
+
 		// This is where we want to simulate an error with an error packet
-		if(!isTransfering) {
-			// This packet was an error packet. Lets bail out now. 
+		if (!isTransfering) {
+			// This packet was an error packet. Lets bail out now.
 			try {
 				this.mSendReceiveSocket.setSoTimeout(Configurations.TRANMISSION_TIMEOUT);
-				while(true) {
+				while (true) {
 					this.forwardPacketToSocket(this.mLastPacket);
 					this.mLastPacket = this.retrievePacketFromSocket();
-					if(this.mLastPacket == null) break;
+					if (this.mLastPacket == null)
+						break;
 				}
 				System.err.println("Success full simulation of first packet RRQ/WRQ error");
 				logger.print(Logger.VERBOSE, Strings.ES_TRANSFER_SUCCESS);
 				return;
-				
+
 			} catch (IOException e) {
 				System.err.println("Issue with sending first error packet from first request");
 			}
@@ -282,20 +285,22 @@ public class ErrorSimulatorService implements Runnable {
 		if (inPacket.getData()[1] == 5)
 			return false;
 		this.mLastPacket = inPacket;
-		if (inPacket.getPort() == this.mClientPort) {
-			// From Client
-			if (packetIsError(inPacket)) {
-				inPacket.setAddress(this.mServerHostAddress);
-				inPacket.setPort(this.mForwardPort);
-				this.mPacketSendQueue.addFirst(inPacket); // May cause issue to
-															// be determined
-															// later
+		// if (inPacket.getPort() == this.mClientPort) {
+		if (packetIsError(inPacket)) {
+			inPacket.setAddress(this.mServerHostAddress);
+			inPacket.setPort(this.mForwardPort);
+			this.mPacketSendQueue.addFirst(inPacket);
+			if (inPacket.getPort() == this.mClientPort) {
 				logger.print(Logger.VERBOSE, String.format(Strings.ERROR_SERVICE_FORWARD_CLI_ERR));
-				return false;
+			} else {
+				logger.print(Logger.VERBOSE, String.format(Strings.ERROR_SERVICE_FORWARD_SER_ERR));
 			}
-			if (this.mMessUpThisTransfer == InstanceType.SERVER) {
-				this.simulateError(inPacket); // Adds packet into Q
-			}
+			return false;
+		}
+		// if (this.mMessUpThisTransfer == InstanceType.SERVER) {
+		this.simulateError(inPacket); // Adds packet into Q
+		// }
+		if (inPacket.getPort() == this.mClientPort) {
 			if (this.mInitialRequestType == RequestType.RRQ) {
 				logger.print(Logger.VERBOSE, String.format(Strings.ERROR_SERVICE_FORWARD_CLI_ACK));
 				return true; // This will be an ACK
@@ -303,19 +308,6 @@ public class ErrorSimulatorService implements Runnable {
 				return inPacket.getLength() == Configurations.MAX_MESSAGE_SIZE;
 			}
 		} else {
-			// From Server
-			if (packetIsError(inPacket)) {
-				inPacket.setAddress(this.mClientHostAddress);
-				inPacket.setPort(this.mClientPort);
-				this.mPacketSendQueue.addFirst(inPacket); // May cause issue to
-															// be determined
-															// later
-				logger.print(Logger.VERBOSE, String.format(Strings.ERROR_SERVICE_FORWARD_SER_ERR));
-				return false;
-			}
-			if (this.mMessUpThisTransfer == InstanceType.CLIENT) {
-				this.simulateError(inPacket); // Adds packet into Q
-			}
 			if (this.mInitialRequestType == RequestType.RRQ) {
 				return inPacket.getLength() == Configurations.MAX_MESSAGE_SIZE;
 			} else {
@@ -363,17 +355,18 @@ public class ErrorSimulatorService implements Runnable {
 					this.mLastPacket.setAddress(this.mClientHostAddress);
 				} else {
 					// It is from the client, so we send it to the server
-
 					if (this.mLastPacket.getData()[1] == 1 || this.mLastPacket.getData()[1] == 2) {
-						if (this.mMessUpThisTransfer == InstanceType.CLIENT) {
-							logger.print(Logger.VERBOSE, "Tweaked the address to go to client: " + this.mClientPort);
-							this.mLastPacket.setPort(this.mClientPort);
-							this.mLastPacket.setAddress(this.mClientHostAddress);
-						} else {
-							logger.print(Logger.VERBOSE, "Tweaked the address to go to server: " + this.mForwardPort);
-							this.mLastPacket.setPort(this.mForwardPort);
-							this.mLastPacket.setAddress(this.mServerHostAddress);
-						}
+						// if (this.mMessUpThisTransfer == InstanceType.CLIENT)
+						// {
+						// logger.print(Logger.VERBOSE, "Tweaked the address to
+						// go to client: " + this.mClientPort);
+						// this.mLastPacket.setPort(this.mClientPort);
+						// this.mLastPacket.setAddress(this.mClientHostAddress);
+						// } else {
+						logger.print(Logger.VERBOSE, "Tweaked the address to go to server: " + this.mForwardPort);
+						this.mLastPacket.setPort(this.mForwardPort);
+						this.mLastPacket.setAddress(this.mServerHostAddress);
+						// }
 					} else {
 						logger.print(Logger.VERBOSE, "Tweaked the address to go to server: " + this.mForwardPort);
 						this.mLastPacket.setPort(this.mForwardPort);
@@ -404,15 +397,17 @@ public class ErrorSimulatorService implements Runnable {
 				} else {
 					// It is from the client, so we send it to the server
 					if (this.mLastPacket.getData()[1] == 1 || this.mLastPacket.getData()[1] == 2) {
-						if (this.mMessUpThisTransfer == InstanceType.CLIENT) {
-							logger.print(Logger.VERBOSE, "Tweaked the address to go to client: " + this.mClientPort);
-							this.mLastPacket.setPort(this.mClientPort);
-							this.mLastPacket.setAddress(this.mClientHostAddress);
-						} else {
-							logger.print(Logger.VERBOSE, "Tweaked the address to go to server: " + this.mForwardPort);
-							this.mLastPacket.setPort(this.mForwardPort);
-							this.mLastPacket.setAddress(this.mServerHostAddress);
-						}
+						// if (this.mMessUpThisTransfer == InstanceType.CLIENT)
+						// {
+						// logger.print(Logger.VERBOSE, "Tweaked the address to
+						// go to client: " + this.mClientPort);
+						// this.mLastPacket.setPort(this.mClientPort);
+						// this.mLastPacket.setAddress(this.mClientHostAddress);
+						// } else {
+						logger.print(Logger.VERBOSE, "Tweaked the address to go to server: " + this.mForwardPort);
+						this.mLastPacket.setPort(this.mForwardPort);
+						this.mLastPacket.setAddress(this.mServerHostAddress);
+						// }
 					} else {
 						logger.print(Logger.VERBOSE, "Tweaked the address to go to server: " + this.mForwardPort);
 						this.mLastPacket.setPort(this.mForwardPort);
@@ -427,7 +422,7 @@ public class ErrorSimulatorService implements Runnable {
 			logger.print(logger, Strings.ERROR_SERVICE_UNCLEAR);
 		}
 	}
-	
+
 	/**
 	 * Determines where or not corrupt a datagram packet
 	 * 
@@ -440,9 +435,20 @@ public class ErrorSimulatorService implements Runnable {
 			System.err.println("Simulate error called on null packet!");
 			return;
 		}
-		//this.simulatePacketOverSize = false;
+		Packet mInPacket = (new PacketBuilder()).constructPacket(mLastPacket);
+		
 		ErrorType vErrType = this.mErrorSettings.getMainErrorFamily();
 		int subOpt = this.mErrorSettings.getSubErrorFromFamily();
+		RequestType vReqToSimulateOn = this.mErrorSettings.getTransmissionErrorType();
+		if(mInPacket.getRequestType() != vReqToSimulateOn) {
+			return;
+		} else {
+			this.mSimulatedPacketCounter++;
+			if(this.mSimulatedPacketCounter != this.mErrorSettings.getSimulatedBlocknumber()) {
+				return;
+			}
+		}
+		
 		switch (vErrType) {
 		case FILE_NOT_FOUND:
 			// error code 1
@@ -457,12 +463,30 @@ public class ErrorSimulatorService implements Runnable {
 		case ILLEGAL_OPERATION:
 			// error code 4
 			if (this.mEPFour == null) {
-				this.mEPFour = new ErrorCodeFour(inPacket, subOpt);
-				//if(subOpt == 6) this.simulatePacketOverSize = true;
+				int headerToSimulate = 0;
+				switch(vReqToSimulateOn) {
+				case RRQ:
+					headerToSimulate = 1;
+					break;
+				case WRQ:
+					headerToSimulate = 1;
+					break;
+				case ACK:
+					headerToSimulate = 2;
+					break;
+				case DATA:
+					headerToSimulate = 3;
+					break;
+				case ERROR:
+					headerToSimulate = 4;
+					break;
+				}
+				this.mEPFour = new ErrorCodeFour(inPacket, subOpt, headerToSimulate);
+				// if(subOpt == 6) this.simulatePacketOverSize = true;
 			} else {
 				this.mEPFour.setReceivePacket(inPacket);
 			}
-			this.mLastPacket = mEPFour.errorPacketCreator();
+			this.mLastPacket = mEPFour.errorPacketCreator(this.mErrorSettings.getIllegalTransferCase());
 			this.mPacketSendQueue.pop();
 			this.mPacketSendQueue.addLast(this.mLastPacket);
 			break;
@@ -487,11 +511,11 @@ public class ErrorSimulatorService implements Runnable {
 					&& this.mErrorSettings.getTransmissionErrorType().getOptCode() != inPacket.getData()[1]) {
 				logger.print(Logger.ERROR,
 						String.format(Strings.ERROR_SERVICE_ERROR_TYPE,
-								this.mErrorSettings.getTransmissionErrorType() != RequestType.NONE,
-								this.mErrorSettings.getTransmissionErrorType().getOptCode() != inPacket.getData()[1]));
+								this.mErrorSettings.getTransmissionErrorType() != RequestType.NONE, this.mErrorSettings
+										.getTransmissionErrorType().getOptCode() != inPacket.getData()[1]));
 				break;
 			}
-			Packet mInPacket;
+			
 			switch (this.mErrorSettings.getSubErrorFromFamily()) {
 			case 1:
 				// Lose a packet
@@ -676,7 +700,8 @@ public class ErrorSimulatorService implements Runnable {
 					// care of this one and add to Q
 					this.mTransmissionRetries = 0;
 					this.mSendReceiveSocket.setSoTimeout(Configurations.TRANMISSION_TIMEOUT);
-					this.mLastPacket = this.retrievePacketFromSocket(); // Normal reply 
+					this.mLastPacket = this.retrievePacketFromSocket(); // Normal
+																		// reply
 					this.mSendReceiveSocket.setSoTimeout(0);
 					System.out.println("Got a reply from the host from a duplicate.");
 					if (mInPacket.getBlockNumber() == -1 && (mInPacket.getRequestType() == this.mInitialRequestType)) {
@@ -817,7 +842,7 @@ public class ErrorSimulatorService implements Runnable {
 					logger.print(Logger.ERROR, String.format(Strings.ERROR_SERVICE_RETRY, this.mTransmissionRetries));
 					return null;
 				}
-				//System.out.println("Time out caught.");
+				// System.out.println("Time out caught.");
 			} catch (IOException e) {
 				logger.print(Logger.ERROR, "IOException during receive of packet");
 			}
