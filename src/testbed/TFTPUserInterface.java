@@ -16,7 +16,7 @@ import resource.Tuple;
 /**
  * @author Team 3
  *
- *         This class encapsulates some interface behaviours for the error
+ *         This class encapsulates some interface behaviors for the error
  *         simulator such as prompting the user for different error to simulate
  */
 public class TFTPUserInterface {
@@ -28,6 +28,10 @@ public class TFTPUserInterface {
 	private int mNumPktToFkWit = 0;
 	private int mSpaceOfDelay = 0;
 	private int mOpCodeToMessWith = 0;
+	private int mFirstSubOption =0;
+	private int mAckSubOption =0;
+	private int mDataSubOption =0;
+	private int mErrorSubOption =0;
 	private InstanceType mInstanceSelected;
 
 	public TFTPUserInterface() {
@@ -64,13 +68,19 @@ public class TFTPUserInterface {
 				case 1:
 					// illegal TFTP operation option
 					this.mUserErrorOption = ErrorType.ILLEGAL_OPERATION;
-					// printIllegalTFTPOperation();
-					this.getSubOption(UIStrings.MENU_ERROR_SIMULATOR_ILLEGAL_TFTP_OPERATION, 8, instance);
-					if (this.mUserErrorSubOption == 8) {
+					while(true){
+						System.out.println(UIStrings.MENU_ERROR_SIMULATOR_ILLEGAL_TFTP_OPERATION);
+						this.mUserErrorSubOption = Keyboard.getInteger();
+						if(this.mFirstSubOption>4){
+							break;
+						}
+						System.out.println("Please select a valid option");
+					}
+					if (this.mUserErrorSubOption == 0) {
 						// go back to the previous level
-						this.mUserErrorSubOption = 0;
 						validInput = false;
 					} else {
+						getIllegalTFTPerrorMenu(this.mUserErrorSubOption);
 						validInput = true;
 					}
 					break;
@@ -183,6 +193,51 @@ public class TFTPUserInterface {
 	 */
 	private static void printSelectLogLevelMenu() {
 		System.out.println(UIStrings.MENU_ERROR_SIMULATOR_LOG_LEVEL);
+	}
+	
+	/**
+	 * Gets the Illegal TFTP error menu
+	 * @param Packet type 
+	 */
+	private void getIllegalTFTPerrorMenu(int packetType){
+		switch(packetType){
+		case 1: //First Packet
+			while(true){
+				System.out.println(UIStrings.MENU_ERROR_SIMULATOR_ILLEGAL_TFTP_OPERATION_FIRST);
+				this.mFirstSubOption = Keyboard.getInteger();
+				if(this.mFirstSubOption>4){
+					break;
+				}
+				System.out.println("Please select a valid option");
+			}
+		case 2://ACK packet
+			while(true){
+				System.out.println(UIStrings.MENU_ERROR_SIMULATOR_ILLEGAL_TFTP_OPERATION_ACK);
+				this.mFirstSubOption = Keyboard.getInteger();
+				if(this.mFirstSubOption>3){
+					break;
+				}
+				System.out.println("Please select a valid option");
+			}
+		case 3://DATA packet
+			while(true){
+				System.out.println(UIStrings.MENU_ERROR_SIMULATOR_ILLEGAL_TFTP_OPERATION_DATA);
+				this.mFirstSubOption = Keyboard.getInteger();
+				if(this.mFirstSubOption>3){
+					break;
+				}
+				System.out.println("Please select a valid option");
+			}
+		case 4: //ERROR packet
+			while(true){
+				System.out.println(UIStrings.MENU_ERROR_SIMULATOR_ILLEGAL_TFTP_OPERATION_ERROR);
+				this.mFirstSubOption = Keyboard.getInteger();
+				if(this.mFirstSubOption>2){
+					break;
+				}
+				System.out.println("Please select a valid option");
+			}
+		}
 	}
 	
 	/**
