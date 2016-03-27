@@ -39,7 +39,7 @@ public class ErrorSimulatorServer implements Callback {
 	private TFTPUserInterface mErrorUI;
 	private ErrorCommand mErrorOptionSettings;
 	private final String CLASS_TAG = "<Error Simulator Server>";
-	private InstanceType testInstance;
+	//private InstanceType testInstance;
 	private boolean LETS_GO;
 	private InetAddress address;
 
@@ -56,7 +56,7 @@ public class ErrorSimulatorServer implements Callback {
 		threads = new Vector<Thread>();
 		this.mErrorUI = new TFTPUserInterface();
 		this.address = TFTPNetworking.promptAddress();
-		testInstance = this.mErrorUI.printTestableProcess();
+		//testInstance = this.mErrorUI.printTestableProcess();
 		logger.setClassTag(CLASS_TAG);
 		this.mErrorOptionSettings = null;
 		this.LETS_GO = true; // A boolean that is motivated to service client's
@@ -123,8 +123,7 @@ public class ErrorSimulatorServer implements Callback {
 						this.mErrorOptionSettings.setSubErrorFromFamily(-1);
 						System.out.println(BufferPrinter.acceptConnectionMessage(Strings.SERVER_ACCEPT_CONNECTION,
 								receivePacket.getSocketAddress().toString()));
-						vLastThread = new ErrorSimulatorService(receivePacket, this, this.mErrorOptionSettings,
-								testInstance, this.address);
+						vLastThread = new ErrorSimulatorService(receivePacket, this, this.mErrorOptionSettings, this.address);
 						Thread service = new Thread(vLastThread, CLASS_TAG);
 						threads.addElement(service);
 						service.start();
@@ -134,7 +133,7 @@ public class ErrorSimulatorServer implements Callback {
 					}
 				}
 
-				this.mErrorOptionSettings = this.mErrorUI.getErrorCodeFromUser(testInstance);
+				this.mErrorOptionSettings = this.mErrorUI.getErrorCodeFromUser(); // FIX this testInstance);
 				// if (this.mErrorOptionSettings.getTransmissionErrorType())
 				this.LETS_GO = true;
 				if (this.mErrorOptionSettings.getMainErrorFamily() == ErrorType.EXIT) {
@@ -158,8 +157,7 @@ public class ErrorSimulatorServer implements Callback {
 			}
 			System.out.println(BufferPrinter.acceptConnectionMessage(Strings.SERVER_ACCEPT_CONNECTION,
 					receivePacket.getSocketAddress().toString()));
-			vLastThread = new ErrorSimulatorService(receivePacket, this, this.mErrorOptionSettings, testInstance,
-					this.address);
+			vLastThread = new ErrorSimulatorService(receivePacket, this, this.mErrorOptionSettings, this.address);
 			Thread service = new Thread(vLastThread, CLASS_TAG);
 			threads.addElement(service);
 			service.start();

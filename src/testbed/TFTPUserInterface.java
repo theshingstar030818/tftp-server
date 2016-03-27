@@ -28,7 +28,7 @@ public class TFTPUserInterface {
 	private int mNumPktToFkWit = 0;
 	private int mSpaceOfDelay = 0;
 	private int mOpCodeToMessWith = 0;
-	private InstanceType mInstanceSelected;
+	private InstanceType mInstanceSelected = InstanceType.SERVER; // Temporary
 
 	public TFTPUserInterface() {
 		this.mUserErrorOption = ErrorType.NO_ERROR;
@@ -45,8 +45,8 @@ public class TFTPUserInterface {
 	 * @return tuple - first is the error type - second is the error sub code to
 	 *         produce
 	 */
-	public ErrorCommand getErrorCodeFromUser(InstanceType instance) {
-		this.mInstanceSelected = instance;
+	public ErrorCommand getErrorCodeFromUser() {
+		//this.mInstanceSelected = instance;
 		int optionSelected = 0;
 		boolean validInput = false;
 		
@@ -65,7 +65,7 @@ public class TFTPUserInterface {
 					// illegal TFTP operation option
 					this.mUserErrorOption = ErrorType.ILLEGAL_OPERATION;
 					// printIllegalTFTPOperation();
-					this.getSubOption(UIStrings.MENU_ERROR_SIMULATOR_ILLEGAL_TFTP_OPERATION, 8, instance);
+					this.getSubOption(UIStrings.MENU_ERROR_SIMULATOR_ILLEGAL_TFTP_OPERATION, 8, mInstanceSelected);
 					if (this.mUserErrorSubOption == 8) {
 						// go back to the previous level
 						this.mUserErrorSubOption = 0;
@@ -89,7 +89,7 @@ public class TFTPUserInterface {
 				case 4:
 					// Transmission Error
 					this.mUserErrorOption = ErrorType.TRANSMISSION_ERROR;
-					this.getSubOption(UIStrings.MENU_ERROR_SIMULATOR_TRANSMISSION_MENU, 4, instance);
+					this.getSubOption(UIStrings.MENU_ERROR_SIMULATOR_TRANSMISSION_MENU, 4, mInstanceSelected);
 					if (this.mUserErrorSubOption == 4) {
 						// go back to the previous level
 						this.mUserErrorSubOption = 0;
