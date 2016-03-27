@@ -133,9 +133,8 @@ public class ServerNetworking extends TFTPNetworking {
 			if (errorHandle(error, rrq.getPacket()))
 				return error;
 		if (!FileStorageService.checkFileNameExists(Configurations.SERVER_ROOT_FILE_DIRECTORY+"/"+fileName)){
-			String message = String.format(Strings.PRE_FILE_NAME_NOT_FOUND + Strings.FILE_NOT_FOUND, fileName);
-			
-			return new TFTPErrorMessage(ErrorType.FILE_NOT_FOUND, message);
+			//String message = String.format(Strings.PRE_FILE_NAME_NOT_FOUND + Strings.FILE_NOT_FOUND, fileName);
+			return new TFTPErrorMessage(ErrorType.FILE_NOT_FOUND, Strings.FILE_NOT_FOUND);
 		}
 		
 		try {

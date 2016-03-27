@@ -14,6 +14,7 @@ public class Strings {
 	public static final String FILE_WRITE_COMPLETE = "Received a block size zero, terminating write procedure.";
 	public static final String FILE_CHANNEL_CLOSE_ERROR = "Closing file channel failed.";
 	public static final String FILE_NOT_EXIST = "File does not exist.";
+	public static final String DELETE_FILE = "File transfer failed.  Deleting file from the path: ";
 
 	// Server messages.
 	public static final String SERVER_RECEIVE_ERROR = "Failed to receive packet on main thread.";
