@@ -85,7 +85,8 @@ public class ClientNetworking extends TFTPNetworking {
 	 * @throws IOException 
 	 * @throws AccessDeniedException
 	 */
-	public TFTPErrorMessage generateInitWRQ(String fn, int portToSendTo, InetAddress address) throws IOException {
+	public TFTPErrorMessage generateInitWRQ(String fn, int portToSendTo, InetAddress address, Logger log) throws IOException {
+		this.logger = log;
 		this.mAddressToSendTo = address;
 		TFTPErrorMessage error = null;
 		try {
@@ -166,7 +167,8 @@ public class ClientNetworking extends TFTPNetworking {
 	 * @return - TFTPErrorMessage with error type and error string (possible no
 	 *         error)
 	 */
-	public TFTPErrorMessage generateInitRRQ(String fn, int portToSendTo, InetAddress address) {
+	public TFTPErrorMessage generateInitRRQ(String fn, int portToSendTo, InetAddress address, Logger log) {
+		this.logger = log;
 		this.mAddressToSendTo = address;
 		try {
 			logger.print(logger, Strings.CLIENT_INITIATING_FIE_STORAGE_SERVICE);
