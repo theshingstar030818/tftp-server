@@ -23,16 +23,57 @@ public class UIStrings {
 							   = "----------------------\n"
 			   				   + "| Illegal TFTP Operation Menu |\n"
 			   				   + "----------------------\n"
+			   				   + "Please select the block type to corrupt\n"
+			   				   + "Options : \n"
+			   				   + "\t 0.Go back to the previous menu \n"
+			   				   + "\t 1.Corrupt first packet\n"
+			   				   + "\t 2.Corrupt ACK packet\n"
+			   				   + "\t 3.Corrupt DATA packet\n"
+			   				   + "\t 4.Corrupt ERROR packet\n"
+			   				   + "Select option : ";
+	public static final String MENU_ERROR_SIMULATOR_ILLEGAL_TFTP_OPERATION_FIRST
+							   = "----------------------\n"
+			   				   + "| Corrupt first packet Menu |\n"
+			   				   + "----------------------\n"
 			   				   + "Please select which error to generate\n"
 			   				   + "Options : \n"
+			   				   + "\t 0.Go back to the previous menu \n"
 			   				   + "\t 1.Invalid file name (WRQ/RRQ) \n"
-			   				   + "\t 2.Invalid mode (WRQ/RRQ) \n"
+			   				   + "\t 2.Invalid packet header during transfer \n"
 			   				   + "\t 3.Invalid zero padding bytes (WRQ/RRQ) \n"
-			   				   + "\t 4.Invalid block number \n"
-			   				   + "\t 5.Invalid packet header during transfer \n"
-			   				   + "\t 6.Invalid packet size \n"
-			   				   + "\t 7.Invalid initiating (first) packet\n"
-			   				   + "\t 8.Go back to the previous menu \n"
+			   				   + "\t 4.Invalid mode (WRQ/RRQ) \n"
+			   				   + "Select option : ";
+	public static final String MENU_ERROR_SIMULATOR_ILLEGAL_TFTP_OPERATION_ACK
+							   = "----------------------\n"
+							   + "| Ack packet Menu |\n"
+				               + "----------------------\n"
+			   				   + "Please select which error to generate\n"
+			   				   + "Options : \n"
+			   				   + "\t 0.Go back to the previous menu \n"
+			   				   + "\t 1.Invalid block number \n"
+			   				   + "\t 2.Invalid packet header during transfer \n"
+			   				   + "\t 3.Invalid packet size \n"
+			   				   + "Select option : ";
+	public static final String MENU_ERROR_SIMULATOR_ILLEGAL_TFTP_OPERATION_DATA
+							   = "----------------------\n"		   
+							   + "| Data packet Menu |\n"
+				               + "----------------------\n"
+			   				   + "Please select which error to generate\n"
+			   				   + "Options : \n"
+			   				   + "\t 0.Go back to the previous menu \n"
+			   				   + "\t 1.Invalid block number \n"
+			   				   + "\t 2.Invalid packet header during transfer \n"
+			   				   + "\t 3.Invalid packet size \n"
+			   				   + "Select option : ";
+	public static final String MENU_ERROR_SIMULATOR_ILLEGAL_TFTP_OPERATION_ERROR
+							   = "----------------------\n"		     
+							   + "| Error packet Menu |\n"
+				               + "----------------------\n"
+			   				   + "Please select which error to generate\n"
+			   				   + "Options : \n"
+			   				   + "\t 0.Go back to the previous menu \n"
+			   				   + "\t 1.Invalid error number \n"
+			   				   + "\t 2.Invalid packet header during transfer \n"
 			   				   + "Select option : ";
 	 public static final String MENU_ERROR_SIMULATOR_LOG_LEVEL 
 							   = "----------------------------------\n"
@@ -78,6 +119,7 @@ public class UIStrings {
 	 						  +"\t 3. Duplicate Packet\n"
 	 						  +"\t 4. Go Back\n"
 	 						  +"Select option : \n";
+	 
 	 public static final String MENU_ERROR_SIMULATOR_PROMPT_FREQUENCY 
 	 						  = "How frequent do you want to simulate this error? (-1 just once, otherwise other numbers mean every other ie, 2 for every 2 good packets)";
 	 public static final String MENU_ERROR_SIMULATOR_PROMPT_DELAY_AMOUNT  
@@ -88,4 +130,6 @@ public class UIStrings {
 	 						  = "Enter the block number (Please enter -1 to corrupt the RRQ/WRQ):";
 	 public static final String MENU_ERROR_SIMULATOR_PROMPT_TYPE
 	  						  = "Enter the op code of the packet to simulate error on:";
+	 public static final String MENU_ERROR_SIMULATOR_PROMPT_BLOCK_NUMBER
+	 						  = "Please enter the block number to corrupt";
 }
