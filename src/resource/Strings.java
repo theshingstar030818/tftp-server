@@ -108,7 +108,6 @@ public class Strings {
 	public static final String TFTPNETWORKING_LOSE_CONNECTION = "Other host no longer connected.";
 	public static final String UNHANDLED_EXCEPTION = "Unhandled Exception.";
 	public static final String PRE_FILE_NAME_EXIST = "The file %s already exists on the server, please rename the file you want to transfer. Error : ";
-	public static final String PRE_FILE_NAME_NOT_FOUND = "The file %s does not exist on the server: ";
 	
 	// Error Simulator Server
 	public static final String ERROR_SERVER_WAITING_INIT = "Waiting on timeout from client during delayed initiating packet.";
