@@ -90,7 +90,7 @@ public class ClientNetworking extends TFTPNetworking {
 		TFTPErrorMessage error = null;
 		try {
 			socket.setSoTimeout(Configurations.TRANMISSION_TIMEOUT);
-			storage = new FileStorageService(fn, InstanceType.CLIENT);
+			storage = new FileStorageService(fn, InstanceType.CLIENT, RequestType.WRQ);
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
 		} catch (AccessDeniedException e) {
@@ -173,7 +173,7 @@ public class ClientNetworking extends TFTPNetworking {
 			fileName = fn;
 			socket.setSoTimeout(Configurations.TRANMISSION_TIMEOUT);
 			try {
-				storage = new FileStorageService(fileName, InstanceType.CLIENT);
+				storage = new FileStorageService(fileName, InstanceType.CLIENT, RequestType.RRQ);
 			} catch (FileNotFoundException e) {
 				e.printStackTrace();
 			}

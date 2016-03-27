@@ -79,7 +79,7 @@ public class ServerNetworking extends TFTPNetworking {
 		}
 		
 		try {
-			storage = new FileStorageService(fileName, InstanceType.SERVER);
+			storage = new FileStorageService(fileName, InstanceType.SERVER, RequestType.WRQ);
 			storage.lockFile();
 			System.out.println("Locked the write file");
 		} catch (FileNotFoundException e) {
@@ -139,7 +139,7 @@ public class ServerNetworking extends TFTPNetworking {
 		}
 		
 		try {
-			storage = new FileStorageService(fileName, InstanceType.SERVER);
+			storage = new FileStorageService(fileName, InstanceType.SERVER, RequestType.RRQ);
 			super.socket.setSoTimeout(Configurations.TRANMISSION_TIMEOUT);
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
