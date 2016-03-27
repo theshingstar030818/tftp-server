@@ -104,7 +104,12 @@ public class FileStorageService {
 			File f = new File(tmpFilePath);
 			if(f.exists() && !f.isDirectory()) { 
 			    // do something
-				tmpFilePath = Paths.get(this.mDefaultStorageFolder, tmpFileName+"("+index+")").toString();
+				
+				String[] fileNameAndExtension = tmpFileName.split("\\.(?=[^\\.]+$)");
+				String fileNameString = fileNameAndExtension[0];
+				String extString = fileNameAndExtension[1];
+				
+				tmpFilePath = Paths.get(this.mDefaultStorageFolder, fileNameString+"("+index+")"+"."+extString).toString();
 				index++;
 			}else{
 				fileExists = false;
@@ -373,7 +378,7 @@ public class FileStorageService {
 	public void deleteFileFromDisk(){
 		this.finishedTransferingFile();
 		File f = new File(this.mFilePath);
-		System.out.println("Delete failed file transfer from path: " +this.mFilePath);
+		System.out.println(Strings.DELETE_FILE +this.mFilePath);
 		if(f.exists()) {
 			f.delete();
 		} else {
