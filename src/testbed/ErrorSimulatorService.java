@@ -339,7 +339,6 @@ public class ErrorSimulatorService implements Runnable {
 			Thread t = new Thread(errCodeFive, "Make-your-wish-come-true-foundation");
 			t.start();
 			this.mLastPacket = this.retrievePacketFromSocket();
-			// if()
 		}
 		switch (this.mInitialRequestType) {
 		case RRQ:

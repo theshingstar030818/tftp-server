@@ -36,7 +36,7 @@ public class TFTPNetworking {
 	protected DatagramSocket socket;
 	protected DatagramPacket lastPacket;
 	protected ErrorChecker errorChecker;
-	protected Logger logger = Logger.SILENT;
+	protected Logger logger = Logger.VERBOSE;
 	protected String fileName;
 	protected FileStorageService storage;
 	protected int retries = 0;
@@ -430,7 +430,7 @@ public class TFTPNetworking {
 				BufferPrinter.printPacket(errorPacket, Logger.ERROR, RequestType.ERROR);
 				return true;
 			case UNKNOWN_TRANSFER:
-				DatagramPacket unknownError = errorPacket.buildPacket(ErrorType.ILLEGAL_OPERATION,
+				DatagramPacket unknownError = errorPacket.buildPacket(ErrorType.UNKNOWN_TRANSFER,
 						error.getString());
 				try {
 					socket.send(unknownError);
