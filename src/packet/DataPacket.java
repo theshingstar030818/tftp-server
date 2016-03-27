@@ -17,7 +17,7 @@ import types.RequestType;
  */
 public class DataPacket extends Packet {
 
-	private short mBlockNumber;
+	private int mBlockNumber;
 	private byte[] mDataBuffer;
 
 	/**
@@ -74,8 +74,8 @@ public class DataPacket extends Packet {
 	 */
 	public DatagramPacket buildPacket(byte[] payload) {
 		// Start the block number back at 1 if it over flows
-		this.mBlockNumber = (short) ((this.mBlockNumber + 1) % Short.MAX_VALUE);
-		byte[] blockNumber = Conversion.shortToBytes(this.mBlockNumber);
+		this.mBlockNumber = ((this.mBlockNumber + 1) % 65536);
+		byte[] blockNumber = Conversion.intToBytes(this.mBlockNumber);
 		byte[] udpHeader = getRequestTypeHeaderByteArray();
 		int sizeOfPayload = 0;
 		if (payload != null) {
@@ -104,7 +104,7 @@ public class DataPacket extends Packet {
 		setRequestTypeFromBuffer(this.mBuffer);
 		if (this.mRequestType == RequestType.ACK || this.mRequestType == RequestType.DATA) {
 			byte[] byteBlockNumber = Arrays.copyOfRange(this.mBuffer, 2, 4);
-			this.mBlockNumber = Conversion.bytesToShort(byteBlockNumber);
+			this.mBlockNumber = Conversion.bytesToInt(byteBlockNumber);
 		} else {
 			this.mBlockNumber = 0;
 		}
@@ -135,7 +135,7 @@ public class DataPacket extends Packet {
 	 * 
 	 * @param blockNumber
 	 */
-	public void setBlockNumber(short blockNumber) {
+	public void setBlockNumber(int blockNumber) {
 		this.mBlockNumber = blockNumber;
 	}
 
@@ -145,7 +145,7 @@ public class DataPacket extends Packet {
 	 * 
 	 * @return a short - of the block number associated with the transfer
 	 */
-	public short getBlockNumber() {
+	public int getBlockNumber() {
 		return this.mBlockNumber;
 	}
 

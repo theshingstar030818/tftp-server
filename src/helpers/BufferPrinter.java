@@ -93,7 +93,7 @@ public class BufferPrinter {
 			logger.print(Logger.VERBOSE, "Block # : " + pb.getBlockNumber());
 		}
 
-		logger.print(Logger.VERBOSE, "Packet length : " + pb.getPacketLength());
+		logger.print(Logger.VERBOSE, "Packet length : " + pb.getPacketBuffer().length);
 		logger.print(Logger.VERBOSE, "Raw packet value : " + Arrays.toString(pb.getPacketBuffer()));
 		logger.print(Logger.VERBOSE, "String value : " + bufferToString(pb.getPacketBuffer()));
 		if(logger != Logger.SILENT) 

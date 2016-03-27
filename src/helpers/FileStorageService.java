@@ -16,6 +16,7 @@ import java.nio.file.Paths;
 import resource.*;
 import types.DiskFullException;
 import types.InstanceType;
+import types.RequestType;
 
 /**
  * @author Team 3
@@ -63,13 +64,59 @@ public class FileStorageService {
 	 * @param instanceType	     - client or server
 	 * @throws IOException 
 	 */
-	public FileStorageService(String fileNameOrFilePath, InstanceType instanceType) throws IOException {
+	public FileStorageService(String fileNameOrFilePath, InstanceType instanceType, RequestType requestType) throws IOException {
 		
 		this.mDefaultStorageFolder = instanceType == InstanceType.CLIENT ? Configurations.CLIENT_ROOT_FILE_DIRECTORY : 
 			Configurations.SERVER_ROOT_FILE_DIRECTORY;
 		
 		initializeFileServiceStorageLocation();
+		
+		//if client side initialized the transfer check if file already exists if so append file name with
+		if(instanceType == InstanceType.CLIENT && requestType == RequestType.RRQ){
+			fileNameOrFilePath = incrementFileName(fileNameOrFilePath);
+		}
+		
 		initializeNewFileChannel(fileNameOrFilePath);
+	}
+	
+	private String incrementFileName(String fileNameOrFilePath) throws FileNotFoundException{
+		
+		int index = 1;
+		String tmpFileName = "";
+		String tmpFilePath = "";
+		
+		if(checkFileNameExists(fileNameOrFilePath)) {
+			tmpFileName = Paths.get(fileNameOrFilePath).getFileName().toString();
+			if(tmpFileName == "") {
+				// No filename in the path!
+				throw new FileNotFoundException();
+			}
+			tmpFilePath = Paths.get(fileNameOrFilePath).toString();
+		} else {
+			if(fileNameOrFilePath == null || fileNameOrFilePath.isEmpty())
+				throw new FileNotFoundException();
+			// So its not a file path, maybe its a file name, so we try it out
+			tmpFileName = fileNameOrFilePath;
+			tmpFilePath = Paths.get(this.mDefaultStorageFolder, tmpFileName).toString();	
+		}
+		boolean fileExists = true;
+		while(fileExists){
+			File f = new File(tmpFilePath);
+			if(f.exists() && !f.isDirectory()) { 
+			    // do something
+				
+				String[] fileNameAndExtension = tmpFileName.split("\\.(?=[^\\.]+$)");
+				String fileNameString = fileNameAndExtension[0];
+				String extString = fileNameAndExtension[1];
+				
+				tmpFilePath = Paths.get(this.mDefaultStorageFolder, fileNameString+"("+index+")"+"."+extString).toString();
+				index++;
+			}else{
+				fileExists = false;
+			}
+		}
+		tmpFileName = Paths.get(tmpFilePath).getFileName().toString();
+		return tmpFileName;
 	}
 	
 	/**
@@ -331,7 +378,7 @@ public class FileStorageService {
 	public void deleteFileFromDisk(){
 		this.finishedTransferingFile();
 		File f = new File(this.mFilePath);
-		System.out.println("Delete failed file transfer from path: " +this.mFilePath);
+		System.out.println(Strings.DELETE_FILE +this.mFilePath);
 		if(f.exists()) {
 			f.delete();
 		} else {
