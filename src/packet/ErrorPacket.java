@@ -48,7 +48,7 @@ public class ErrorPacket extends Packet {
 	public DatagramPacket buildPacket(ErrorType errorType) {
 		this.mErrorType = errorType;
 		byte[] errorHeaderBytes = RequestType.ERROR.getHeaderByteArray();
-		byte[] errorCodeBytes = Conversion.shortToBytes(errorType.getErrorCodeShort());
+		byte[] errorCodeBytes = Conversion.intToBytes(errorType.getErrorCodeShort());
 		byte[] errorMessageBytes = errorType.getErrorMessageString().getBytes();
 		int bufferLength = errorHeaderBytes.length + errorCodeBytes.length + errorMessageBytes.length + 1;
 		this.mBuffer = new byte[bufferLength];
@@ -73,7 +73,7 @@ public class ErrorPacket extends Packet {
 	public DatagramPacket buildPacket(ErrorType errorType, String customMessage) {
 		this.mErrorType = errorType;
 		byte[] errorHeaderBytes = RequestType.ERROR.getHeaderByteArray();
-		byte[] errorCodeBytes = Conversion.shortToBytes(errorType.getErrorCodeShort());
+		byte[] errorCodeBytes = Conversion.intToBytes(errorType.getErrorCodeShort());
 		byte[] errorMessageBytes = customMessage.getBytes();
 		int bufferLength = errorHeaderBytes.length + errorCodeBytes.length + errorMessageBytes.length + 1;
 		this.mBuffer = new byte[bufferLength];
@@ -93,11 +93,12 @@ public class ErrorPacket extends Packet {
 	@Override
 	public void deconstructPacket(DatagramPacket inDatagramPacket) {
 		// Only using this to deconstruct to send back to sender
-		this.mRequestType = RequestType.ERROR;
+		if(this.mRequestType == null)
+			this.mRequestType = RequestType.ERROR;
 		if (this.mRequestType == RequestType.ERROR) {
 			byte[] errorOpCode = new byte[2];
 			System.arraycopy(this.mBuffer, 2, errorOpCode, 0, 2);
-			int errorOpInt = Conversion.bytesToShort(errorOpCode);
+			int errorOpInt = Conversion.bytesToInt(errorOpCode);
 			this.mErrorType = ErrorType.matchErrorByNumber(errorOpInt);
 		}
 		// Extract the error message
@@ -183,7 +184,7 @@ public class ErrorPacket extends Packet {
 	 * 
 	 * @param blockNumber
 	 */
-	public void setBlockNumber(short blockNumber) {
+	public void setBlockNumber(int blockNumber) {
 		this.mBlockNumber = blockNumber;
 	}
 
@@ -193,7 +194,7 @@ public class ErrorPacket extends Packet {
 	 * 
 	 * @return a short - of the block number associated with the transfer
 	 */
-	public short getBlockNumber() {
+	public int getBlockNumber() {
 		return this.mBlockNumber;
 	}
 }

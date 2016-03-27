@@ -36,7 +36,7 @@ public class TFTPNetworking {
 	protected DatagramSocket socket;
 	protected DatagramPacket lastPacket;
 	protected ErrorChecker errorChecker;
-	protected Logger logger = Logger.VERBOSE;
+	protected Logger logger = Logger.SILENT;
 	protected String fileName;
 	protected FileStorageService storage;
 	protected int retries = 0;
@@ -264,7 +264,7 @@ public class TFTPNetworking {
 
 		DatagramPacket receivePacket;
 		AckPacket ackPacket;
-		short currentSendBlockNumber = 0;
+		int currentSendBlockNumber = 0;
 		lastPacket = new DatagramPacket(new byte[Configurations.MAX_MESSAGE_SIZE], Configurations.MAX_MESSAGE_SIZE,
 				lastPacket.getAddress(), lastPacket.getPort());
 		try {
@@ -281,9 +281,12 @@ public class TFTPNetworking {
 				}
 				// Building a data packet from the last packet ie. will
 				// increment block number
+//				if(currentSendBlockNumber == 32676) {
+//					System.out.println("dsd");
+//				}
 				DataPacket vDataPacket = new DataPacket(lastPacket);
 				vDataPacket.setBlockNumber(currentSendBlockNumber);
-				if(++currentSendBlockNumber == 32767) {
+				if(++currentSendBlockNumber == 65536) {
 					currentSendBlockNumber = 0;
 				}
 				DatagramPacket vSendPacket = vDataPacket.buildPacket(vEmptyData);

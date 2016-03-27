@@ -22,8 +22,8 @@ public class Conversion {
 	 * @param bytes - a two lengthed byte array representing a short
 	 * @return short that was converted from bytes
 	 */
-	public static short bytesToShort(byte[] bytes) {
-	     return ByteBuffer.wrap(bytes).order(ByteOrder.LITTLE_ENDIAN).getShort();
+	public static int bytesToInt(byte[] bytes) {
+		return ((bytes[1] & 0xFF)<< 8) | (bytes[0] & 0xFF);
 	}
 	
 	/**
@@ -36,8 +36,8 @@ public class Conversion {
 	 * @param value - the two byte short converted into an array
 	 * @return a two byte array representation of your short
 	 */
-	public static byte[] shortToBytes(short value) {
-	    return ByteBuffer.allocate(2).order(ByteOrder.LITTLE_ENDIAN).putShort(value).array();
+	public static byte[] intToBytes(int value) {
+	    return ByteBuffer.allocate(2).order(ByteOrder.LITTLE_ENDIAN).putChar((char)value).array();
 	}
 	
 	/**
