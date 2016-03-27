@@ -152,4 +152,16 @@ public class ErrorCommand {
 		}
 		return 0;
 	}
+	
+	public int getIllegalTransferCase(){
+		if(this.mCommandMap.containsKey(Configurations.TE_SUB_SUB_OPTION)) {
+			return this.mCommandMap.get(Configurations.TE_SUB_SUB_OPTION);
+		} else {
+			return 0;
+		}
+	}
+	
+	public void setIllegalTransferCase(int value) {
+		this.mCommandMap.put(Configurations.TE_SUB_SUB_OPTION, value);
+	}
 }

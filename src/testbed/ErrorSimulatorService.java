@@ -463,12 +463,30 @@ public class ErrorSimulatorService implements Runnable {
 		case ILLEGAL_OPERATION:
 			// error code 4
 			if (this.mEPFour == null) {
-				this.mEPFour = new ErrorCodeFour(inPacket, subOpt);
+				int headerToSimulate = 0;
+				switch(vReqToSimulateOn) {
+				case RRQ:
+					headerToSimulate = 1;
+					break;
+				case WRQ:
+					headerToSimulate = 1;
+					break;
+				case ACK:
+					headerToSimulate = 2;
+					break;
+				case DATA:
+					headerToSimulate = 3;
+					break;
+				case ERROR:
+					headerToSimulate = 4;
+					break;
+				}
+				this.mEPFour = new ErrorCodeFour(inPacket, subOpt, headerToSimulate);
 				// if(subOpt == 6) this.simulatePacketOverSize = true;
 			} else {
 				this.mEPFour.setReceivePacket(inPacket);
 			}
-			this.mLastPacket = mEPFour.errorPacketCreator();
+			this.mLastPacket = mEPFour.errorPacketCreator(this.mErrorSettings.getIllegalTransferCase());
 			this.mPacketSendQueue.pop();
 			this.mPacketSendQueue.addLast(this.mLastPacket);
 			break;
