@@ -23,7 +23,7 @@ public abstract class Packet {
 	protected DatagramPacket mDatagramPacket;
 	protected byte[] mBuffer;
 	protected int mPacketLength;
-	protected short mBlockNumber;
+	protected int mBlockNumber;
 
 	/**
 	 * Used to create a packet from scratch by inputing the required parameters
@@ -157,7 +157,7 @@ public abstract class Packet {
 	 * 
 	 * @param blockNumber
 	 */
-	public abstract void setBlockNumber(short blockNumber);
+	public abstract void setBlockNumber(int blockNumber);
 
 	/**
 	 * Returns the block number of packet, if the packet does not have a block
@@ -165,7 +165,7 @@ public abstract class Packet {
 	 * 
 	 * @return int - block number
 	 */
-	public abstract short getBlockNumber();
+	public abstract int getBlockNumber();
 
 	/**
 	 * This function can be used to get the current packet that Packet has been

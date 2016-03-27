@@ -25,7 +25,7 @@ public class TFTPService implements Runnable {
 	private DatagramPacket mLastPacket;
 	private Callback mClientFinishedCallback;
 	private final String CLASS_TAG = "<Server Service Thread>";
-	private Logger logger = Logger.VERBOSE;
+	private Logger logger;
 
 	/**
 	 * This class is initialized by the server on a separate thread. It takes
@@ -33,7 +33,7 @@ public class TFTPService implements Runnable {
 	 * 
 	 * @param packet
 	 */
-	public TFTPService(DatagramPacket packet, Callback finCallback) {
+	public TFTPService(DatagramPacket packet, Logger log, Callback finCallback) {
 		this.mLastPacket = packet;
 		this.mClientFinishedCallback = finCallback;
 		try {
@@ -41,9 +41,10 @@ public class TFTPService implements Runnable {
 		} catch (SocketException e) {
 			e.printStackTrace();
 		}
+		logger = log;
 		logger.setClassTag(CLASS_TAG);
 		logger.print(logger,
-				"Server initializing client's write request on port " + this.mSendReceiveSocket.getLocalPort());
+				"Server initializing client's request on port " + this.mSendReceiveSocket.getLocalPort());
 	}
 
 	/* (non-Javadoc)
@@ -64,7 +65,7 @@ public class TFTPService implements Runnable {
 			BufferPrinter.printPacket(vWritePacket, logger, RequestType.WRQ);
 
 			net = new ServerNetworking(vWritePacket, mSendReceiveSocket);
-			result = net.handleInitWRQ(vWritePacket);
+			result = net.handleInitWRQ(vWritePacket, logger);
 			if (!result.getString().equals(Strings.NO_ERROR)) {
 				net.errorHandle(result, vWritePacket.getPacket(), RequestType.WRQ);
 				break;
@@ -82,7 +83,7 @@ public class TFTPService implements Runnable {
 
 			net = new ServerNetworking(vReadPacket);
 
-			result = net.handleInitRRQ(vReadPacket);
+			result = net.handleInitRRQ(vReadPacket, logger);
 			if (!result.getString().equals(Strings.NO_ERROR)) {
 				net.errorHandle(result, vReadPacket.getPacket(), RequestType.RRQ);
 				break;

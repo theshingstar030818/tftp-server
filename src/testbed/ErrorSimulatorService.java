@@ -146,6 +146,7 @@ public class ErrorSimulatorService implements Runnable {
 			if (this.mLastPacket == null || this.END_THREAD) {
 				this.mSendReceiveSocket.close();
 				logger.print(Logger.ERROR, Strings.ERROR_SERVICE_ENDING);
+				this.mSendReceiveSocket.close();
 				return;
 			}
 			if (!this.mSkipInitSettings) {

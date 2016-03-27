@@ -64,7 +64,7 @@ public class TFTPServer implements Callback {
 	static AtomicBoolean active = new AtomicBoolean(true);
 	private Vector<Thread> threads;
 	private DatagramSocket serverSock = null;
-	private Logger logger = Logger.VERBOSE;
+	public Logger logger;
 	private String CLASS_TAG = "<TFTP Server>";
 
 	/**
@@ -73,8 +73,20 @@ public class TFTPServer implements Callback {
 	 */
 	public TFTPServer() {
 		threads = new Vector<Thread>();
+		logger = getVerbosity();
 		logger.setClassTag(CLASS_TAG);
+		
 		//hostAddress = TFTPNetworking.promptAddress();
+	}
+	
+	private Logger getVerbosity() {
+		int v;
+		do {
+			System.out.println("Logging should be (1) silent or (2) verbose?");
+			v = Keyboard.getInteger();
+		} while (v != 1 && v != 2);
+		
+		return (v == 1 ? Logger.SILENT : Logger.VERBOSE);
 	}
 
 	/**
@@ -116,7 +128,7 @@ public class TFTPServer implements Callback {
 			}
 			System.out.println(BufferPrinter.acceptConnectionMessage(Strings.SERVER_ACCEPT_CONNECTION,
 					receivePacket.getSocketAddress().toString()));
-			Thread service = new Thread(new TFTPService(receivePacket, this), "Service");
+			Thread service = new Thread(new TFTPService(receivePacket, logger, this), "Service");
 			threads.addElement(service);
 			service.start();
 		}
