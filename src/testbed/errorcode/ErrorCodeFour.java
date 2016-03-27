@@ -15,25 +15,96 @@ import types.*;
  * This class corrupts a piece of the datagram buffer to simulate a corrupt packet
  */
 public class ErrorCodeFour {
-	private int mSubcode;
+	private RequestType mBlockType;
+	private int mBlocknumber;
 	private DatagramPacket mSendPacket;
 	private RequestType rt;
 	private boolean readWriteCheck;
 	private byte[] readWriteBuffer;
 	private int packetCount = 0;
 	private PacketBuilder pb; 
-	private Packet receivePacket;
+	private Packet mreceivePacket;
 
-	public ErrorCodeFour(DatagramPacket receiveDatagramPacket, int subcode) {
+	public ErrorCodeFour(DatagramPacket receiveDatagramPacket, int SelectBlockType, int selectSuboption) {
 		this.setReceivePacket(receiveDatagramPacket);
-		readWriteBuffer = this.receivePacket.getDataBuffer();
+		readWriteBuffer = this.mreceivePacket.getDataBuffer();
 		this.packetCount++;
-		this.mSubcode = subcode;
+		this.BlockTypeErrorCreator(SelectBlockType, selectSuboption);
 	}
 	
 	public void setReceivePacket(DatagramPacket receiveDatagramPacket){
 		pb = new PacketBuilder();
-		receivePacket = pb.constructPacket(receiveDatagramPacket);
+		mreceivePacket = pb.constructPacket(receiveDatagramPacket);
+	}
+	
+	/**
+	* Initializes Block type of the block to be corrupted
+	*/
+	
+	public void BlockTypeErrorCreator(int SelectBlockType,int subOption){
+		switch(SelectBlockType){
+		case 1: //First Packet
+			if(this.mreceivePacket.getBlockNumber()==0){
+				this.mBlockType = this.mreceivePacket.getRequestType();
+			}
+			this.FirstPacketErrorCreator(subOption);
+		case 2: //ACK
+			this.mBlockType = RequestType.ACK;
+			this.ackPacketErrorCreator(subOption);
+		case 3: //DATA
+			this.mBlockType = RequestType.DATA;
+			this.dataPacketErrorCreator(subOption);
+		case 4: //ERROR
+			this.mBlockType = RequestType.ERROR;
+			this.errorPacketCreator(subOption);
+		}
+		 
+	}
+	
+	public void FirstPacketErrorCreator(int subOption){
+		switch(subOption){
+		case 1: //Invalid file name
+			this.errorPacketCreator(1);
+		case 2: //Invalid packet header during transfer
+			this.errorPacketCreator(5);
+		case 3: //Invalid zero padding bytes
+			this.errorPacketCreator(3);
+		case 4: //Invalid mode
+			this.errorPacketCreator(2);
+
+		}
+	}
+
+	public void ackPacketErrorCreator(int subOption){
+		switch(subOption){
+		case 1: //Invalid block number
+			this.errorPacketCreator(4);
+		case 2: //Invalid packet header during transfer
+			this.errorPacketCreator(5);
+		case 3: //Invalid packet size
+			this.errorPacketCreator(6);
+			
+		}
+	}
+	public void dataPacketErrorCreator(int subOption){
+		switch(subOption){
+		case 1: //Invalid block number
+			this.errorPacketCreator(4);
+		case 2: //Invalid packet header during transfer
+			this.errorPacketCreator(5);
+		case 3: //Invalid packet size
+			this.errorPacketCreator(6);
+	
+		}
+	}
+
+	public void errorPacketErrorCreator(int subOption){
+		switch(subOption){
+		case 1: //Invalid error number
+		case 2: //Invalid packet header during transfer
+			this.errorPacketCreator(5);
+
+		}
 	}
 
 	/**
@@ -41,29 +112,29 @@ public class ErrorCodeFour {
 	 * 
 	 * @return
 	 */
-	public DatagramPacket errorPacketCreator() {
+	public DatagramPacket errorPacketCreator(int errorCase) {
 		this.mSendPacket = null;
-		rt = this.receivePacket.getRequestType();
+		rt = this.mreceivePacket.getRequestType();
 		readWriteCheck = (rt == RequestType.RRQ || rt == RequestType.WRQ);
-		switch (this.mSubcode) {
+		switch (errorCase) {
 		case 1: // Change filename
 			if (readWriteCheck) {
 				// Settings and invalid file name
-				this.receivePacket.setFilename("*:?.txt");
-				this.mSendPacket = this.receivePacket.buildPacket();
+				this.mreceivePacket.setFilename("*:?.txt");
+				this.mSendPacket = this.mreceivePacket.buildPacket();
 			}
 			break;
 		case 2: // Change mode
 			if (readWriteCheck) {
-				this.receivePacket.setMode(switchMode());
-				this.mSendPacket = this.receivePacket.buildPacket();
+				this.mreceivePacket.setMode(switchMode());
+				this.mSendPacket = this.mreceivePacket.buildPacket();
 			}
 			break;
-		case 3: // Change number of 0s in the header
+		case 3: // 0 Padding
 			if (readWriteCheck) {
-				this.receivePacket.setDataBuffer(addZerosToBuffer());
-				this.receivePacket.getPacket().setData(this.receivePacket.getDataBuffer());
-				this.mSendPacket = this.receivePacket.getPacket();
+				this.mreceivePacket.setDataBuffer(addZerosToBuffer());
+				this.mreceivePacket.getPacket().setData(this.mreceivePacket.getDataBuffer());
+				this.mSendPacket = this.mreceivePacket.getPacket();
 			}
 		case 4: // Change block number
 			if ( rt == RequestType.DATA) {
@@ -71,27 +142,27 @@ public class ErrorCodeFour {
 				// number by 1, which
 				// effectively mismatches the block number
 			
-				this.mSendPacket = ((DataPacket) this.receivePacket).buildPacket(this.receivePacket.getDataBuffer());
+				this.mSendPacket = ((DataPacket) this.mreceivePacket).buildPacket(this.mreceivePacket.getDataBuffer());
 			} else if(rt == RequestType.ACK) {
-				int currentBlockNumber = this.receivePacket.getBlockNumber();
-				this.receivePacket.setBlockNumber((short) (currentBlockNumber + 5));
-				this.mSendPacket = ((AckPacket) this.receivePacket).buildPacket();
+				int currentBlockNumber = this.mreceivePacket.getBlockNumber();
+				this.mreceivePacket.setBlockNumber((short) (currentBlockNumber + 5));
+				this.mSendPacket = ((AckPacket) this.mreceivePacket).buildPacket();
 			} else {
-				this.mSendPacket = this.receivePacket.getPacket();
+				this.mSendPacket = this.mreceivePacket.getPacket();
 			}
 			break;
 		case 5:// Change header request type on the first expected DATA/ACK to
 				// a WRQ or RRQ
-			this.changeHeader(this.receivePacket);
+			this.changeHeader(this.mreceivePacket);
 			break;
 		case 6:// Change packet size
-			this.invalidPacketSize(this.receivePacket);
+			this.invalidPacketSize(this.mreceivePacket);
 			break;
 		case 7: // changing header of first packet received from client
 			if (this.packetCount == 1) {
-				this.changeHeader(this.receivePacket);
+				this.changeHeader(this.mreceivePacket);
 			} else {
-				this.mSendPacket = this.receivePacket.getPacket();
+				this.mSendPacket = this.mreceivePacket.getPacket();
 			}
 			break;
 

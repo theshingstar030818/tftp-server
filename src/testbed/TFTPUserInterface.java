@@ -16,7 +16,7 @@ import resource.Tuple;
 /**
  * @author Team 3
  *
- *         This class encapsulates some interface behaviours for the error
+ *         This class encapsulates some interface behaviors for the error
  *         simulator such as prompting the user for different error to simulate
  */
 public class TFTPUserInterface {
@@ -28,7 +28,10 @@ public class TFTPUserInterface {
 	private int mNumPktToFkWit = 0;
 	private int mSpaceOfDelay = 0;
 	private int mOpCodeToMessWith = 0;
-	private InstanceType mInstanceSelected;
+	private int mFirstSubOption =0;
+	private int mAckSubOption =0;
+	private int mDataSubOption =0;
+	private int mErrorSubOption =0;
 
 	public TFTPUserInterface() {
 		this.mUserErrorOption = ErrorType.NO_ERROR;
@@ -45,8 +48,8 @@ public class TFTPUserInterface {
 	 * @return tuple - first is the error type - second is the error sub code to
 	 *         produce
 	 */
-	public ErrorCommand getErrorCodeFromUser(InstanceType instance) {
-		this.mInstanceSelected = instance;
+	public ErrorCommand getErrorCodeFromUser() {
+		//this.mInstanceSelected = instance;
 		int optionSelected = 0;
 		boolean validInput = false;
 		
@@ -64,13 +67,20 @@ public class TFTPUserInterface {
 				case 1:
 					// illegal TFTP operation option
 					this.mUserErrorOption = ErrorType.ILLEGAL_OPERATION;
-					// printIllegalTFTPOperation();
-					this.getSubOption(UIStrings.MENU_ERROR_SIMULATOR_ILLEGAL_TFTP_OPERATION, 8, instance);
-					if (this.mUserErrorSubOption == 8) {
+					while(true){
+						System.out.println(UIStrings.MENU_ERROR_SIMULATOR_ILLEGAL_TFTP_OPERATION);
+						this.mUserErrorSubOption = Keyboard.getInteger();
+						if(this.mFirstSubOption>4){
+							break;
+						}
+						System.out.println("Please select a valid option");
+					}
+					if (this.mUserErrorSubOption == 0) {
 						// go back to the previous level
-						this.mUserErrorSubOption = 0;
 						validInput = false;
 					} else {
+						int illegalTransferType = getIllegalTFTPerrorMenu(this.mUserErrorSubOption);
+						errorToProduce.setIllegalTransferCase(illegalTransferType);
 						validInput = true;
 					}
 					break;
@@ -89,7 +99,7 @@ public class TFTPUserInterface {
 				case 4:
 					// Transmission Error
 					this.mUserErrorOption = ErrorType.TRANSMISSION_ERROR;
-					this.getSubOption(UIStrings.MENU_ERROR_SIMULATOR_TRANSMISSION_MENU, 4, instance);
+					this.getSubOption(UIStrings.MENU_ERROR_SIMULATOR_TRANSMISSION_MENU, 4);
 					if (this.mUserErrorSubOption == 4) {
 						// go back to the previous level
 						this.mUserErrorSubOption = 0;
@@ -114,7 +124,6 @@ public class TFTPUserInterface {
 			}
 		}
 		errorToProduce.setMainErrorFamily(this.mUserErrorOption.getErrorCodeShort());
-		errorToProduce.setSubErrorFromFamily(this.mUserErrorSubOption);
 		return errorToProduce;
 	}
 
@@ -186,6 +195,53 @@ public class TFTPUserInterface {
 	}
 	
 	/**
+	 * Gets the Illegal TFTP error menu
+	 * @param Packet type 
+	 */
+	private int getIllegalTFTPerrorMenu(int packetType){
+		switch(packetType){
+		case 1: //First Packet
+			while(true){
+				System.out.println(UIStrings.MENU_ERROR_SIMULATOR_ILLEGAL_TFTP_OPERATION_FIRST);
+				this.mFirstSubOption = Keyboard.getInteger();
+				if(this.mFirstSubOption <=4 && this.mFirstSubOption > -1){
+					return this.mFirstSubOption;
+				}
+				System.out.println("Please select a valid option");
+			}
+		case 2://ACK packet
+			while(true){
+				System.out.println(UIStrings.MENU_ERROR_SIMULATOR_ILLEGAL_TFTP_OPERATION_ACK);
+				this.mAckSubOption = Keyboard.getInteger();
+				if(this.mAckSubOption<=3 && this.mAckSubOption > -1){
+					return this.mAckSubOption;
+				}
+				System.out.println("Please select a valid option");
+			}
+		case 3://DATA packet
+			while(true){
+				System.out.println(UIStrings.MENU_ERROR_SIMULATOR_ILLEGAL_TFTP_OPERATION_DATA);
+				this.mDataSubOption = Keyboard.getInteger();
+				if(this.mDataSubOption <= 3 && this.mDataSubOption > -1){
+					return this.mDataSubOption;
+				}
+				System.out.println("Please select a valid option");
+			}
+		case 4: //ERROR packet
+			while(true){
+				System.out.println(UIStrings.MENU_ERROR_SIMULATOR_ILLEGAL_TFTP_OPERATION_ERROR);
+				this.mErrorSubOption = Keyboard.getInteger();
+				if(this.mErrorSubOption<=2 && this.mErrorSubOption > -1){
+					return this.mErrorSubOption;
+				}
+				System.out.println("Please select a valid option");
+			}
+		}
+		// Flag exception
+		return 0;
+	}
+	
+	/**
 	 * Gets the main transmission error menu
 	 * 
 	 * @param transmissionError settings
@@ -197,7 +253,10 @@ public class TFTPUserInterface {
 			while(true){
 				System.out.println(String.format(UIStrings.MENU_ERROR_SIMULATOR_PROMPT_NUM_PACKET, "lose"));
 				this.mNumPktToFkWit = Keyboard.getInteger();
-				if(this.mInstanceSelected == InstanceType.SERVER || (this.mInstanceSelected == InstanceType.CLIENT && mNumPktToFkWit!=-1)){
+//				if(this.mInstanceSelected == InstanceType.SERVER || (this.mInstanceSelected == InstanceType.CLIENT && mNumPktToFkWit!=-1)){
+//					break;
+//				}
+				if(this.mNumPktToFkWit >= -1) {
 					break;
 				}
 				System.out.println("Please select a block that is not a RRQ/WRQ");
@@ -217,7 +276,10 @@ public class TFTPUserInterface {
 			while(true){
 				System.out.println(UIStrings.MENU_ERROR_SIMULATOR_PROMPT_NUM_PACKET);
 				this.mNumPktToFkWit = Keyboard.getInteger();
-				if(this.mInstanceSelected == InstanceType.SERVER || (this.mInstanceSelected == InstanceType.CLIENT && mNumPktToFkWit!=-1)){
+//				if(this.mInstanceSelected == InstanceType.SERVER || (this.mInstanceSelected == InstanceType.CLIENT && mNumPktToFkWit!=-1)){
+//					break;
+//				}
+				if(this.mNumPktToFkWit >= -1) {
 					break;
 				}
 				System.out.println("Please select a block that is not a RRQ/WRQ");
@@ -245,7 +307,10 @@ public class TFTPUserInterface {
 			while(true){
 				System.out.println(String.format(UIStrings.MENU_ERROR_SIMULATOR_PROMPT_NUM_PACKET, "duplicate"));
 				this.mNumPktToFkWit = Keyboard.getInteger();
-				if(this.mInstanceSelected == InstanceType.SERVER || (this.mInstanceSelected == InstanceType.CLIENT && mNumPktToFkWit!=-1)){
+//				if(this.mInstanceSelected == InstanceType.SERVER || (this.mInstanceSelected == InstanceType.CLIENT && mNumPktToFkWit!=-1)){
+//					break;
+//				}
+				if(this.mNumPktToFkWit >= -1) {
 					break;
 				}
 				System.out.println("Please select a block that is not a RRQ/WRQ");
@@ -262,15 +327,15 @@ public class TFTPUserInterface {
 	}
 	
 	private boolean checkBlockOpcode(){
-		if(this.mInstanceSelected==InstanceType.SERVER && mNumPktToFkWit==-1 && (mOpCodeToMessWith==1 || mOpCodeToMessWith==2)){
-			return true;
-			}
+//		if(this.mInstanceSelected==InstanceType.SERVER && mNumPktToFkWit==-1 && (mOpCodeToMessWith==1 || mOpCodeToMessWith==2)){
+//			return true;
+//			}
 		if(mNumPktToFkWit>=0 && (mOpCodeToMessWith>=1 && mOpCodeToMessWith<=5)){
 			return true;
 		}
-		if(this.mInstanceSelected==InstanceType.CLIENT && mNumPktToFkWit>=0 && (mOpCodeToMessWith>2 && mOpCodeToMessWith<=5)){
-			return true;
-		}
+//		if(this.mInstanceSelected==InstanceType.CLIENT && mNumPktToFkWit>=0 && (mOpCodeToMessWith>2 && mOpCodeToMessWith<=5)){
+//			return true;
+//		}
 			
 		System.out.println("Please enter an appropriate opcode for your selected block number\n");
 		return false;
@@ -284,36 +349,35 @@ public class TFTPUserInterface {
 	 * @param max
 	 *            - the maximum valid input
 	 */
-	private void getSubOption(String s, int max, InstanceType instance) {
+	private void getSubOption(String s, int max) {
 		int subOpt;
 		boolean validInput = false;
-		Set<Integer> nonValidChoices = new HashSet<>();
-		if (instance == InstanceType.CLIENT && !(mUserErrorOption==ErrorType.TRANSMISSION_ERROR)) {
-			nonValidChoices.add(1);
-			nonValidChoices.add(2);
-			nonValidChoices.add(3);
-			nonValidChoices.add(7);
-		}
 		while (!validInput) {
 			// print out the message
 			System.out.println(s);
 			try {
 				// get input
 				subOpt = Keyboard.getInteger();
+				if(subOpt > max) {
+					System.err.println("Sorry but the client doesn't support that option.");
+					validInput = false;
+				} else {
+					validInput = true;
+				}
 			} catch (NumberFormatException e) {
 				subOpt = 0;
 			}
-			for (int i = 1; i <= max; i++) {
-				if (subOpt == i) {
-					// validate the input
-					validInput = nonValidChoices.contains(subOpt) ? false : true;
-					// FLAG ERROR if non valid choice
-					if (!validInput) {
-						System.err.println("Sorry but the client doesn't support that.");
-					}
-					this.mUserErrorSubOption = subOpt;
-				}
-			}
+//			for (int i = 1; i <= max; i++) {
+//				if (subOpt == i) {
+//					// validate the input
+//					validInput = nonValidChoices.contains(subOpt) ? false : true;
+//					// FLAG ERROR if non valid choice
+//					if (!validInput) {
+//						System.err.println("Sorry but the client doesn't support that.");
+//					}
+//					this.mUserErrorSubOption = subOpt;
+//				}
+//			}
 		}
 	}
 }

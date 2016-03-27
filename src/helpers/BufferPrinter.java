@@ -62,40 +62,40 @@ public class BufferPrinter {
 		RequestType currentPacket = RequestType.matchRequestByNumber(pb.getPacket().getData()[1]);
 		switch (requestType) {
 		case ACK:
-			logger.print(logger, "Expected: " + Strings.ACK_PACKET +  " and got " + currentPacket.getRequestTypeString());
+			logger.print(Logger.VERBOSE, "Expected: " + Strings.ACK_PACKET +  " and got " + currentPacket.getRequestTypeString());
 			break;
 		case DATA:
-			logger.print(logger, "Expected: " + Strings.DATA_PACKET +  " and got " + currentPacket.getRequestTypeString());
+			logger.print(Logger.VERBOSE, "Expected: " + Strings.DATA_PACKET +  " and got " + currentPacket.getRequestTypeString());
 			break;
 		case RRQ:
-			logger.print(logger, "Expected: " + Strings.RRQ +  " and got " + currentPacket.getRequestTypeString());
-			logger.print(logger, "File Name : " + ((ReadWritePacket) pb).getFilename());
+			logger.print(Logger.VERBOSE, "Expected: " + Strings.RRQ +  " and got " + currentPacket.getRequestTypeString());
+			logger.print(Logger.VERBOSE, "File Name : " + ((ReadWritePacket) pb).getFilename());
 			break;
 		case WRQ:
-			logger.print(logger, "Expected: " + Strings.WRQ +  " and got " + currentPacket.getRequestTypeString());
-			logger.print(logger, "File Name : " + ((ReadWritePacket) pb).getFilename());
+			logger.print(Logger.VERBOSE, "Expected: " + Strings.WRQ +  " and got " + currentPacket.getRequestTypeString());
+			logger.print(Logger.VERBOSE, "File Name : " + ((ReadWritePacket) pb).getFilename());
 			break;
 		case ERROR:
-			logger.print(logger, Strings.ERROR);
-			logger.print(logger, ((ErrorPacket) pb).getCustomPackageErrorMessage());
+			logger.print(Logger.VERBOSE, Strings.ERROR);
+			logger.print(Logger.VERBOSE, ((ErrorPacket) pb).getCustomPackageErrorMessage());
 			break;
 		case NONE:
-			logger.print(logger, Strings.NONE);
+			logger.print(Logger.VERBOSE, Strings.NONE);
 			break;
 		default:
-			logger.print(logger, Strings.INVALID_PACKET_NONE_TYPE);
+			logger.print(Logger.FATAL, Strings.INVALID_PACKET_NONE_TYPE);
 			break;
 		}
-		logger.print(logger, "IP Address : " + pb.getPacket().getAddress());
-		logger.print(logger, "Port : " + pb.getPacket().getPort());
+		logger.print(Logger.VERBOSE, "IP Address : " + pb.getPacket().getAddress());
+		logger.print(Logger.VERBOSE, "Port : " + pb.getPacket().getPort());
 
 		if (pb.getBlockNumber() >= 0) {
-			logger.print(logger, "Block # : " + pb.getBlockNumber());
+			logger.print(Logger.VERBOSE, "Block # : " + pb.getBlockNumber());
 		}
 
-		logger.print(logger, "Packet length : " + pb.getPacketLength());
-		logger.print(logger, "Raw packet value : " + Arrays.toString(pb.getPacketBuffer()));
-		logger.print(logger, "String value : " + bufferToString(pb.getPacketBuffer()));
+		logger.print(Logger.VERBOSE, "Packet length : " + pb.getPacketBuffer().length);
+		logger.print(Logger.VERBOSE, "Raw packet value : " + Arrays.toString(pb.getPacketBuffer()));
+		logger.print(Logger.VERBOSE, "String value : " + bufferToString(pb.getPacketBuffer()));
 		if(logger != Logger.SILENT) 
 			System.out.println();
 	}

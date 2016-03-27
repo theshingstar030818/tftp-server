@@ -11,7 +11,7 @@ public class Keyboard {
 	    	return (Integer.valueOf(inputStream.readLine().trim()).intValue());
 		} catch (Exception e) {
 			//System.err.println(e);
-	    	return 0;
+	    	return -2;
 		}
     }
     /* Get a double from the user and return it */
