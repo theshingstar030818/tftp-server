@@ -37,6 +37,20 @@ public class TFTPClient {
 		vClient.initialize();
 	}
 
+	
+	private String getClientFilePath() {
+		String path = null;
+		do {
+			System.out.print("Enter a directory to use as your default directory to write from: ");
+			path = Keyboard.getString();
+		} while (!(new File(path).isDirectory()));
+		
+		if (!path.endsWith("/"))
+			path += "/";
+		
+		return path;
+	}
+	
 	/**
 	 * This function initializes the client's functionality and block the rest
 	 * of the program from running until a exit command was given.
@@ -45,6 +59,9 @@ public class TFTPClient {
 		logger.setClassTag(this.CLASS_TAG);
 		Scanner scan = new Scanner(System.in);
 		ClientNetworking net = null;
+		
+		String clientFilePath = getClientFilePath();
+		
 		try {
 			mode = getSendPort();
 			try {
@@ -91,7 +108,7 @@ public class TFTPClient {
 						if (ErrorChecker.isValidFilename(readFileName)) {
 							break;
 						}
-						System.out.println("Invalid entry. So, re-prompting\n");
+						System.out.println("Invalid entry. Try again.\n");
 					}
 
 					try {
@@ -124,12 +141,20 @@ public class TFTPClient {
 					logger.print(logger, Strings.PROMPT_FILE_NAME_PATH);
 					String writeFileNameOrFilePath = Keyboard.getString();
 
+					if (!writeFileNameOrFilePath.contains("/")) { // We were only given a filename.
+						System.out.println("Given only filename.");
+						writeFileNameOrFilePath = clientFilePath + writeFileNameOrFilePath;
+						System.out.println(writeFileNameOrFilePath);
+					}
+					
 					TFTPErrorMessage result = null;
 					File f = new File(writeFileNameOrFilePath);
+					
 					if (!f.exists() || f.isDirectory()) {
 						logger.print(logger, Strings.FILE_NOT_EXIST);
 						break;
 					}
+					
 					try {
 						result = net.generateInitWRQ(writeFileNameOrFilePath, this.mPortToSendTo, this.mAddressToSendTo);
 					} catch (IOException e) {
