@@ -247,7 +247,8 @@ public class TFTPClient {
 				this.logger = Logger.SILENT;
 				break;
 			} else {
-				logger.print(Logger.ERROR, Strings.ERROR_INPUT);
+				Logger temp = Logger.ERROR;
+				temp.print(Logger.ERROR, Strings.ERROR_INPUT);
 			}
 		}
 	}

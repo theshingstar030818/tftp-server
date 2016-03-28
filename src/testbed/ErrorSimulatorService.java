@@ -69,6 +69,7 @@ public class ErrorSimulatorService implements Runnable {
 	private boolean mDuplicatePacketPerformed = false; // just need to happen
 	private boolean mSkipInitSettings = false; // This is an edge case issue
 	private boolean mUnknownHostFired = false;
+	private boolean mSkipRedirection = false;
 
 	/* Special flags */
 	private boolean END_THREAD = false;
@@ -235,17 +236,18 @@ public class ErrorSimulatorService implements Runnable {
 			logger = Logger.SILENT;
 			while (true) {
 				try {
-					if (this.mInitialRequestType == RequestType.WRQ) {
+					//if (this.mInitialRequestType == RequestType.WRQ) {
 						// Send the last ACK to client
-						this.mLastPacket.setPort(this.mClientPort);
-						this.mLastPacket.setAddress(this.mClientHostAddress);
-						this.forwardPacketToSocket(this.mLastPacket);
-					} else if (this.mInitialRequestType == RequestType.RRQ) {
+						//this.mLastPacket.setPort(this.mClientPort);
+						//this.mLastPacket.setAddress(this.mClientHostAddress);
+						//this.forwardPacketToSocket(this.mLastPacket);
+					//} else if (this.mInitialRequestType == RequestType.RRQ) {
 						// Send the last ACK to server
-						this.mLastPacket.setPort(this.mForwardPort);
-						this.mLastPacket.setAddress(this.mServerHostAddress);
-						this.forwardPacketToSocket(this.mLastPacket);
-					}
+						//this.mLastPacket.setPort(this.mForwardPort);
+						//this.mLastPacket.setAddress(this.mServerHostAddress);
+					this.directPacketToDestination();
+					this.forwardPacketToSocket(this.mLastPacket);
+					//}
 					byte[] data = new byte[Configurations.MAX_BUFFER];
 					DatagramPacket receivePacket = new DatagramPacket(data, data.length);
 					this.mSendReceiveSocket.receive(receivePacket);
@@ -326,6 +328,10 @@ public class ErrorSimulatorService implements Runnable {
 	 * arbitrary packets get forwarded to the correct destination
 	 */
 	private void directPacketToDestination() {
+		if(this.mSkipRedirection) {
+			this.mSkipRedirection = false;
+			return;
+		}
 		if (this.mLastPacket.getPort() != this.mClientPort && this.mLastPacket.getPort() != this.mForwardPort) {
 			// Only for an initial
 			logger.print(Logger.ERROR, Strings.ERROR_SERVICE_ERR_CLI);
@@ -438,10 +444,11 @@ public class ErrorSimulatorService implements Runnable {
 			System.err.println("Simulate error called on null packet!");
 			return;
 		}
+		if(this.mErrorSettings.getTransmissionErrorType() == RequestType.NONE) {
+			return;
+		}
 		Packet mInPacket = (new PacketBuilder()).constructPacket(mLastPacket);
-		
 		ErrorType vErrType = this.mErrorSettings.getMainErrorFamily();
-		
 		RequestType vReqToSimulateOn = this.mErrorSettings.getTransmissionErrorType();
 		
 		if(mInPacket.getRequestType() != vReqToSimulateOn) {
@@ -451,8 +458,9 @@ public class ErrorSimulatorService implements Runnable {
 			} 
 
 		} else {
-			this.mSimulatedPacketCounter++;
-			if(this.mSimulatedPacketCounter != this.mErrorSettings.getSimulatedBlocknumber()) {
+			System.out.println(String.format("current sim blk %d waiting for block %d", this.mSimulatedPacketCounter, 
+					this.mErrorSettings.getSimulatedBlocknumber()));
+			if(this.mSimulatedPacketCounter++ != this.mErrorSettings.getSimulatedBlocknumber()) {
 				return;
 			}
 		}
@@ -497,7 +505,20 @@ public class ErrorSimulatorService implements Runnable {
 				this.mEPFour.setReceivePacket(inPacket);
 			}
 			int subOpt = this.mErrorSettings.getSubErrorFromFamily();
-			this.mLastPacket = mEPFour.BlockTypeErrorCreator(subOpt, headerToSimulate);
+			InetAddress forward = null;
+			int port = 0;
+			if(subOpt == 2) {
+				// This is a quick fix to prevent directPacketToDestination from redirecting this incorrectly
+				this.directPacketToDestination();
+				forward = this.mLastPacket.getAddress();
+				port = this.mLastPacket.getPort();
+				this.mSkipRedirection = true;
+			}
+			this.mLastPacket = mEPFour.BlockTypeErrorCreator(headerToSimulate, subOpt);
+			if(subOpt == 2) {
+				this.mLastPacket.setPort(port);
+				this.mLastPacket.setAddress(forward);
+			}
 			this.mPacketSendQueue.pop();
 			this.mPacketSendQueue.addLast(this.mLastPacket);
 			break;

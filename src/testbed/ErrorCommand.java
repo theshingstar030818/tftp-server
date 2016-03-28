@@ -125,7 +125,7 @@ public class ErrorCommand {
 	 */
 	public void setTransmissionErrorType(int value) {
 
-		this.mCommandMap.put(Configurations.TE_ERROR_PACKET, value);
+		this.mCommandMap.put(Configurations.TE_TYPE_ERROR, value);
 
 	}
 
@@ -136,7 +136,7 @@ public class ErrorCommand {
 	 */
 	public RequestType getTransmissionErrorType() {
 		//if (this.mCommandMap.containsKey(Configurations.TE_TYPE_ERROR)) {
-			return RequestType.matchRequestByNumber(this.mCommandMap.get(Configurations.TE_ERROR_PACKET));
+			return RequestType.matchRequestByNumber(this.mCommandMap.get(Configurations.TE_TYPE_ERROR));
 		//} else {
 			//return null;
 		//}

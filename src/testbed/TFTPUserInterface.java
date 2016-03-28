@@ -33,6 +33,7 @@ public class TFTPUserInterface {
 	private int mDataSubOption =0;
 	private int mErrorSubOption =0;
 	private int mBlockNumber = 0;
+	private int mHeaderType = 0;
 
 	public TFTPUserInterface() {
 		this.mUserErrorOption = ErrorType.NO_ERROR;
@@ -84,7 +85,7 @@ public class TFTPUserInterface {
 						int illegalTransferType = getIllegalTFTPerrorMenu(this.mUserErrorSubOption);
 						errorToProduce.setIllegalTransferCase(illegalTransferType);
 						errorToProduce.setSubErrorFromFamily(illegalTransferType);
-						errorToProduce.setTransmissionErrorType(illegalTransferType);
+						errorToProduce.setTransmissionErrorType(this.mHeaderType);
 						errorToProduce.setSimulatedBlocknumber(this.mBlockNumber);
 						validInput = true;
 					}
@@ -113,6 +114,7 @@ public class TFTPUserInterface {
 					break;
 				case 3:
 					// No error
+					errorToProduce.setTransmissionErrorType(0);
 					System.out.println("Alright boss.");
 					validInput = true;
 					this.mUserErrorOption = ErrorType.NO_ERROR;
@@ -241,6 +243,7 @@ public class TFTPUserInterface {
 				this.mFirstSubOption = Keyboard.getInteger();
 				if(this.mFirstSubOption <=4 && this.mFirstSubOption > -1){
 					this.mBlockNumber = getBlocknumberPrompt();
+					this.mHeaderType = 1;
 					return this.mFirstSubOption;
 				}
 				System.out.println("Please select a valid option");
@@ -251,6 +254,7 @@ public class TFTPUserInterface {
 				this.mAckSubOption = Keyboard.getInteger();
 				if(this.mAckSubOption<=3 && this.mAckSubOption > -1){
 					this.mBlockNumber = getBlocknumberPrompt();
+					this.mHeaderType = 4;
 					return this.mAckSubOption;
 				}
 				System.out.println("Please select a valid option");
@@ -261,6 +265,7 @@ public class TFTPUserInterface {
 				this.mDataSubOption = Keyboard.getInteger();
 				if(this.mDataSubOption <= 3 && this.mDataSubOption > -1){
 					this.mBlockNumber = getBlocknumberPrompt();
+					this.mHeaderType = 3;
 					return this.mDataSubOption;
 				}
 				System.out.println("Please select a valid option");
@@ -271,6 +276,7 @@ public class TFTPUserInterface {
 				this.mErrorSubOption = Keyboard.getInteger();
 				if(this.mErrorSubOption<=2 && this.mErrorSubOption > -1){
 					this.mBlockNumber = getBlocknumberPrompt();
+					this.mHeaderType = 5;
 					return this.mErrorSubOption;
 				}
 				System.out.println("Please select a valid option");
