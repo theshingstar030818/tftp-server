@@ -524,13 +524,20 @@ public class ErrorSimulatorService implements Runnable {
 			break;
 		case UNKNOWN_TRANSFER:
 			if(!mUnknownHostFired) {
-				if (this.mEPFive == null) {
-					this.mEPFive = new ErrorCodeFive(inPacket);
+				DatagramPacket packet = new DatagramPacket(inPacket.getData(), inPacket.getLength(), inPacket.getAddress(), inPacket.getPort());
+				if(inPacket.getPort() == this.mForwardPort) {
+					packet.setPort(this.mClientPort);
+					packet.setAddress(this.mClientHostAddress);
+				} else {
+					packet.setPort(this.mForwardPort);
+					packet.setAddress(this.mServerHostAddress);
 				}
-				this.mEPFive.run();
+				if (this.mEPFive == null) {
+					this.mEPFive = new ErrorCodeFive(packet);
+				}
+				this.mEPFive.sendErrorNow();
 				mUnknownHostFired = true;
 			}
-			
 			break;
 		case FILE_EXISTS:
 			// error code 6
