@@ -166,6 +166,7 @@ public class TFTPClient {
 					
 					try {
 						result = net.generateInitWRQ(writeFileNameOrFilePath, this.mPortToSendTo, this.mAddressToSendTo, this.logger);
+					
 					} catch (IOException e) {
 						// TODO Auto-generated catch block
 						e.printStackTrace();

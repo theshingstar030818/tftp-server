@@ -140,7 +140,13 @@ public class ClientNetworking extends TFTPNetworking {
 			// Trusts that the first response is from expected source.
 			errorChecker = new ErrorChecker(wrqFirstAck);
 			error = errorChecker.check(wrqFirstAck, RequestType.ACK);
-			errorChecker.incrementExpectedBlockNumber();
+			if (error.getType() == ErrorType.NO_ERROR) {
+				errorChecker.incrementExpectedBlockNumber();
+				return error;
+			}
+			if (errorHandle(error, lastPacket, RequestType.DATA)) {
+				return error;
+			}
 		} catch (SocketException e) {
 			e.printStackTrace();
 		} catch (FileNotFoundException e) {
