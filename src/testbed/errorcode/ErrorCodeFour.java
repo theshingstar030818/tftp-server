@@ -104,11 +104,13 @@ public class ErrorCodeFour {
 	public DatagramPacket errorPacketErrorCreator(int subOption){
 		switch(subOption){
 		case 1: //Invalid error number
+			break;
 		case 2: //Invalid packet header during transfer
 			return this.errorPacketCreator(5);
 		default:
 			return null;
 		}
+		return null;
 	}
 
 	/**
@@ -169,6 +171,7 @@ public class ErrorCodeFour {
 				this.mSendPacket = this.mreceivePacket.getPacket();
 			}
 			break;
+
 
 		default:
 			// TODO: default action for error creator
