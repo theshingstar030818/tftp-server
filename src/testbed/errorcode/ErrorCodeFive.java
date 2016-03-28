@@ -15,7 +15,7 @@ import types.RequestType;
  *         Error code five consists of creating a copy of the datagram packet to
  *         be sent then opening up a new port to send it off to its destination.
  *         This class be created as a thread or also used in a single thread
- *         envrionment
+ *         environment
  */
 public class ErrorCodeFive implements Runnable {
 	public int packetCount = 0;
@@ -53,6 +53,7 @@ public class ErrorCodeFive implements Runnable {
 			ErrorPacket errorPacket = new ErrorPacket(receivedPacket);
 			BufferPrinter.printPacket(errorPacket, Logger.VERBOSE, RequestType.ERROR);
 			System.err.println("Unknown host error packet received from a host \n");
+			this.sendNow = false;
 		} catch (SocketTimeoutException e) {
 		} catch (IOException e) {
 			e.printStackTrace();
