@@ -75,7 +75,6 @@ public class ServerNetworking extends TFTPNetworking {
 		}
 		if( FileStorageService.checkFileNameExists(Configurations.SERVER_ROOT_FILE_DIRECTORY+"/"+fileName) ){
 			String message = String.format(Strings.PRE_FILE_NAME_EXIST + Strings.FILE_EXISTS, fileName);
-			
 			return new TFTPErrorMessage(ErrorType.FILE_EXISTS, message);
 		}
 		

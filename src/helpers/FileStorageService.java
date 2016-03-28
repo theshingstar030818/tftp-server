@@ -181,6 +181,7 @@ public class FileStorageService {
 			if(e.getMessage().contains("Access is denied")) {
 				throw new AccessDeniedException(String.format(Strings.ACCESS_VIOLATION_FILE, this.mFileName));
 			}
+			// Flag file not found here as well!!!
 			this.finishedTransferingFile();
 		}
 	}
