@@ -12,7 +12,8 @@ import types.*;
 /**
  * @author Team 3
  *
- * This class corrupts a piece of the datagram buffer to simulate a corrupt packet
+ *         This class corrupts a piece of the datagram buffer to simulate a
+ *         corrupt packet
  */
 public class ErrorCodeFour {
 	private RequestType mBlockType;
@@ -22,90 +23,91 @@ public class ErrorCodeFour {
 	private boolean readWriteCheck;
 	private byte[] readWriteBuffer;
 	private int packetCount = 0;
-	private PacketBuilder pb; 
+	private PacketBuilder pb;
 	private Packet mreceivePacket;
 
 	public ErrorCodeFour(Packet receiveDatagramPacket) {
 		this.mreceivePacket = receiveDatagramPacket;
 		readWriteBuffer = this.mreceivePacket.getDataBuffer();
 		this.packetCount++;
-		//this.BlockTypeErrorCreator(SelectBlockType, selectSuboption);
+		// this.BlockTypeErrorCreator(SelectBlockType, selectSuboption);
 	}
-	
-	public void setReceivePacket(DatagramPacket receiveDatagramPacket){
+
+	public void setReceivePacket(DatagramPacket receiveDatagramPacket) {
 		pb = new PacketBuilder();
 		mreceivePacket = pb.constructPacket(receiveDatagramPacket);
 	}
-	
+
 	/**
-	* Initializes Block type of the block to be corrupted
-	*/
-	
-	public DatagramPacket BlockTypeErrorCreator(int SelectBlockType,int subOption){
-		switch(SelectBlockType){
-		case 1: //First Packet
-			if(this.mreceivePacket.getBlockNumber()==-1){
+	 * Initializes Block type of the block to be corrupted
+	 */
+
+	public DatagramPacket BlockTypeErrorCreator(int SelectBlockType, int subOption) {
+		switch (SelectBlockType) {
+		case 1: // First Packet
+			if (this.mreceivePacket.getBlockNumber() == -1) {
 				this.mBlockType = this.mreceivePacket.getRequestType();
 			}
 			return this.FirstPacketErrorCreator(subOption);
-		case 2: //ACK
+		case 2: // ACK
 			this.mBlockType = RequestType.ACK;
 			return this.ackPacketErrorCreator(subOption);
-		case 3: //DATA
+		case 3: // DATA
 			this.mBlockType = RequestType.DATA;
 			return this.dataPacketErrorCreator(subOption);
-		case 4: //ERROR
+		case 4: // ERROR
 			this.mBlockType = RequestType.ERROR;
 			return this.errorPacketCreator(subOption);
 		}
-		 return null;
+		return null;
 	}
-	
-	public DatagramPacket FirstPacketErrorCreator(int subOption){
-		switch(subOption){
-		case 1: //Invalid file name
+
+	public DatagramPacket FirstPacketErrorCreator(int subOption) {
+		switch (subOption) {
+		case 1: // Invalid file name
 			return this.errorPacketCreator(1);
-		case 2: //Invalid packet header during transfer
+		case 2: // Invalid packet header during transfer
 			return this.errorPacketCreator(5);
-		case 3: //Invalid zero padding bytes
+		case 3: // Invalid zero padding bytes
 			return this.errorPacketCreator(3);
-		case 4: //Invalid mode
+		case 4: // Invalid mode
 			return this.errorPacketCreator(2);
 		default:
 			return null;
 		}
 	}
 
-	public DatagramPacket ackPacketErrorCreator(int subOption){
-		switch(subOption){
-		case 1: //Invalid block number
+	public DatagramPacket ackPacketErrorCreator(int subOption) {
+		switch (subOption) {
+		case 1: // Invalid block number
 			return this.errorPacketCreator(4);
-		case 2: //Invalid packet header during transfer
+		case 2: // Invalid packet header during transfer
 			return this.errorPacketCreator(5);
-		case 3: //Invalid packet size
-			return this.errorPacketCreator(6);
-		default:
-			return null;
-		}
-	}
-	public DatagramPacket dataPacketErrorCreator(int subOption){
-		switch(subOption){
-		case 1: //Invalid block number
-			return this.errorPacketCreator(4);
-		case 2: //Invalid packet header during transfer
-			return this.errorPacketCreator(5);
-		case 3: //Invalid packet size
+		case 3: // Invalid packet size
 			return this.errorPacketCreator(6);
 		default:
 			return null;
 		}
 	}
 
-	public DatagramPacket errorPacketErrorCreator(int subOption){
-		switch(subOption){
-		case 1: //Invalid error number
+	public DatagramPacket dataPacketErrorCreator(int subOption) {
+		switch (subOption) {
+		case 1: // Invalid block number
+			return this.errorPacketCreator(4);
+		case 2: // Invalid packet header during transfer
+			return this.errorPacketCreator(5);
+		case 3: // Invalid packet size
+			return this.errorPacketCreator(6);
+		default:
+			return null;
+		}
+	}
+
+	public DatagramPacket errorPacketErrorCreator(int subOption) {
+		switch (subOption) {
+		case 1: // Invalid error number
 			break;
-		case 2: //Invalid packet header during transfer
+		case 2: // Invalid packet header during transfer
 			return this.errorPacketCreator(5);
 		default:
 			return null;
@@ -114,7 +116,8 @@ public class ErrorCodeFour {
 	}
 
 	/**
-	 * Create an error packet by first checking a condition whether or not first. 
+	 * Create an error packet by first checking a condition whether or not
+	 * first.
 	 * 
 	 * @return
 	 */
@@ -143,15 +146,15 @@ public class ErrorCodeFour {
 				this.mSendPacket = this.mreceivePacket.getPacket();
 			}
 		case 4: // Change block number
-			if ( rt == RequestType.DATA) {
+			if (rt == RequestType.DATA) {
 				// The following build packet will automatically increment block
 				// number by 1, which
 				// effectively mismatches the block number
-			
+
 				this.mSendPacket = ((DataPacket) this.mreceivePacket).buildPacket(this.mreceivePacket.getDataBuffer());
-			} else if(rt == RequestType.ACK) {
+			} else if (rt == RequestType.ACK) {
 				int currentBlockNumber = this.mreceivePacket.getBlockNumber();
-				this.mreceivePacket.setBlockNumber((short) (currentBlockNumber + 5));
+				this.mreceivePacket.setBlockNumber(currentBlockNumber + 10);
 				this.mSendPacket = ((AckPacket) this.mreceivePacket).buildPacket();
 			} else {
 				this.mSendPacket = this.mreceivePacket.getPacket();
@@ -171,7 +174,6 @@ public class ErrorCodeFour {
 				this.mSendPacket = this.mreceivePacket.getPacket();
 			}
 			break;
-
 
 		default:
 			// TODO: default action for error creator
@@ -194,50 +196,30 @@ public class ErrorCodeFour {
 		switch (header[1]) {
 		case 1:
 			// read request with header[0,1]
-			if (this.packetCount == 1) {
-				data[1] = 3;
-				this.mSendPacket = new DatagramPacket(data, data.length, packet.getAddress(), packet.getPort());
-			} else {
-				this.mSendPacket = inPacket.getPacket();
-			}
+			data[1] = 3;
+			this.mSendPacket = new DatagramPacket(data, data.length, packet.getAddress(), packet.getPort());
 			break;
 		case 2:
 			// write request with header [0,2]
-			if (this.packetCount == 1) {
-				data[1] = 3;
-				this.mSendPacket = new DatagramPacket(data, data.length, packet.getAddress(), packet.getPort());
-			} else {
-				this.mSendPacket = inPacket.getPacket();
-			}
+			data[1] = 3;
+			this.mSendPacket = new DatagramPacket(data, data.length, packet.getAddress(), packet.getPort());
 			break;
 		case 3:
 			// data datagram packet with header [0,3]
-			if (this.packetCount == 2) {
-				data[1] = 4;
-				this.mSendPacket = new DatagramPacket(data, data.length, packet.getAddress(), packet.getPort());
-			} else {
-				this.mSendPacket = inPacket.getPacket();
-			}
+			data[1] = 4;
+			this.mSendPacket = new DatagramPacket(data, data.length, packet.getAddress(), packet.getPort());
 			break;
 		case 4:
 			// ack packet with [0,4]
-			if (this.packetCount == 2) {
-				data[1] = 3;
-				this.mSendPacket = new DatagramPacket(data, data.length, packet.getAddress(), packet.getPort());
-			} else {
-				this.mSendPacket = inPacket.getPacket();
-			}
+			data[1] = 3;
+			this.mSendPacket = new DatagramPacket(data, data.length, packet.getAddress(), packet.getPort());
+
 			break;
 		case 5:
 			// error packet
 			// should not do anything
-			data[1] = 3;
-			if (this.packetCount > 2) {
-				data[1] = 4;
-				this.mSendPacket = new DatagramPacket(data, data.length, packet.getAddress(), packet.getPort());
-			} else {
-				this.mSendPacket = inPacket.getPacket();
-			}
+			data[1] = 1;
+			this.mSendPacket = new DatagramPacket(data, data.length, packet.getAddress(), packet.getPort());
 			break;
 		default:
 			this.mSendPacket = inPacket.getPacket();
@@ -260,8 +242,8 @@ public class ErrorCodeFour {
 		do {
 			System.arraycopy(inPacket.getPacketBuffer(), 0, data, currentLength, length);
 			currentLength += length;
-		} while(currentLength < blowMaxMessageBuffer);
-		
+		} while (currentLength < blowMaxMessageBuffer);
+
 		this.mSendPacket = new DatagramPacket(data, data.length, inPacket.getPacket().getAddress(),
 				inPacket.getPacket().getPort());
 	}
