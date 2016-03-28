@@ -70,7 +70,8 @@ public class TFTPUserInterface {
 					while(true){
 						System.out.println(UIStrings.MENU_ERROR_SIMULATOR_ILLEGAL_TFTP_OPERATION);
 						this.mUserErrorSubOption = Keyboard.getInteger();
-						if(this.mUserErrorSubOption<=4 && this.mUserErrorSubOption>-1){
+
+						if(this.mFirstSubOption <= 4 && this.mFirstSubOption > -1){
 							break;
 						}
 						System.out.println("Please select a valid option");
@@ -81,6 +82,8 @@ public class TFTPUserInterface {
 					else {
 						int illegalTransferType = getIllegalTFTPerrorMenu(this.mUserErrorSubOption);
 						errorToProduce.setIllegalTransferCase(illegalTransferType);
+						errorToProduce.setSubErrorFromFamily(illegalTransferType);
+						errorToProduce.setTransmissionErrorType(illegalTransferType);
 						validInput = true;
 					}
 					break;
@@ -102,6 +105,10 @@ public class TFTPUserInterface {
 						
 					}
 					
+					this.mUserErrorSubOption = 0;
+					errorToProduce.setSubErrorFromFamily(this.mUserErrorSubOption);
+					validInput = true;
+					break;
 				case 3:
 					// No error
 					System.out.println("Alright boss.");
@@ -118,6 +125,7 @@ public class TFTPUserInterface {
 						this.mUserErrorSubOption = 0;
 						validInput = false;
 					} else {
+						errorToProduce.setSubErrorFromFamily(this.mUserErrorSubOption);
 						this.getTransmissionMenu(this.mUserErrorSubOption);
 						validInput = true;
 						errorToProduce.setTransmissionErrorFrequency(this.mSpaceOfDelay);

@@ -68,6 +68,7 @@ public class ErrorSimulatorService implements Runnable {
 	private boolean mDelayPacketPerformed = false; // has this been performed?
 	private boolean mDuplicatePacketPerformed = false; // just need to happen
 	private boolean mSkipInitSettings = false; // This is an edge case issue
+	private boolean mUnknownHostFired = false;
 
 	/* Special flags */
 	private boolean END_THREAD = false;
@@ -146,7 +147,6 @@ public class ErrorSimulatorService implements Runnable {
 				this.simulateError(this.mLastPacket);
 
 			if (this.mLastPacket == null || this.END_THREAD) {
-				this.mSendReceiveSocket.close();
 				logger.print(Logger.ERROR, Strings.ERROR_SERVICE_ENDING);
 				this.mSendReceiveSocket.close();
 				return;
@@ -168,6 +168,10 @@ public class ErrorSimulatorService implements Runnable {
 				receivedPacket.setPort(this.mClientPort);
 				this.mLastPacket = receivedPacket;
 				this.mPacketSendQueue.addLast(this.mLastPacket);
+				this.forwardPacketToSocket(this.mLastPacket);
+				logger.print(Logger.ERROR, "Ending Thread of simulating error on first packet. ");
+				this.mSendReceiveSocket.close();
+				return;
 			} else {
 				if (!this.mSkipInitSettings) {
 					this.mForwardPort = receivedPacket.getPort();
@@ -331,7 +335,6 @@ public class ErrorSimulatorService implements Runnable {
 			Thread t = new Thread(errCodeFive, "Make-your-wish-come-true-foundation");
 			t.start();
 			this.mLastPacket = this.retrievePacketFromSocket();
-			// if()
 		}
 		switch (this.mInitialRequestType) {
 		case RRQ:
@@ -438,10 +441,15 @@ public class ErrorSimulatorService implements Runnable {
 		Packet mInPacket = (new PacketBuilder()).constructPacket(mLastPacket);
 		
 		ErrorType vErrType = this.mErrorSettings.getMainErrorFamily();
-		int subOpt = this.mErrorSettings.getSubErrorFromFamily();
+		
 		RequestType vReqToSimulateOn = this.mErrorSettings.getTransmissionErrorType();
+		
 		if(mInPacket.getRequestType() != vReqToSimulateOn) {
-			return;
+			if(!((vReqToSimulateOn == RequestType.WRQ || vReqToSimulateOn == RequestType.RRQ) 
+					&& (mInPacket.getRequestType() == RequestType.WRQ || mInPacket.getRequestType() == RequestType.RRQ))) {
+				return;
+			} 
+
 		} else {
 			this.mSimulatedPacketCounter++;
 			if(this.mSimulatedPacketCounter != this.mErrorSettings.getSimulatedBlocknumber()) {
@@ -462,8 +470,9 @@ public class ErrorSimulatorService implements Runnable {
 			break;
 		case ILLEGAL_OPERATION:
 			// error code 4
+			int headerToSimulate = 0;
 			if (this.mEPFour == null) {
-				int headerToSimulate = 0;
+				
 				switch(vReqToSimulateOn) {
 				case RRQ:
 					headerToSimulate = 1;
@@ -481,24 +490,26 @@ public class ErrorSimulatorService implements Runnable {
 					headerToSimulate = 4;
 					break;
 				}
-				this.mEPFour = new ErrorCodeFour(inPacket, subOpt, headerToSimulate);
+				
+				this.mEPFour = new ErrorCodeFour(mInPacket);
 				// if(subOpt == 6) this.simulatePacketOverSize = true;
 			} else {
 				this.mEPFour.setReceivePacket(inPacket);
 			}
-			this.mLastPacket = mEPFour.errorPacketCreator(this.mErrorSettings.getIllegalTransferCase());
+			int subOpt = this.mErrorSettings.getSubErrorFromFamily();
+			this.mLastPacket = mEPFour.BlockTypeErrorCreator(subOpt, headerToSimulate);
 			this.mPacketSendQueue.pop();
 			this.mPacketSendQueue.addLast(this.mLastPacket);
 			break;
 		case UNKNOWN_TRANSFER:
-			// Thread codeFiveThread = new Thread(new ErrorCodeFive(inPacket),
-			// "Error Code 5 thread");
-			// codeFiveThread.start();
-			if (this.mEPFive == null) {
-				this.mEPFive = new ErrorCodeFive(inPacket);
+			if(!mUnknownHostFired) {
+				if (this.mEPFive == null) {
+					this.mEPFive = new ErrorCodeFive(inPacket);
+				}
+				this.mEPFive.run();
+				mUnknownHostFired = true;
 			}
-			this.mEPFive.run();
-			// error code 5 thread
+			
 			break;
 		case FILE_EXISTS:
 			// error code 6

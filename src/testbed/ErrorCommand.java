@@ -85,11 +85,11 @@ public class ErrorCommand {
 	 * @return int
 	 */
 	public int getTransmissionErrorOccurences() {
-		if (this.mCommandMap.containsKey(Configurations.TE_NUM_PACKETS)) {
+		//if (this.mCommandMap.containsKey(Configurations.TE_NUM_PACKETS)) {
 			return this.mCommandMap.get(Configurations.TE_NUM_PACKETS);
-		} else {
-			return 0;
-		}
+//		} else {
+//			return 0;
+//		}
 	}
 
 	/**
@@ -111,10 +111,10 @@ public class ErrorCommand {
 	 * @return int
 	 */
 	public int getTransmissionErrorFrequency() {
-		if (this.mCommandMap.containsKey(Configurations.TE_FREQ_ERROR)) {
+		//if (this.mCommandMap.containsKey(Configurations.TE_FREQ_ERROR)) {
 			return this.mCommandMap.get(Configurations.TE_FREQ_ERROR);
-		}
-		return 0;
+		//}
+		//return 0;
 	}
 
 	/**
@@ -135,11 +135,11 @@ public class ErrorCommand {
 	 * @return RequestType
 	 */
 	public RequestType getTransmissionErrorType() {
-		if (this.mCommandMap.containsKey(Configurations.TE_TYPE_ERROR)) {
-			return RequestType.matchRequestByNumber(this.mCommandMap.get(Configurations.TE_TYPE_ERROR));
-		} else {
-			return null;
-		}
+		//if (this.mCommandMap.containsKey(Configurations.TE_TYPE_ERROR)) {
+			return RequestType.matchRequestByNumber(this.mCommandMap.get(Configurations.TE_ERROR_PACKET));
+		//} else {
+			//return null;
+		//}
 	}
 
 	public void setSimulatedBlocknumber(int value) {
@@ -147,18 +147,18 @@ public class ErrorCommand {
 	}
 
 	public int getSimulatedBlocknumber() {
-		if (this.mCommandMap.containsKey(Configurations.TE_ERROR_PACKET)) {
+		//if (this.mCommandMap.containsKey(Configurations.TE_ERROR_PACKET)) {
 			return this.mCommandMap.get(Configurations.TE_ERROR_PACKET);
-		}
-		return 0;
+		//}
+		//return 0;
 	}
 	
 	public int getIllegalTransferCase(){
-		if(this.mCommandMap.containsKey(Configurations.TE_SUB_SUB_OPTION)) {
+		//if(this.mCommandMap.containsKey(Configurations.TE_SUB_SUB_OPTION)) {
 			return this.mCommandMap.get(Configurations.TE_SUB_SUB_OPTION);
-		} else {
-			return 0;
-		}
+		//} else {
+		//	return 0;
+		//}
 	}
 	
 	public void setIllegalTransferCase(int value) {

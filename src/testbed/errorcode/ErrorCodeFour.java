@@ -25,11 +25,11 @@ public class ErrorCodeFour {
 	private PacketBuilder pb; 
 	private Packet mreceivePacket;
 
-	public ErrorCodeFour(DatagramPacket receiveDatagramPacket, int SelectBlockType, int selectSuboption) {
-		this.setReceivePacket(receiveDatagramPacket);
+	public ErrorCodeFour(Packet receiveDatagramPacket) {
+		this.mreceivePacket = receiveDatagramPacket;
 		readWriteBuffer = this.mreceivePacket.getDataBuffer();
 		this.packetCount++;
-		this.BlockTypeErrorCreator(SelectBlockType, selectSuboption);
+		//this.BlockTypeErrorCreator(SelectBlockType, selectSuboption);
 	}
 	
 	public void setReceivePacket(DatagramPacket receiveDatagramPacket){
@@ -41,86 +41,76 @@ public class ErrorCodeFour {
 	* Initializes Block type of the block to be corrupted
 	*/
 	
-	public void BlockTypeErrorCreator(int SelectBlockType,int subOption){
+	public DatagramPacket BlockTypeErrorCreator(int SelectBlockType,int subOption){
 		switch(SelectBlockType){
 		case 1: //First Packet
-			if(this.mreceivePacket.getBlockNumber()==0){
+			if(this.mreceivePacket.getBlockNumber()==-1){
 				this.mBlockType = this.mreceivePacket.getRequestType();
 			}
-			this.FirstPacketErrorCreator(subOption);
-			break;
+			return this.FirstPacketErrorCreator(subOption);
 		case 2: //ACK
 			this.mBlockType = RequestType.ACK;
-			this.ackPacketErrorCreator(subOption);
-			break;
+			return this.ackPacketErrorCreator(subOption);
 		case 3: //DATA
 			this.mBlockType = RequestType.DATA;
-			this.dataPacketErrorCreator(subOption);
-			break;
+			return this.dataPacketErrorCreator(subOption);
 		case 4: //ERROR
 			this.mBlockType = RequestType.ERROR;
-			this.errorPacketCreator(subOption);
-			break;
+			return this.errorPacketCreator(subOption);
 		}
-		 
+		 return null;
 	}
 	
-	public void FirstPacketErrorCreator(int subOption){
+	public DatagramPacket FirstPacketErrorCreator(int subOption){
 		switch(subOption){
 		case 1: //Invalid file name
-			this.errorPacketCreator(1);
-			break;
+			return this.errorPacketCreator(1);
 		case 2: //Invalid packet header during transfer
-			this.errorPacketCreator(7);
-			break;
+			return this.errorPacketCreator(5);
 		case 3: //Invalid zero padding bytes
-			this.errorPacketCreator(3);
-			break;
+			return this.errorPacketCreator(3);
 		case 4: //Invalid mode
-			this.errorPacketCreator(2);
-			break;
-
+			return this.errorPacketCreator(2);
+		default:
+			return null;
 		}
 	}
 
-	public void ackPacketErrorCreator(int subOption){
+	public DatagramPacket ackPacketErrorCreator(int subOption){
 		switch(subOption){
 		case 1: //Invalid block number
-			this.errorPacketCreator(4);
-			break;
+			return this.errorPacketCreator(4);
 		case 2: //Invalid packet header during transfer
-			this.errorPacketCreator(5);
-			break;
+			return this.errorPacketCreator(5);
 		case 3: //Invalid packet size
-			this.errorPacketCreator(6);
-			break;
-			
+			return this.errorPacketCreator(6);
+		default:
+			return null;
 		}
 	}
-	public void dataPacketErrorCreator(int subOption){
+	public DatagramPacket dataPacketErrorCreator(int subOption){
 		switch(subOption){
 		case 1: //Invalid block number
-			this.errorPacketCreator(4);
-			break;
+			return this.errorPacketCreator(4);
 		case 2: //Invalid packet header during transfer
-			this.errorPacketCreator(5);
-			break;
+			return this.errorPacketCreator(5);
 		case 3: //Invalid packet size
-			this.errorPacketCreator(6);
-			break;
-	
+			return this.errorPacketCreator(6);
+		default:
+			return null;
 		}
 	}
 
-	public void errorPacketErrorCreator(int subOption){
+	public DatagramPacket errorPacketErrorCreator(int subOption){
 		switch(subOption){
 		case 1: //Invalid error number
 			break;
 		case 2: //Invalid packet header during transfer
-			this.errorPacketCreator(5);
-			break;
-
+			return this.errorPacketCreator(5);
+		default:
+			return null;
 		}
+		return null;
 	}
 
 	/**
