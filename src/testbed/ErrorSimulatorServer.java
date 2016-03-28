@@ -13,7 +13,6 @@ import resource.Configurations;
 import resource.Strings;
 import server.Callback;
 import types.ErrorType;
-import types.InstanceType;
 import types.Logger;
 import helpers.BufferPrinter;
 import networking.TFTPNetworking;

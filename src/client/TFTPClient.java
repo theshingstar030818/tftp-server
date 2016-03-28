@@ -44,7 +44,7 @@ public class TFTPClient {
 			v = Keyboard.getInteger();
 		} while (v != 1 && v != 2);
 		
-		return (v == 1 ? Logger.SILENT : Logger.VERBOSE);
+		return (v == 2 ? Logger.SILENT : Logger.VERBOSE);
 	}
 	
 	private String getClientFilePath() {
