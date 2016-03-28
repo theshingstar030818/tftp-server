@@ -130,6 +130,10 @@ public class FileStorageService {
 
 			System.out.println("Opened a channel for a " + this.mFile.length() + " bytes long.");
 		} catch (IOException e) {
+			
+			if(e.getMessage().contains("No such file or directory")) {
+				throw new FileNotFoundException();
+			}
 
 			if(e.getMessage().contains("Access is denied")) {
 				throw new AccessDeniedException(String.format(Strings.ACCESS_VIOLATION_FILE, this.mFileName));
