@@ -210,7 +210,7 @@ public class ErrorCodeFour {
 		case 3:
 			// data datagram packet with header [0,3]
 			if (this.packetCount == 2) {
-				data[1] = 1;
+				data[1] = 4;
 				this.mSendPacket = new DatagramPacket(data, data.length, packet.getAddress(), packet.getPort());
 			} else {
 				this.mSendPacket = inPacket.getPacket();
@@ -219,7 +219,7 @@ public class ErrorCodeFour {
 		case 4:
 			// ack packet with [0,4]
 			if (this.packetCount == 2) {
-				data[1] = 2;
+				data[1] = 3;
 				this.mSendPacket = new DatagramPacket(data, data.length, packet.getAddress(), packet.getPort());
 			} else {
 				this.mSendPacket = inPacket.getPacket();
