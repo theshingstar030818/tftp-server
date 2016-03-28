@@ -32,6 +32,7 @@ public class TFTPUserInterface {
 	private int mAckSubOption =0;
 	private int mDataSubOption =0;
 	private int mErrorSubOption =0;
+	private int mBlockNumber = 0;
 
 	public TFTPUserInterface() {
 		this.mUserErrorOption = ErrorType.NO_ERROR;
@@ -83,6 +84,7 @@ public class TFTPUserInterface {
 						errorToProduce.setIllegalTransferCase(illegalTransferType);
 						errorToProduce.setSubErrorFromFamily(illegalTransferType);
 						errorToProduce.setTransmissionErrorType(illegalTransferType);
+						errorToProduce.setSimulatedBlocknumber(this.mBlockNumber);
 						validInput = true;
 					}
 					break;
@@ -198,6 +200,18 @@ public class TFTPUserInterface {
 		System.out.println(UIStrings.MENU_ERROR_SIMULATOR_LOG_LEVEL);
 	}
 	
+	private int getBlocknumberPrompt() {
+		int i = 0;
+		while(true) {
+			System.out.println(UIStrings.MENU_ERROR_SIMULATOR_PROMPT_BLOCK_NUMBER);
+			i = Keyboard.getInteger();
+			if(i > -1) {
+				return i;
+			}
+			System.out.println("Please select a valid option");
+		}
+	}
+	
 	/**
 	 * Gets the Illegal TFTP error menu
 	 * @param Packet type 
@@ -209,6 +223,7 @@ public class TFTPUserInterface {
 				System.out.println(UIStrings.MENU_ERROR_SIMULATOR_ILLEGAL_TFTP_OPERATION_FIRST);
 				this.mFirstSubOption = Keyboard.getInteger();
 				if(this.mFirstSubOption <=4 && this.mFirstSubOption > -1){
+					this.mBlockNumber = getBlocknumberPrompt();
 					return this.mFirstSubOption;
 				}
 				System.out.println("Please select a valid option");
@@ -218,6 +233,7 @@ public class TFTPUserInterface {
 				System.out.println(UIStrings.MENU_ERROR_SIMULATOR_ILLEGAL_TFTP_OPERATION_ACK);
 				this.mAckSubOption = Keyboard.getInteger();
 				if(this.mAckSubOption<=3 && this.mAckSubOption > -1){
+					this.mBlockNumber = getBlocknumberPrompt();
 					return this.mAckSubOption;
 				}
 				System.out.println("Please select a valid option");
@@ -227,6 +243,7 @@ public class TFTPUserInterface {
 				System.out.println(UIStrings.MENU_ERROR_SIMULATOR_ILLEGAL_TFTP_OPERATION_DATA);
 				this.mDataSubOption = Keyboard.getInteger();
 				if(this.mDataSubOption <= 3 && this.mDataSubOption > -1){
+					this.mBlockNumber = getBlocknumberPrompt();
 					return this.mDataSubOption;
 				}
 				System.out.println("Please select a valid option");
@@ -236,6 +253,7 @@ public class TFTPUserInterface {
 				System.out.println(UIStrings.MENU_ERROR_SIMULATOR_ILLEGAL_TFTP_OPERATION_ERROR);
 				this.mErrorSubOption = Keyboard.getInteger();
 				if(this.mErrorSubOption<=2 && this.mErrorSubOption > -1){
+					this.mBlockNumber = getBlocknumberPrompt();
 					return this.mErrorSubOption;
 				}
 				System.out.println("Please select a valid option");
