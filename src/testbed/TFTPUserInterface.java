@@ -73,7 +73,7 @@ public class TFTPUserInterface {
 					System.out.println(UIStrings.MENU_ERROR_SIMULATOR_ILLEGAL_TFTP_OPERATION);
 					this.mUserErrorSubOption = Keyboard.getInteger();
 
-					if (this.mFirstSubOption <= 4 && this.mFirstSubOption > -1) {
+					if (this.mUserErrorSubOption <= 4 && this.mUserErrorSubOption > -1) {
 						break;
 					}
 					System.out.println("Please select a valid option");
@@ -104,19 +104,19 @@ public class TFTPUserInterface {
 				if (this.mUserErrorSubOption == 0) {
 					// go back to the previous level
 					validInput = false;
+				} else {
+					int blockNumber = this.getBlocknumberPrompt();
+					if(this.mUserErrorSubOption == 1) {
+						// an ack was selected
+						errorToProduce.setTransmissionErrorType(4);
+					} else if(this.mUserErrorSubOption == 2) {
+						// an data was selected
+						errorToProduce.setTransmissionErrorType(3);
+					}
+					errorToProduce.setSimulatedBlocknumber(blockNumber);
+					this.mUserErrorSubOption = 0;
+					validInput = true;
 				}
-				int blockNumber = this.getBlocknumberPrompt();
-				if(this.mUserErrorSubOption == 1) {
-					// an ack was selected
-					errorToProduce.setTransmissionErrorType(4);
-				} else if(this.mUserErrorSubOption == 2) {
-					// an data was selected
-					errorToProduce.setTransmissionErrorType(3);
-				}
-				errorToProduce.setSimulatedBlocknumber(blockNumber);
-				this.mUserErrorSubOption = 0;
-				//errorToProduce.setSubErrorFromFamily(this.mUserErrorSubOption + 1);
-				validInput = true;
 				break;
 			case 3:
 				// No error
@@ -128,19 +128,62 @@ public class TFTPUserInterface {
 			case 4:
 				// Transmission Error
 				this.mUserErrorOption = ErrorType.TRANSMISSION_ERROR;
-				System.out.println(UIStrings.MENU_ERROR_SIMULATOR_TRANSMISSION_MENU);
-				this.mUserErrorSubOption = Keyboard.getInteger();
-				if (this.mUserErrorSubOption == 4) {
+				while (true) {
+					System.out.println(UIStrings.MENU_ERROR_SIMULATOR_ILLEGAL_TFTP_OPERATION);
+					//this.mUserErrorSubOption = Keyboard.getInteger();
+					this.mOpCodeToMessWith = Keyboard.getInteger();
+					if (this.mOpCodeToMessWith <= 4 && this.mOpCodeToMessWith > -1) {
+						if(this.mOpCodeToMessWith == 1) {
+							errorToProduce.setTransmissionErrorType(this.mOpCodeToMessWith);
+							//errorToProduce.setTransmissionErrorOccurrences(-1); // legacy code support
+							errorToProduce.setSimulatedBlocknumber(-1);
+						} else if (this.mOpCodeToMessWith == 2) {
+							errorToProduce.setTransmissionErrorType(4);
+						} else if (this.mOpCodeToMessWith == 3) {
+							errorToProduce.setTransmissionErrorType(3);
+						} else if (this.mOpCodeToMessWith == 4) {
+							errorToProduce.setTransmissionErrorType(5);
+						}
+						break;
+					}
+					System.out.println("Please select a valid option");
+				}
+				
+				if (this.mOpCodeToMessWith == 0) {
 					// go back to the previous level
 					this.mUserErrorSubOption = 0;
+					this.mOpCodeToMessWith = 0;
 					validInput = false;
 				} else {
-					errorToProduce.setSubErrorFromFamily(this.mUserErrorSubOption);
-					this.getTransmissionMenu(this.mUserErrorSubOption);
-					validInput = true;
-					errorToProduce.setTransmissionErrorFrequency(this.mSpaceOfDelay);
-					errorToProduce.setTransmissionErrorOccurrences(this.mNumPktToFkWit);
-					errorToProduce.setTransmissionErrorType(this.mOpCodeToMessWith);
+					
+					while(true) {
+						System.out.println(UIStrings.MENU_ERROR_SIMULATOR_TRANSMISSION_MENU);
+						this.mUserErrorSubOption = Keyboard.getInteger();
+						if (this.mUserErrorSubOption <= 3 && this.mUserErrorSubOption > -1) {
+							errorToProduce.setSubErrorFromFamily(this.mUserErrorSubOption);
+							break;
+						}
+					}
+					if(this.mUserErrorSubOption == 0) {
+						validInput = false;
+					} else {
+						if(this.mOpCodeToMessWith != 1 && this.mOpCodeToMessWith != 4)
+							this.mBlockNumber = this.getBlocknumberPrompt();
+						validInput = true;
+						//this.getTransmissionMenu(this.mUserErrorSubOption);
+						if(this.mUserErrorSubOption == 2) {
+							while (true) {
+								System.out.println(UIStrings.MENU_ERROR_SIMULATOR_PROMPT_DELAY_AMOUNT);
+								this.mSpaceOfDelay = Keyboard.getInteger();
+								if (mSpaceOfDelay > (Configurations.TRANMISSION_TIMEOUT + 50) && this.mSpaceOfDelay > -1) {
+									break;
+								}
+								System.out.print("Invalid delay, please enter a delay that is greater than "
+										+ (Configurations.TRANMISSION_TIMEOUT + 50) + "\n");
+							}
+						}
+						errorToProduce.setTransmissionErrorFrequency(this.mSpaceOfDelay);
+					}
 				}
 				break;
 			case 5:
@@ -304,27 +347,27 @@ public class TFTPUserInterface {
 		switch (transmissionError) {
 		case 1:
 			// lose packet
-			while (true) {
-				System.out.println(String.format(UIStrings.MENU_ERROR_SIMULATOR_PROMPT_NUM_PACKET, "lose"));
-				this.mNumPktToFkWit = Keyboard.getInteger();
-				// if(this.mInstanceSelected == InstanceType.SERVER ||
-				// (this.mInstanceSelected == InstanceType.CLIENT &&
-				// mNumPktToFkWit!=-1)){
-				// break;
-				// }
-				if (this.mNumPktToFkWit >= -1) {
-					break;
-				}
-				System.out.println("Please select a block that is not a RRQ/WRQ");
-			}
-
-			while (true) {
-				System.out.println(UIStrings.MENU_ERROR_SIMULATOR_PROMPT_TYPE);
-				this.mOpCodeToMessWith = Keyboard.getInteger();
-				if (checkBlockOpcode()) {
-					break;
-				}
-			}
+//			while (true) {
+//				System.out.println(String.format(UIStrings.MENU_ERROR_SIMULATOR_PROMPT_NUM_PACKET, "lose"));
+//				this.mNumPktToFkWit = Keyboard.getInteger();
+//				// if(this.mInstanceSelected == InstanceType.SERVER ||
+//				// (this.mInstanceSelected == InstanceType.CLIENT &&
+//				// mNumPktToFkWit!=-1)){
+//				// break;
+//				// }
+//				if (this.mNumPktToFkWit >= -1) {
+//					break;
+//				}
+//				System.out.println("Please select a block that is not a RRQ/WRQ");
+//			}
+//
+//			while (true) {
+//				System.out.println(UIStrings.MENU_ERROR_SIMULATOR_PROMPT_TYPE);
+//				this.mOpCodeToMessWith = Keyboard.getInteger();
+//				if (checkBlockOpcode()) {
+//					break;
+//				}
+//			}
 			break;
 		case 2:
 			// delay packet

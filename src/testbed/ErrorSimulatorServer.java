@@ -89,9 +89,8 @@ public class ErrorSimulatorServer implements Callback {
 				if (this.mErrorOptionSettings != null && vLastThread != null && this.LETS_GO
 						&& this.mErrorOptionSettings.getMainErrorFamily() == ErrorType.TRANSMISSION_ERROR
 						&& this.mErrorOptionSettings.getSubErrorFromFamily() == 2
-						&& this.mErrorOptionSettings
-								.getTransmissionErrorFrequency() >= Configurations.TRANMISSION_TIMEOUT - 50
-						&& this.mErrorOptionSettings.getTransmissionErrorOccurences() == -1) {
+						&& this.mErrorOptionSettings.getTransmissionErrorFrequency() >= Configurations.TRANMISSION_TIMEOUT - 50
+						&& this.mErrorOptionSettings.getSimulatedBlocknumber() == -1) {
 					receivePacket = new DatagramPacket(buffer, buffer.length);
 					logger.print(Logger.VERBOSE, Strings.ERROR_SERVER_WAITING_INIT);
 					try {
@@ -112,7 +111,7 @@ public class ErrorSimulatorServer implements Callback {
 				if (this.mErrorOptionSettings != null && vLastThread != null && this.LETS_GO
 						&& this.mErrorOptionSettings.getMainErrorFamily() == ErrorType.TRANSMISSION_ERROR
 						&& this.mErrorOptionSettings.getSubErrorFromFamily() == 1
-						&& this.mErrorOptionSettings.getTransmissionErrorOccurences() == -1) {
+						&& this.mErrorOptionSettings.getSimulatedBlocknumber() == -1) {
 					logger.print(Logger.VERBOSE, Strings.ERROR_SERVER_WAITING_LOST);
 					receivePacket = new DatagramPacket(buffer, buffer.length);
 					try {
@@ -127,6 +126,7 @@ public class ErrorSimulatorServer implements Callback {
 						threads.addElement(service);
 						service.start();
 						this.LETS_GO = false;
+						errorSimulatorSock.setSoTimeout(0);
 					} catch (SocketTimeoutException e) {
 
 					}

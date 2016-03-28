@@ -23,13 +23,13 @@ public class UIStrings {
 							   = "----------------------\n"
 			   				   + "| Illegal TFTP Operation Menu |\n"
 			   				   + "----------------------\n"
-			   				   + "Please select the block type to corrupt\n"
+			   				   + "Please select the packet type to simulate on:\n"
 			   				   + "Options : \n"
 			   				   + "\t 0.Go back to the previous menu \n"
-			   				   + "\t 1.Corrupt first packet\n"
-			   				   + "\t 2.Corrupt ACK packet\n"
-			   				   + "\t 3.Corrupt DATA packet\n"
-			   				   + "\t 4.Corrupt ERROR packet\n"
+			   				   + "\t 1.First packet\n"
+			   				   + "\t 2.ACK packet\n"
+			   				   + "\t 3.DATA packet\n"
+			   				   + "\t 4.ERROR packet\n"
 			   				   + "Select option : ";
 	public static final String MENU_ERROR_SIMULATOR_ILLEGAL_TFTP_OPERATION_FIRST
 							   = "----------------------\n"
@@ -125,10 +125,10 @@ public class UIStrings {
 	 						  +"|   Select Transmission Error    |\n"
 	 						  +"--------------------------------\n"
 	 						  +"Options : \n"
+	 						  +"\t 0. Go Back\n"
 	 						  +"\t 1. Lose Packet\n"
 	 						  +"\t 2. Delay Packet\n"
 	 						  +"\t 3. Duplicate Packet\n"
-	 						  +"\t 4. Go Back\n"
 	 						  +"Select option : \n";
 	 
 	 public static final String MENU_ERROR_SIMULATOR_PROMPT_FREQUENCY 

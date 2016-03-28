@@ -23,7 +23,6 @@ import testbed.errorcode.ErrorCodeFour;
 import testbed.errorcode.TransmissionConcurrentSend;
 import testbed.errorcode.TransmissionError;
 import types.ErrorType;
-import types.InstanceType;
 import types.Logger;
 import types.RequestType;
 
@@ -458,9 +457,9 @@ public class ErrorSimulatorService implements Runnable {
 			} 
 
 		} else {
-			System.out.println(String.format("current sim blk %d waiting for block %d", this.mSimulatedPacketCounter, 
-					this.mErrorSettings.getSimulatedBlocknumber()));
-			if(this.mSimulatedPacketCounter++ != this.mErrorSettings.getSimulatedBlocknumber()) {
+//			System.out.println(String.format("current sim blk %d waiting for block %d", this.mSimulatedPacketCounter, 
+//					this.mErrorSettings.getSimulatedBlocknumber()));
+			if(mInPacket.getBlockNumber() != this.mErrorSettings.getSimulatedBlocknumber()) {
 				return;
 			}
 		}
@@ -546,28 +545,19 @@ public class ErrorSimulatorService implements Runnable {
 			// error code 5
 			break;
 		case TRANSMISSION_ERROR:
-			if (this.mErrorSettings.getTransmissionErrorType() != RequestType.NONE
-					&& this.mErrorSettings.getTransmissionErrorType().getOptCode() != inPacket.getData()[1]) {
-				logger.print(Logger.ERROR,
-						String.format(Strings.ERROR_SERVICE_ERROR_TYPE,
-								this.mErrorSettings.getTransmissionErrorType() != RequestType.NONE, this.mErrorSettings
-										.getTransmissionErrorType().getOptCode() != inPacket.getData()[1]));
-				break;
-			}
-			
 			switch (this.mErrorSettings.getSubErrorFromFamily()) {
 			case 1:
 				// Lose a packet
 				// System.err.println("Testing to lose.");
-				this.mPacketBlock = this.mErrorSettings.getTransmissionErrorOccurences();
+				this.mPacketBlock = this.mErrorSettings.getSimulatedBlocknumber();
 				this.mPacketOpCode = this.mErrorSettings.getTransmissionErrorType();
-				mInPacket = (new PacketBuilder()).constructPacket(mLastPacket);
+				//mInPacket = (new PacketBuilder()).constructPacket(mLastPacket);
 
-				if (mInPacket.getBlockNumber() != this.mPacketBlock || mInPacket.getRequestType() != this.mPacketOpCode
-						|| this.mLostPacketPerformed) {
-					logger.print(this.logger, Strings.ERROR_SERVICE_NO_ERROR);
-					return;
-				}
+//				if (mInPacket.getBlockNumber() != this.mPacketBlock || mInPacket.getRequestType() != this.mPacketOpCode
+//						|| this.mLostPacketPerformed) {
+//					logger.print(this.logger, Strings.ERROR_SERVICE_NO_ERROR);
+//					return;
+//				}
 				System.err.println(Strings.ERROR_SERVICE_LOST);
 				this.mPacketSendQueue.pop();
 
@@ -622,17 +612,17 @@ public class ErrorSimulatorService implements Runnable {
 				// mPacketsProcessed is always ahead of ErrorOccurrences by 1
 				// only gets incremented one way -> messing with client or
 				// server bound packets (set in ES)
-				mInPacket = (new PacketBuilder()).constructPacket(mLastPacket);
-				if (mInPacket.getBlockNumber() != this.mErrorSettings.getTransmissionErrorOccurences()
-						|| mInPacket.getRequestType() != this.mErrorSettings.getTransmissionErrorType()
-						|| this.mDelayPacketPerformed) {
-					// System.err.println(String.format("%d =? %d %d =? %d",
-					// mInPacket.getBlockNumber(),this.mPacketBlock,
-					// mInPacket.getRequestType().getOptCode(),
-					// this.mErrorSettings.getTransmissionErrorType().getOptCode()
-					// ));
-					return;
-				}
+				//mInPacket = (new PacketBuilder()).constructPacket(mLastPacket);
+//				if (mInPacket.getBlockNumber() != this.mErrorSettings.getSimulatedBlocknumber()
+//						|| mInPacket.getRequestType() != this.mErrorSettings.getTransmissionErrorType()
+//						|| this.mDelayPacketPerformed) {
+//					// System.err.println(String.format("%d =? %d %d =? %d",
+//					// mInPacket.getBlockNumber(),this.mPacketBlock,
+//					// mInPacket.getRequestType().getOptCode(),
+//					// this.mErrorSettings.getTransmissionErrorType().getOptCode()
+//					// ));
+//					return;
+//				}
 				logger.print(Logger.ERROR, String.format(Strings.ERROR_SERVICE_DELAY_ATTEMP, inPacket.getData()[1]));
 
 				// Delay a packet
@@ -697,11 +687,11 @@ public class ErrorSimulatorService implements Runnable {
 				break;
 			case 3:
 				// System.err.println("Testing to duplicate.");
-				mInPacket = (new PacketBuilder()).constructPacket(this.mLastPacket);
-				if (mInPacket.getBlockNumber() != this.mErrorSettings.getTransmissionErrorOccurences()
-						|| mInPacket.getRequestType() != this.mErrorSettings.getTransmissionErrorType()
-						|| this.mDuplicatePacketPerformed)
-					return;
+				//mInPacket = (new PacketBuilder()).constructPacket(this.mLastPacket);
+//				if (mInPacket.getBlockNumber() != this.mErrorSettings.getSimulatedBlocknumber()
+//						|| mInPacket.getRequestType() != this.mErrorSettings.getTransmissionErrorType()
+//						|| this.mDuplicatePacketPerformed)
+//					return;
 				logger.print(Logger.ERROR,
 						String.format("Attempting to duplicate a packet with op code %d.", inPacket.getData()[1]));
 
@@ -773,7 +763,7 @@ public class ErrorSimulatorService implements Runnable {
 
 				break;
 			default:
-				System.err.println("WRONG Transmission suberror");
+				System.err.println("No Error is to be Produced.");
 			}
 
 			break;
