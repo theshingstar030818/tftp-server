@@ -23,20 +23,19 @@ public class ErrorCodeFive implements Runnable {
 	private DatagramSocket errorSocket;
 	private InetAddress clientAddress;
 	private boolean sendNow;
-	
+
 	public ErrorCodeFive(DatagramPacket sendPacket) {
-		this.mSendPacket = new DatagramPacket(sendPacket.getData(), sendPacket.getLength(), sendPacket.getAddress(),
-				sendPacket.getPort());
+		this.mSendPacket = sendPacket;
 		clientAddress = sendPacket.getAddress();
 	}
-	
+
 	public ErrorCodeFive(DatagramPacket sendPacket, boolean sendNow) {
 		this.mSendPacket = new DatagramPacket(sendPacket.getData(), sendPacket.getLength(), sendPacket.getAddress(),
 				sendPacket.getPort());
 		this.sendNow = sendNow;
 	}
 
-	private void sendErrorNow() {
+	public void sendErrorNow() {
 		createErrorSocket();
 		try {
 			System.err.println("Creating an error packet for unknown host to sent to host.");
@@ -61,7 +60,7 @@ public class ErrorCodeFive implements Runnable {
 		this.errorSocket.close();
 		packetCount = 0;
 	}
-	
+
 	/**
 	 * Check to see if we need to create this every 3rd packet ISSUE: this does
 	 * not work well on serving multiple clients on one machine at the same time
@@ -96,39 +95,8 @@ public class ErrorCodeFive implements Runnable {
 	 * @see java.lang.Runnable#run()
 	 */
 	public void run() {
-		if(this.sendNow) {
-			sendErrorNow();
-			return;
-		}
-		packetCount++;
-		if (checkToCreateErrorSocket()) {
-			createErrorSocket();
-			// Setting this time out so when it does time out, then we can
-			// simply shut the thread down
-
-			try {
-				System.err.println("Creating an error packet for unknown host to sent to server.");
-				// this.errorSocket.setSoTimeout(1000);
-				this.errorSocket.send(this.mSendPacket);
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-			// receive error message from server
-			byte data[] = new byte[Configurations.MAX_BUFFER];
-			DatagramPacket receivedPacket = new DatagramPacket(data, data.length);
-			try {
-				this.errorSocket.receive(receivedPacket);
-				ErrorPacket errorPacket = new ErrorPacket(receivedPacket);
-				BufferPrinter.printPacket(errorPacket, Logger.VERBOSE, RequestType.ERROR);
-				System.err.println("Uknown host error packet received from server \n");
-			} catch (SocketTimeoutException e) {
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-			this.errorSocket.close();
-			packetCount = 0;
-		}
-
+		sendErrorNow();
+		return;
 	}
 
 }

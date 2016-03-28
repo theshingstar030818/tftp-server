@@ -83,8 +83,8 @@ public class UIStrings {
 				               + "Please select the block type to corrupt\n"
 			   				   + "Options : \n"
 			   				   + "\t 0.Go back to the previous menu \n"
-			   				   + "\t 1.Innitiate ACK packet\n"
-			   				   + "\t 2.Inntiate DATA packet\n"
+			   				   + "\t 1.Initiate on ACK packet\n"
+			   				   + "\t 2.Initiate on DATA packet\n"
 			   				   + "Select option : ";
 	 public static final String MENU_ERROR_SIMULATOR_LOG_LEVEL 
 							   = "----------------------------------\n"
@@ -142,5 +142,5 @@ public class UIStrings {
 	 public static final String MENU_ERROR_SIMULATOR_PROMPT_TYPE
 	  						  = "Enter the op code of the packet to simulate error on:";
 	 public static final String MENU_ERROR_SIMULATOR_PROMPT_BLOCK_NUMBER
-	 						  = "Please enter the block number to corrupt";
+	 						  = "Please enter the block number simulate error on:";
 }
