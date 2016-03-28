@@ -70,15 +70,15 @@ public class TFTPUserInterface {
 					while(true){
 						System.out.println(UIStrings.MENU_ERROR_SIMULATOR_ILLEGAL_TFTP_OPERATION);
 						this.mUserErrorSubOption = Keyboard.getInteger();
-						if(this.mFirstSubOption>4){
+						if(this.mUserErrorSubOption<=4 && this.mUserErrorSubOption>-1){
 							break;
 						}
 						System.out.println("Please select a valid option");
 					}
 					if (this.mUserErrorSubOption == 0) {
 						// go back to the previous level
-						validInput = false;
-					} else {
+						validInput = false;} 
+					else {
 						int illegalTransferType = getIllegalTFTPerrorMenu(this.mUserErrorSubOption);
 						errorToProduce.setIllegalTransferCase(illegalTransferType);
 						validInput = true;
@@ -87,9 +87,21 @@ public class TFTPUserInterface {
 				case 2:
 					// unknown transfer ID operation option
 					this.mUserErrorOption = ErrorType.UNKNOWN_TRANSFER;
-					this.mUserErrorSubOption = 0;
-					validInput = true;
-					break;
+					while(true){
+						System.out.println(UIStrings.MENU_ERROR_SIMULATOR_UNKNOWN_TID);
+						this.mUserErrorSubOption = Keyboard.getInteger();
+						if(this.mUserErrorSubOption<=3 && this.mUserErrorSubOption>-1){
+							break;
+						}
+						System.out.println("Please select a valid option");
+					}
+					if (this.mUserErrorSubOption == 0) {
+						// go back to the previous level
+						validInput = false;}
+					else{
+						
+					}
+					
 				case 3:
 					// No error
 					System.out.println("Alright boss.");
@@ -99,7 +111,8 @@ public class TFTPUserInterface {
 				case 4:
 					// Transmission Error
 					this.mUserErrorOption = ErrorType.TRANSMISSION_ERROR;
-					this.getSubOption(UIStrings.MENU_ERROR_SIMULATOR_TRANSMISSION_MENU, 4);
+					System.out.println(UIStrings.MENU_ERROR_SIMULATOR_TRANSMISSION_MENU);
+					this.mUserErrorSubOption = Keyboard.getInteger();
 					if (this.mUserErrorSubOption == 4) {
 						// go back to the previous level
 						this.mUserErrorSubOption = 0;

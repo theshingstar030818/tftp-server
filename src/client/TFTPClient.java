@@ -50,7 +50,7 @@ public class TFTPClient {
 	private String getClientFilePath() {
 		String path = null;
 		do {
-			System.out.print("Enter a directory to use as your default directory to write from: ");
+			System.out.print("Enter a directory to use as your default directory to write from: \n");
 			path = Keyboard.getString();
 		} while (!(new File(path).isDirectory()));
 		

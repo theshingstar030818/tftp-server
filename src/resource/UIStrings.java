@@ -75,6 +75,17 @@ public class UIStrings {
 			   				   + "\t 1.Invalid error number \n"
 			   				   + "\t 2.Invalid packet header during transfer \n"
 			   				   + "Select option : ";
+	
+	 public static final String MENU_ERROR_SIMULATOR_UNKNOWN_TID
+	 						   = "----------------------\n"		
+							   + "| Unknown TID Menu |\n"
+				               + "----------------------\n"
+				               + "Please select the block type to corrupt\n"
+			   				   + "Options : \n"
+			   				   + "\t 0.Go back to the previous menu \n"
+			   				   + "\t 1.Innitiate ACK packet\n"
+			   				   + "\t 2.Inntiate DATA packet\n"
+			   				   + "Select option : ";
 	 public static final String MENU_ERROR_SIMULATOR_LOG_LEVEL 
 							   = "----------------------------------\n"
 			   				   + "|    Error Simulator Test Menu    |\n"

@@ -48,15 +48,19 @@ public class ErrorCodeFour {
 				this.mBlockType = this.mreceivePacket.getRequestType();
 			}
 			this.FirstPacketErrorCreator(subOption);
+			break;
 		case 2: //ACK
 			this.mBlockType = RequestType.ACK;
 			this.ackPacketErrorCreator(subOption);
+			break;
 		case 3: //DATA
 			this.mBlockType = RequestType.DATA;
 			this.dataPacketErrorCreator(subOption);
+			break;
 		case 4: //ERROR
 			this.mBlockType = RequestType.ERROR;
 			this.errorPacketCreator(subOption);
+			break;
 		}
 		 
 	}
@@ -65,12 +69,16 @@ public class ErrorCodeFour {
 		switch(subOption){
 		case 1: //Invalid file name
 			this.errorPacketCreator(1);
+			break;
 		case 2: //Invalid packet header during transfer
-			this.errorPacketCreator(5);
+			this.errorPacketCreator(7);
+			break;
 		case 3: //Invalid zero padding bytes
 			this.errorPacketCreator(3);
+			break;
 		case 4: //Invalid mode
 			this.errorPacketCreator(2);
+			break;
 
 		}
 	}
@@ -79,10 +87,13 @@ public class ErrorCodeFour {
 		switch(subOption){
 		case 1: //Invalid block number
 			this.errorPacketCreator(4);
+			break;
 		case 2: //Invalid packet header during transfer
 			this.errorPacketCreator(5);
+			break;
 		case 3: //Invalid packet size
 			this.errorPacketCreator(6);
+			break;
 			
 		}
 	}
@@ -90,10 +101,13 @@ public class ErrorCodeFour {
 		switch(subOption){
 		case 1: //Invalid block number
 			this.errorPacketCreator(4);
+			break;
 		case 2: //Invalid packet header during transfer
 			this.errorPacketCreator(5);
+			break;
 		case 3: //Invalid packet size
 			this.errorPacketCreator(6);
+			break;
 	
 		}
 	}
@@ -101,8 +115,10 @@ public class ErrorCodeFour {
 	public void errorPacketErrorCreator(int subOption){
 		switch(subOption){
 		case 1: //Invalid error number
+			break;
 		case 2: //Invalid packet header during transfer
 			this.errorPacketCreator(5);
+			break;
 
 		}
 	}
@@ -165,6 +181,7 @@ public class ErrorCodeFour {
 				this.mSendPacket = this.mreceivePacket.getPacket();
 			}
 			break;
+
 
 		default:
 			// TODO: default action for error creator
