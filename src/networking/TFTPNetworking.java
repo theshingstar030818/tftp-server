@@ -155,6 +155,7 @@ public class TFTPNetworking {
 								return null;
 							}
 							retriesExceeded = true;
+							this.storage.deleteFileFromDisk();
 							break;
 						}
 						continue;
@@ -203,7 +204,7 @@ public class TFTPNetworking {
 			if(Configurations.TRANMISSION_TIMEOUT == 0) {
 				return new TFTPErrorMessage(ErrorType.NO_ERROR, Strings.NO_ERROR);
 			}
-			while (true) {
+			while (!retriesExceeded) {
 				try {
 
 					byte[] data = new byte[Configurations.MAX_BUFFER];
@@ -311,6 +312,7 @@ public class TFTPNetworking {
 								logger.print(logger, String.format(Strings.TFTPNETWORKING_RE_TRAN_SUCCEED, retries));
 							}
 							retriesExceeded = true;
+							this.storage.finishedTransferingFile();
 							break;
 						}
 						continue;
@@ -414,6 +416,7 @@ public class TFTPNetworking {
 				try {
 					socket.send(accessViolation);
 				} catch (IOException e) { e.printStackTrace(); }
+				
 				return true;
 			case ILLEGAL_OPERATION:
 				logger.print(Logger.ERROR, "Illegal Operation, unrecoverable error.");
@@ -436,7 +439,7 @@ public class TFTPNetworking {
 					socket.send(unknownError);
 				} catch (IOException e) { e.printStackTrace(); }
 				logger.print(Logger.ERROR, Strings.UNKNOWN_TRANSFER_HELP_MESSAGE);
-				BufferPrinter.printPacket(new ErrorPacket(packet), Logger.ERROR, RequestType.ERROR);
+				BufferPrinter.printPacket(errorPacket, Logger.ERROR, RequestType.ERROR);
 				return false;
 			case SORCERERS_APPRENTICE:
 				return false;

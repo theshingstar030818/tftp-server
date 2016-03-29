@@ -120,9 +120,9 @@ public class Strings {
 	public static final String ERROR_SERVICE_ERROR_TRANS = "Something bad happened while transfering files";
 	public static final String ERROR_SERVICE_SUCCESS = "Success full simulation of last packet.";
 	public static final String ERROR_SERVICE_FORWARD_CLI_ERR = "Client sent a error packet, now forwarding it to the server!";
-	public static final String ERROR_SERVICE_FORWARD_CLI_ACK = "An ack packet was received from the client, forwarding to server!";
+	public static final String ERROR_SERVICE_FORWARD_CLI_ACK = "An packet was received from the client, forwarding to server!";
 	public static final String ERROR_SERVICE_FORWARD_SER_ERR = "Server sent a error packet, now forwarding it to the client!";
-	public static final String ERROR_SERVICE_FORWARD_SER_ACK = "An ack packet was received from the server, forwarding it to client!";
+	public static final String ERROR_SERVICE_FORWARD_SER_ACK = "An packet was received from the server, forwarding it to client!";
 	public static final String ERROR_SERVICE_ERR_CLI = "Client accidently created more than 1 server thread. 2nd thread has replied with message to the client.";
 	public static final String ERROR_SERVICE_ADD_SER ="Tweaked the address to go to server: ";
 	public static final String ERROR_SERVICE_ADD_CLI = "Tweaked the address to go to client: ";
