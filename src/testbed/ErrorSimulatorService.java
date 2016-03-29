@@ -305,21 +305,46 @@ public class ErrorSimulatorService implements Runnable {
 		// if (this.mMessUpThisTransfer == InstanceType.SERVER) {
 		this.simulateError(inPacket); // Adds packet into Q
 		// }
-		if (inPacket.getPort() == this.mClientPort) {
-			if (this.mInitialRequestType == RequestType.RRQ) {
-				logger.print(Logger.VERBOSE, String.format(Strings.ERROR_SERVICE_FORWARD_CLI_ACK));
-				return true; // This will be an ACK
-			} else {
-				return inPacket.getLength() == Configurations.MAX_MESSAGE_SIZE;
-			}
-		} else {
-			if (this.mInitialRequestType == RequestType.RRQ) {
-				return inPacket.getLength() == Configurations.MAX_MESSAGE_SIZE;
-			} else {
+		this.mLastPacket = this.mPacketSendQueue.peek();
+		if(this.mLastPacket == null)
+			return true; // Case where we delay so the Q is empty, go back to loop and listen
+		int header = this.mLastPacket.getData()[1];
+		if(header == 3) {
+			if(this.mInitialRequestType == RequestType.RRQ) {
 				logger.print(Logger.VERBOSE, String.format(Strings.ERROR_SERVICE_FORWARD_SER_ACK));
-				return true; // This will be an ACK
+			} else {
+				logger.print(Logger.VERBOSE, String.format(Strings.ERROR_SERVICE_FORWARD_CLI_ACK));
 			}
+			return this.mLastPacket.getLength() == Configurations.MAX_MESSAGE_SIZE;
+		} else {
+			if(header == 4) {
+				if(this.mInitialRequestType == RequestType.RRQ) {
+					logger.print(Logger.VERBOSE, String.format(Strings.ERROR_SERVICE_FORWARD_CLI_ACK));
+				} else {
+					logger.print(Logger.VERBOSE, String.format(Strings.ERROR_SERVICE_FORWARD_SER_ACK));
+				}
+				return true;
+			} else {
+				// Definitely an error packet
+				return false;
+			}
+			
 		}
+		//if (this.mLastPacket.getPort() == this.mClientPort) {
+//			if (this.mInitialRequestType == RequestType.RRQ) {
+//				logger.print(Logger.VERBOSE, String.format(Strings.ERROR_SERVICE_FORWARD_CLI_ACK));
+//				return true; // This will be an ACK
+//			} else {
+//				return this.mLastPacket.getLength() == Configurations.MAX_MESSAGE_SIZE;
+//			}
+//		} else {
+//			if (this.mInitialRequestType == RequestType.RRQ) {
+//				return this.mLastPacket.getLength() == Configurations.MAX_MESSAGE_SIZE;
+//			} else {
+//				logger.print(Logger.VERBOSE, String.format(Strings.ERROR_SERVICE_FORWARD_SER_ACK));
+//				return true; // This will be an ACK
+//			}
+//		}
 	}
 
 	/**
@@ -455,10 +480,7 @@ public class ErrorSimulatorService implements Runnable {
 					&& (mInPacket.getRequestType() == RequestType.WRQ || mInPacket.getRequestType() == RequestType.RRQ))) {
 				return;
 			} 
-
 		} else {
-//			System.out.println(String.format("current sim blk %d waiting for block %d", this.mSimulatedPacketCounter, 
-//					this.mErrorSettings.getSimulatedBlocknumber()));
 			if(mInPacket.getBlockNumber() != this.mErrorSettings.getSimulatedBlocknumber()) {
 				return;
 			}
@@ -747,13 +769,19 @@ public class ErrorSimulatorService implements Runnable {
 					} else if (this.mLastPacket != null) {
 						// Adjust the normal reply
 						directPacketToDestination();
-						this.mPacketSendQueue.addLast(this.mLastPacket);
+						this.mPacketSendQueue.addLast(this.mLastPacket); // Just queued up the good packet
 						// Forward the duplicate
 						this.forwardPacketToSocket(duplicatePacket);
 						this.mSendReceiveSocket.setSoTimeout(Configurations.TRANMISSION_TIMEOUT);
 						this.mTransmissionRetries = 0;
-						this.retrievePacketFromSocket(); // ignore the duplicate
-						this.mTransmissionRetries = 0;
+						if(vReqToSimulateOn == RequestType.DATA) {
+							this.mLastPacket = this.retrievePacketFromSocket(); // Received duplicate ACK
+							this.directPacketToDestination();
+							this.forwardPacketToSocket(this.mLastPacket); // Other host will not reply to this one.
+							this.mLastPacket = this.mPacketSendQueue.peek();
+						}
+//						this.retrievePacketFromSocket(); // ignore the duplicate
+//						this.mTransmissionRetries = 0;
 						// Continue handling the current packet.
 					}
 					this.mDuplicatePacketPerformed = true;

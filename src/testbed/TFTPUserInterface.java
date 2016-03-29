@@ -167,8 +167,11 @@ public class TFTPUserInterface {
 					if(this.mUserErrorSubOption == 0) {
 						validInput = false;
 					} else {
-						if(this.mOpCodeToMessWith != 1 && this.mOpCodeToMessWith != 4)
+						if(this.mOpCodeToMessWith != 1 && this.mOpCodeToMessWith != 4) {
 							this.mBlockNumber = this.getBlocknumberPrompt();
+							errorToProduce.setSimulatedBlocknumber(this.mBlockNumber);
+						}
+							
 						validInput = true;
 						//this.getTransmissionMenu(this.mUserErrorSubOption);
 						if(this.mUserErrorSubOption == 2) {
@@ -182,6 +185,7 @@ public class TFTPUserInterface {
 										+ (Configurations.TRANMISSION_TIMEOUT + 50) + "\n");
 							}
 						}
+						
 						errorToProduce.setTransmissionErrorFrequency(this.mSpaceOfDelay);
 					}
 				}
