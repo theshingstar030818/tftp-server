@@ -14,6 +14,8 @@ import java.nio.channels.OverlappingFileLockException;
 import java.nio.file.AccessDeniedException;
 import java.nio.file.Paths;
 import resource.*;
+import testbed.TFTPErrorMessage;
+import types.DirectoryAccessViolationException;
 import types.DiskFullException;
 import types.InstanceType;
 import types.RequestType;
@@ -32,6 +34,7 @@ public class FileStorageService {
 	private String mFileName = "";
 	private long mBytesProcessed = 0;
 	private String mDefaultStorageFolder = "";
+	private TFTPErrorMessage mLastMessage = null;
 
 	// File utility classes
 	RandomAccessFile mFile = null;
@@ -46,7 +49,7 @@ public class FileStorageService {
 	 * @param fileName - given to initialize this class for use on one file
 	 * @throws IOException 
 	 */
-	public FileStorageService(String fileNameOrFilePath) throws IOException {
+	public FileStorageService(String fileNameOrFilePath) throws IOException, DirectoryAccessViolationException {
 		this.mDefaultStorageFolder = Configurations.SERVER_ROOT_FILE_DIRECTORY;
 		initializeFileServiceStorageLocation();
 		initializeNewFileChannel(fileNameOrFilePath);
@@ -64,7 +67,8 @@ public class FileStorageService {
 	 * @param instanceType	     - client or server
 	 * @throws IOException 
 	 */
-	public FileStorageService(String fileNameOrFilePath, InstanceType instanceType, RequestType requestType) throws IOException {
+	public FileStorageService(String fileNameOrFilePath, InstanceType instanceType, RequestType requestType) 
+			throws IOException, DirectoryAccessViolationException {
 		
 		this.mDefaultStorageFolder = instanceType == InstanceType.CLIENT ? Configurations.CLIENT_ROOT_FILE_DIRECTORY : 
 			Configurations.SERVER_ROOT_FILE_DIRECTORY;
@@ -123,12 +127,13 @@ public class FileStorageService {
 	 * This function checks if the default folder to save TFTP files exists, if 
 	 * not, creates one.
 	 */
-	private void initializeFileServiceStorageLocation() {
+	private void initializeFileServiceStorageLocation() throws DirectoryAccessViolationException {
 		File storageDirectory = new File(this.mDefaultStorageFolder);
 		if(!storageDirectory.exists()) {
 			if(!storageDirectory.mkdir()) {
 				// Flag error for File IO
 				System.out.println(Strings.DIRECTORY_MAKE_ERROR);
+				throw new DirectoryAccessViolationException("Access denied");
 			}
 		}
 	}

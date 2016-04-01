@@ -23,6 +23,7 @@ import resource.Configurations;
 import resource.Strings;
 import testbed.ErrorChecker;
 import testbed.TFTPErrorMessage;
+import types.DirectoryAccessViolationException;
 import types.DiskFullException;
 import types.ErrorType;
 import types.InstanceType;
@@ -92,6 +93,9 @@ public class ClientNetworking extends TFTPNetworking {
 		try {
 			socket.setSoTimeout(Configurations.TRANMISSION_TIMEOUT);
 			storage = new FileStorageService(fn, InstanceType.CLIENT, RequestType.WRQ);
+		} catch (DirectoryAccessViolationException e) {
+			//this.storage.deleteFileFromDisk();
+			return new TFTPErrorMessage(ErrorType.ACCESS_VIOLATION, "Access denied on the directory you are trying to access");
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
 		} catch (AccessDeniedException e) {
@@ -182,6 +186,9 @@ public class ClientNetworking extends TFTPNetworking {
 			socket.setSoTimeout(Configurations.TRANMISSION_TIMEOUT);
 			try {
 				storage = new FileStorageService(fileName, InstanceType.CLIENT, RequestType.RRQ);
+			} catch (DirectoryAccessViolationException e) {
+				//this.storage.deleteFileFromDisk();
+				return new TFTPErrorMessage(ErrorType.ACCESS_VIOLATION, "Access denied on the directory you are trying to access");
 			} catch (FileNotFoundException e) {
 				e.printStackTrace();
 			}

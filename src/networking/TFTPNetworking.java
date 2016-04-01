@@ -392,6 +392,8 @@ public class TFTPNetworking {
 				try {
 					socket.send(allocationExceeded);
 				} catch (IOException e) { e.printStackTrace(); }
+				logger.print(Logger.ERROR, Strings.ALLOCATION_EXCEED + " Sending error packet.");
+				BufferPrinter.printPacket(new ErrorPacket(allocationExceeded), Logger.ERROR, RequestType.ERROR);
 				return true;
 			case FILE_EXISTS:
 				logger.print(Logger.ERROR, error.getString());
@@ -400,6 +402,8 @@ public class TFTPNetworking {
 				try {
 					socket.send(fileExists);
 				} catch (IOException e) { e.printStackTrace(); }
+				logger.print(Logger.ERROR, Strings.FILE_ALREADY_EXIST + " Sending error packet.");
+				BufferPrinter.printPacket(new ErrorPacket(fileExists), Logger.ERROR, RequestType.ERROR);
 				return true;
 			case FILE_NOT_FOUND:
 				logger.print(Logger.ERROR, error.getString());
@@ -408,6 +412,8 @@ public class TFTPNetworking {
 				try {
 					socket.send(fileNotFound);
 				} catch (IOException e) { e.printStackTrace(); }
+				logger.print(Logger.ERROR, Strings.FILE_NOT_FOUND + " Sending error packet.");
+				BufferPrinter.printPacket(new ErrorPacket(fileNotFound), Logger.ERROR, RequestType.ERROR);
 				return true;
 			case ACCESS_VIOLATION:
 				logger.print(Logger.ERROR, error.getString());
@@ -416,7 +422,8 @@ public class TFTPNetworking {
 				try {
 					socket.send(accessViolation);
 				} catch (IOException e) { e.printStackTrace(); }
-				
+				logger.print(Logger.ERROR, Strings.ACCESS_VIOLATION + " Sending error packet.");
+				BufferPrinter.printPacket(new ErrorPacket(accessViolation), Logger.ERROR, RequestType.ERROR);
 				return true;
 			case ILLEGAL_OPERATION:
 				logger.print(Logger.ERROR, "Illegal Operation, unrecoverable error.");
@@ -430,7 +437,7 @@ public class TFTPNetworking {
 					socket.send(illegalOpsError);
 				} catch (IOException e) { e.printStackTrace(); }
 				logger.print(Logger.ERROR, Strings.ILLEGAL_OPERATION_HELP_MESSAGE);
-				BufferPrinter.printPacket(errorPacket, Logger.ERROR, RequestType.ERROR);
+				BufferPrinter.printPacket(new ErrorPacket(illegalOpsError), Logger.ERROR, RequestType.ERROR);
 				return true;
 			case UNKNOWN_TRANSFER:
 				DatagramPacket unknownError = errorPacket.buildPacket(ErrorType.UNKNOWN_TRANSFER,
@@ -439,7 +446,7 @@ public class TFTPNetworking {
 					socket.send(unknownError);
 				} catch (IOException e) { e.printStackTrace(); }
 				logger.print(Logger.ERROR, Strings.UNKNOWN_TRANSFER_HELP_MESSAGE);
-				BufferPrinter.printPacket(errorPacket, Logger.ERROR, RequestType.ERROR);
+				BufferPrinter.printPacket(new ErrorPacket(unknownError), Logger.ERROR, RequestType.ERROR);
 				return false;
 			case SORCERERS_APPRENTICE:
 				return false;

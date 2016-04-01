@@ -14,6 +14,7 @@ import packet.ReadWritePacket;
 import resource.Configurations;
 import resource.Strings;
 import testbed.TFTPErrorMessage;
+import types.DirectoryAccessViolationException;
 import types.ErrorType;
 import types.InstanceType;
 import types.Logger;
@@ -82,6 +83,9 @@ public class ServerNetworking extends TFTPNetworking {
 			storage = new FileStorageService(fileName, InstanceType.SERVER, RequestType.WRQ);
 			storage.lockFile();
 			System.out.println("Locked the write file");
+		} catch (DirectoryAccessViolationException e) {
+			this.storage.deleteFileFromDisk();
+			return new TFTPErrorMessage(ErrorType.ACCESS_VIOLATION, "Access denied on the directory you are trying to access");
 		} catch (FileNotFoundException e) {
 			this.storage.deleteFileFromDisk();
 			e.printStackTrace();
@@ -131,7 +135,6 @@ public class ServerNetworking extends TFTPNetworking {
 		fileName = rrq.getFilename();
 		TFTPErrorMessage error = errorChecker.check(rrq, RequestType.RRQ);
 		if (error.getType() != ErrorType.NO_ERROR)
-			if (errorHandle(error, rrq.getPacket()))
 				return error;
 		if (!FileStorageService.checkFileNameExists(Configurations.SERVER_ROOT_FILE_DIRECTORY+"/"+fileName)){
 			return new TFTPErrorMessage(ErrorType.FILE_NOT_FOUND, Strings.FILE_NOT_FOUND);
@@ -140,7 +143,10 @@ public class ServerNetworking extends TFTPNetworking {
 		try {
 			storage = new FileStorageService(fileName, InstanceType.SERVER, RequestType.RRQ);
 			super.socket.setSoTimeout(Configurations.TRANMISSION_TIMEOUT);
-		} catch (FileNotFoundException e) {
+		} catch (DirectoryAccessViolationException e) {
+			//this.storage.deleteFileFromDisk();
+			return new TFTPErrorMessage(ErrorType.ACCESS_VIOLATION, "Access denied on the directory you are trying to access");
+		}catch (FileNotFoundException e) {
 			e.printStackTrace();
 		} catch (AccessDeniedException e) {
 			return new TFTPErrorMessage(ErrorType.ACCESS_VIOLATION, e.getFile());
