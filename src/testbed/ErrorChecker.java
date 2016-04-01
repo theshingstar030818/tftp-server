@@ -99,18 +99,19 @@ public class ErrorChecker {
 		byte[] data = packet.getPacketBuffer();
 		if (data[0] != 0) {
 			logger.print(logger, String.format("Packet validation found invalid zero byte in the begining!"));
-			return Strings.NON_ZERO_FIRST_BYTE;
+			return String.format(Strings.NON_ZERO_FIRST_BYTE, (int)data[0]);
 		}
 
 		if (RequestType.matchRequestByNumber(data[1]) != comType) {
 			logger.print(logger, String.format("Packet validation found op code %d when expecting %d!",
 					RequestType.matchRequestByNumber(data[1]).getOptCode(), comType.getOptCode()));
-			return Strings.COMMUNICATION_TYPE_MISMATCH;
+			return String.format(Strings.COMMUNICATION_TYPE_MISMATCH,comType.getRequestTypeString(),
+					RequestType.matchRequestByNumber(data[1]).getRequestTypeString());
 		}
 
 		if (data.length > Configurations.MAX_MESSAGE_SIZE) {
 			logger.print(logger, String.format("Packet validation found the packet was too large!"));
-			return Strings.PACKET_TOO_LARGE;
+			return String.format(Strings.PACKET_TOO_LARGE, data.length);
 		}
 
 		switch (comType) {
@@ -122,7 +123,7 @@ public class ErrorChecker {
 			}
 			if (data[data.length - 1] != 0) {
 				logger.print(logger, String.format("RRQ/WRQ Packet validation found missing last byte!"));
-				return Strings.NON_ZERO_LAST_BYTE;
+				return String.format(Strings.NON_ZERO_LAST_BYTE, (int)data[data.length-1]);
 			}
 			int secondZeroIndex = -1, thirdZeroIndex = -1;
 
@@ -149,12 +150,12 @@ public class ErrorChecker {
 			String mode = new String(modeBytes);
 			if (!mode.equalsIgnoreCase("octet") && !mode.equalsIgnoreCase("netascii")) {
 				logger.print(logger, String.format("RRQ/WRQ Packet validation found invalid mode!"));
-				return Strings.INVALID_MODE;
+				return String.format(Strings.INVALID_MODE, mode);
 			}
 
 			if (!isValidFilename(filename)) {
 				logger.print(logger, String.format("RRQ/WRQ Packet validation found invalid file name!"));
-				return Strings.INVALID_FILENAME;
+				return String.format(Strings.INVALID_FILENAME, filename);
 			}
 			break;
 
@@ -167,7 +168,7 @@ public class ErrorChecker {
 			}else if (mExpectedBlockNumber != currentBlockNumber) {
 				logger.print(logger, String.format("ACK block number mismatch on expected %d from actual %d",
 						this.mExpectedBlockNumber, currentBlockNumber));
-				return Strings.BLOCK_NUMBER_MISMATCH;
+				return String.format(Strings.BLOCK_NUMBER_MISMATCH, this.mExpectedBlockNumber, currentBlockNumber);
 			}
 			break;
 
@@ -175,7 +176,7 @@ public class ErrorChecker {
 			currentBlockNumber = ((AckPacket) packet).getBlockNumber();
 			if (packet.getPacketLength() != 4) {
 				logger.print(logger, String.format("Invalid packet size on ACK of %d with expected %d", packet.getPacketLength(), 4));
-				return Strings.INVALID_PACKET_SIZE;
+				return String.format(Strings.INVALID_PACKET_SIZE, packet.getPacketLength());
 			}
 			if(this.mExpectedBlockNumber > currentBlockNumber) {
 				logger.print(logger, String.format("We've seen this ACK packet with blk %d when expected %d. We should not resend a DATA to correspond to this ACK.", 
@@ -185,7 +186,7 @@ public class ErrorChecker {
 			else if (mExpectedBlockNumber != currentBlockNumber) {
 				logger.print(logger, String.format("ACK block number mismatch on expected %d from actual %d (op code %d)", 
 						this.mExpectedBlockNumber, currentBlockNumber, packet.getRequestType().getOptCode()));
-				return Strings.BLOCK_NUMBER_MISMATCH;
+				return String.format(Strings.BLOCK_NUMBER_MISMATCH, this.mExpectedBlockNumber, currentBlockNumber);
 			}
 			break;
 
@@ -197,7 +198,7 @@ public class ErrorChecker {
 
 			if (data[data.length - 1] != 0) {
 				logger.print(logger, String.format("Error Packet validation but the last byte was not zero!"));
-				return Strings.NON_ZERO_LAST_BYTE;
+				return String.format(Strings.NON_ZERO_LAST_BYTE, (int)data[data.length-1]);
 			}
 
 			if (data[2] != 0) {

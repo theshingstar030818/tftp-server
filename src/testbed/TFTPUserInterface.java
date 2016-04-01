@@ -73,7 +73,7 @@ public class TFTPUserInterface {
 					System.out.println(UIStrings.MENU_ERROR_SIMULATOR_ILLEGAL_TFTP_OPERATION);
 					this.mUserErrorSubOption = Keyboard.getInteger();
 
-					if (this.mUserErrorSubOption <= 4 && this.mUserErrorSubOption > -1) {
+					if (this.mUserErrorSubOption <= 4 && this.mUserErrorSubOption > -1) {	
 						break;
 					}
 					System.out.println("Please select a valid option");
@@ -83,11 +83,15 @@ public class TFTPUserInterface {
 					validInput = false;
 				} else {
 					int illegalTransferType = getIllegalTFTPerrorMenu(this.mUserErrorSubOption);
-					errorToProduce.setIllegalTransferCase(illegalTransferType);
-					errorToProduce.setSubErrorFromFamily(illegalTransferType);
-					errorToProduce.setTransmissionErrorType(this.mHeaderType);
-					errorToProduce.setSimulatedBlocknumber(this.mBlockNumber);
-					validInput = true;
+					if(illegalTransferType == 0) {
+						validInput = false;
+					} else {
+						errorToProduce.setIllegalTransferCase(illegalTransferType);
+						errorToProduce.setSubErrorFromFamily(illegalTransferType);
+						errorToProduce.setTransmissionErrorType(this.mHeaderType);
+						errorToProduce.setSimulatedBlocknumber(this.mBlockNumber);
+						validInput = true;
+					}
 				}
 				break;
 			case 2:
@@ -143,6 +147,7 @@ public class TFTPUserInterface {
 							errorToProduce.setTransmissionErrorType(3);
 						} else if (this.mOpCodeToMessWith == 4) {
 							errorToProduce.setTransmissionErrorType(5);
+							errorToProduce.setSimulatedBlocknumber(-1);
 						}
 						break;
 					}
@@ -297,7 +302,7 @@ public class TFTPUserInterface {
 				System.out.println(UIStrings.MENU_ERROR_SIMULATOR_ILLEGAL_TFTP_OPERATION_FIRST);
 				this.mFirstSubOption = Keyboard.getInteger();
 				if (this.mFirstSubOption <= 4 && this.mFirstSubOption > -1) {
-					this.mBlockNumber = getBlocknumberPrompt();
+					this.mBlockNumber = -1;
 					this.mHeaderType = 1;
 					return this.mFirstSubOption;
 				}
@@ -308,6 +313,9 @@ public class TFTPUserInterface {
 				System.out.println(UIStrings.MENU_ERROR_SIMULATOR_ILLEGAL_TFTP_OPERATION_ACK);
 				this.mAckSubOption = Keyboard.getInteger();
 				if (this.mAckSubOption <= 3 && this.mAckSubOption > -1) {
+					if(this.mAckSubOption ==0) {
+						return 0;
+					}
 					this.mBlockNumber = getBlocknumberPrompt();
 					this.mHeaderType = 4;
 					return this.mAckSubOption;
@@ -319,6 +327,9 @@ public class TFTPUserInterface {
 				System.out.println(UIStrings.MENU_ERROR_SIMULATOR_ILLEGAL_TFTP_OPERATION_DATA);
 				this.mDataSubOption = Keyboard.getInteger();
 				if (this.mDataSubOption <= 3 && this.mDataSubOption > -1) {
+					if(this.mDataSubOption == 0) {
+						return 0;
+					}
 					this.mBlockNumber = getBlocknumberPrompt();
 					this.mHeaderType = 3;
 					return this.mDataSubOption;
@@ -330,6 +341,9 @@ public class TFTPUserInterface {
 				System.out.println(UIStrings.MENU_ERROR_SIMULATOR_ILLEGAL_TFTP_OPERATION_ERROR);
 				this.mErrorSubOption = Keyboard.getInteger();
 				if (this.mErrorSubOption <= 2 && this.mErrorSubOption > -1) {
+					if(this.mErrorSubOption == 0) {
+						return 0;
+					}
 					this.mBlockNumber = getBlocknumberPrompt();
 					this.mHeaderType = 5;
 					return this.mErrorSubOption;

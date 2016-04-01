@@ -56,18 +56,18 @@ public class Strings {
 	public static final String SORCERERS_APPRENTICE = "Caught a magical moment. Sorcerer's apprentice bug.";
 
 	// TFTP error message templates.
-	public static final String NON_ZERO_FIRST_BYTE = "First byte is not 0.";
-	public static final String NON_ZERO_LAST_BYTE = "Last byte is not 0.";
-	public static final String NON_ZERO_PADDING = "Filename and mode did not have a 0 padding.";
-	public static final String COMMUNICATION_TYPE_MISMATCH = "Unexpected communication type.";
-	public static final String MISSING_FILENAME = "Missing filename.";
-	public static final String INVALID_FILENAME = "Invalid filename.";
-	public static final String INVALID_MODE = "Invalid mode.";
+	public static final String NON_ZERO_FIRST_BYTE = "The first byte of the packet is expected to be 0 but got %d.";
+	public static final String NON_ZERO_LAST_BYTE = "The last byte of the packet was expected to be 0, but got %d.";
+	public static final String NON_ZERO_PADDING = "Filename and mode did not have a 0 padding in between.";
+	public static final String COMMUNICATION_TYPE_MISMATCH = "Unexpected packet communication type when expecting %s and got %s.";
+	public static final String MISSING_FILENAME = "Missing the filename field of the packet.";
+	public static final String INVALID_FILENAME = "The filename you provided %s is invalid filename.";
+	public static final String INVALID_MODE = "The system cannot recognize the mode provided in this request: %s.";
 	public static final String INVALID_PACKET_NONE_TYPE = "Invalid packet of 'none' type.";
-	public static final String PACKET_TOO_LARGE = "Packet too large.";
-	public static final String PACKET_TOO_SMALL = "Packet too small.";
-	public static final String BLOCK_NUMBER_MISMATCH = "Block number mismatch.";
-	public static final String INVALID_PACKET_SIZE = "Invalid packet size.";
+	public static final String PACKET_TOO_LARGE = "Packet is over the TFTP specification of max 512 payload, received %d bytes.";
+	public static final String PACKET_TOO_SMALL = "Error packet is too small.";
+	public static final String BLOCK_NUMBER_MISMATCH = "Block number mismatch, was expecting block %d but recieved %d.";
+	public static final String INVALID_PACKET_SIZE = "The packet received had size of %d, which is an invalid packet size for an ACK.";
 	public static final String UNKOWN_ERROR_CODE = "Unknown error code.";
 	public static final String INVALID_ERROR_CODE_FORMAT = "Error code does not begin with 0.";
 	public static final String ACCESS_VIOLATION_FILE = "Access denied: you do not have permissions to access the file %s. Please change file permissions.";
