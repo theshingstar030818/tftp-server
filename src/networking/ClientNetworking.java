@@ -43,6 +43,7 @@ public class ClientNetworking extends TFTPNetworking {
 
 	private HashSet<String> textExtensions = new HashSet<String>(Arrays.asList("txt", "java", "c", "h", "cc"));
 	private InetAddress mAddressToSendTo;
+	private InstanceType mInstanceType = InstanceType.CLIENT;
 	
 	/**
 	 * See constructor from TFTPNetworking
@@ -241,6 +242,9 @@ public class ClientNetworking extends TFTPNetworking {
 				return new TFTPErrorMessage(ErrorType.NO_ERROR, Strings.NO_ERROR);
 			}
 			if (error.getType() == ErrorType.SORCERERS_APPRENTICE) super.sendACK(lastPacket); // This can't happen
+			if(lastPacket.getData()[1] == 5) {
+				return error;
+			}
 			if (errorHandle(error, lastPacket, RequestType.DATA)) {
 				this.storage.deleteFileFromDisk();
 				return error;
