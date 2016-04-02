@@ -70,7 +70,7 @@ public enum Logger {
 		@Override
 		public void print(Logger c, String s){
 			// print all the debug level messages except VERBOSE, SILENT,INFO and WARN level messages
-			if(c == ERROR || c == FATAL){
+			if(c == ERROR || c == FATAL || c == VERBOSE){
 				System.err.println(this.classTag + s);
 			}
 		}
