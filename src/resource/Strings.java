@@ -36,6 +36,7 @@ public class Strings {
 	public static final String SENDING = "Sending : ";
 	public static final String RECEIVED = "Received : ";
 	public static final String CLIENT_INITIATE_READ_REQUEST = "Client initiating read request . . .";
+	public static final String MKDIR_FAIL = "Directory error, either the directory you are trying to access does not exist or you have no permission to access it.";
 
 	// TFTP error messages.
 	public static final String NOT_DEFINED = "Not defined, see error message (if any).";

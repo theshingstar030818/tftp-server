@@ -96,7 +96,7 @@ public class ClientNetworking extends TFTPNetworking {
 			storage = new FileStorageService(fn, InstanceType.CLIENT, RequestType.WRQ);
 		} catch (DirectoryAccessViolationException e) {
 			//this.storage.deleteFileFromDisk();
-			return new TFTPErrorMessage(ErrorType.ACCESS_VIOLATION, "Access denied on the directory you are trying to access");
+			return new TFTPErrorMessage(ErrorType.ACCESS_VIOLATION, Strings.MKDIR_FAIL);
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
 		} catch (AccessDeniedException e) {
@@ -189,7 +189,7 @@ public class ClientNetworking extends TFTPNetworking {
 				storage = new FileStorageService(fileName, InstanceType.CLIENT, RequestType.RRQ);
 			} catch (DirectoryAccessViolationException e) {
 				//this.storage.deleteFileFromDisk();
-				return new TFTPErrorMessage(ErrorType.ACCESS_VIOLATION, "Access denied on the directory you are trying to access");
+				return new TFTPErrorMessage(ErrorType.ACCESS_VIOLATION, Strings.MKDIR_FAIL);
 			} catch (FileNotFoundException e) {
 				e.printStackTrace();
 			}
@@ -215,7 +215,8 @@ public class ClientNetworking extends TFTPNetworking {
 					lastPacket = lastReadPacket;
 					if (++retries == Configurations.RETRANMISSION_TRY) {
 						logger.print(Logger.ERROR, String.format(Strings.RETRANSMISSION, retries));
-						this.storage.deleteFileFromDisk();
+						if(this.storage != null)
+							this.storage.deleteFileFromDisk();
 						return new TFTPErrorMessage(ErrorType.TRANSMISSION_ERROR, Strings.CLIENT_TRANSMISSION_ERROR);
 					}
 					logger.print(Logger.VERBOSE, Strings.CLIENT_TIME_OUT);
@@ -246,7 +247,8 @@ public class ClientNetworking extends TFTPNetworking {
 				return error;
 			}
 			if (errorHandle(error, lastPacket, RequestType.DATA)) {
-				this.storage.deleteFileFromDisk();
+				if(this.storage != null)
+					this.storage.deleteFileFromDisk();
 				return error;
 			}
 			errorChecker.incrementExpectedBlockNumber();
@@ -260,7 +262,8 @@ public class ClientNetworking extends TFTPNetworking {
 		} catch (DiskFullException e) {
 			TFTPErrorMessage errMsg = new TFTPErrorMessage(ErrorType.ALLOCATION_EXCEEDED, e.getMessage());
 			if(this.errorHandle(errMsg, this.lastPacket)) {
-				this.storage.deleteFileFromDisk();
+				if(this.storage != null)
+					this.storage.deleteFileFromDisk();
 				return errMsg;
 			}
 		}
