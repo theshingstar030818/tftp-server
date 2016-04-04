@@ -682,7 +682,7 @@ public class ErrorSimulatorService implements Runnable {
 					// addWorkToFrontOfQueue
 					System.out.println(Strings.ERROR_SERVICE_FIRST_CONTACT);
 					this.mLastPacket = this.retrievePacketFromSocket();
-					System.out.println("We're on track!");
+					System.out.println("We're delaying first packet");
 					// We are sure that this is the correct packet.
 					this.mForwardPort = this.mLastPacket.getPort();
 					this.mServerHostAddress = this.mLastPacket.getAddress();

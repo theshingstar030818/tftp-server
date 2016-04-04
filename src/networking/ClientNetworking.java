@@ -135,7 +135,7 @@ public class ClientNetworking extends TFTPNetworking {
 					}
 
 					lastPacket = lastWritePacket;
-
+					System.err.println("Time out occurred, resending WRQ");
 					continue;
 				}
 				break;
@@ -218,7 +218,7 @@ public class ClientNetworking extends TFTPNetworking {
 							this.storage.deleteFileFromDisk();
 						return new TFTPErrorMessage(ErrorType.TRANSMISSION_ERROR, Strings.CLIENT_TRANSMISSION_ERROR);
 					}
-					logger.print(Logger.VERBOSE, Strings.CLIENT_TIME_OUT);
+					logger.print(Logger.ERROR, Strings.CLIENT_TIME_OUT);
 					continue;
 				}
 			}
