@@ -500,10 +500,16 @@ public class TFTPNetworking {
 					try {
 						String ip = Keyboard.getString();
 						InetAddress a = InetAddress.getByName(ip);
+						if(ip.equals("")){
+							System.out.println("Not a valid host, try again.");
+							continue;
+							}
 						return a;
 					} catch (UnknownHostException e) {
 						System.out.println("Not a valid host, try again.");
+						continue;
 					}
+					
 				}
 			} else {
 				logger.print(Logger.ERROR, Strings.ERROR_INPUT);

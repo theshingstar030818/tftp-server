@@ -71,6 +71,7 @@ public class ErrorChecker {
 		if (!mPacketOriginatingAddress.equals(packet.getPacket().getAddress())
 				|| mPacketOriginatingPort != packet.getPacket().getPort())
 			return new TFTPErrorMessage(ErrorType.UNKNOWN_TRANSFER, Strings.UNKNOWN_TRANSFER);
+		
 
 		// Check that the packet format is correct.
 		String formatErrorMessage = formatError(packet, expectedCommunicationType);
