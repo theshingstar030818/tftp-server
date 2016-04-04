@@ -41,13 +41,14 @@ public class TFTPNetworking {
 	protected String fileName;
 	protected FileStorageService storage;
 	protected int retries = 0;
-	private InstanceType mInstanceType = InstanceType.SERVER;
+	protected InstanceType mInstanceType = InstanceType.SERVER;
 
 	/**
 	 * Use this constructor if planning to manually interface with send and
 	 * receive file
 	 */
-	public TFTPNetworking() {
+	public TFTPNetworking(InstanceType i) {
+		this.mInstanceType = i;
 		lastPacket = null;
 		errorChecker = null;
 		try {
@@ -64,7 +65,8 @@ public class TFTPNetworking {
 	 * @param p
 	 *            - the packet the comes in and want to reply to.
 	 */
-	public TFTPNetworking(ReadWritePacket p) {
+	public TFTPNetworking(ReadWritePacket p,InstanceType i) {
+		this.mInstanceType = i;
 		lastPacket = p.getPacket();
 		errorChecker = new ErrorChecker(p);
 		try {
@@ -83,7 +85,8 @@ public class TFTPNetworking {
 	 * @param s
 	 *            - DatagramSocket to send ir receive on
 	 */
-	public TFTPNetworking(ReadWritePacket p, DatagramSocket s) {
+	public TFTPNetworking(ReadWritePacket p, DatagramSocket s,InstanceType i) {
+		this.mInstanceType = i;
 		lastPacket = p.getPacket();
 		errorChecker = new ErrorChecker(p);
 		socket = s;

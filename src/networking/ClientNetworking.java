@@ -43,27 +43,26 @@ public class ClientNetworking extends TFTPNetworking {
 
 	private HashSet<String> textExtensions = new HashSet<String>(Arrays.asList("txt", "java", "c", "h", "cc"));
 	private InetAddress mAddressToSendTo;
-	private InstanceType mInstanceType = InstanceType.CLIENT;
 	
 	/**
 	 * See constructor from TFTPNetworking
 	 */
 	public ClientNetworking() {
-		super();
+		super(InstanceType.CLIENT);
 	}
 
 	/**
 	 * See constructor from TFTPNetworking
 	 */
 	public ClientNetworking(ReadWritePacket p) {
-		super(p);
+		super(p, InstanceType.CLIENT);
 	}
 
 	/**
 	 * See constructor from TFTPNetworking
 	 */
 	public ClientNetworking(ReadWritePacket p, DatagramSocket s) {
-		super(p, s);
+		super(p, s, InstanceType.CLIENT);
 	}
 	
 	private ModeType getMode(String fn) {
