@@ -404,7 +404,6 @@ public class TFTPNetworking {
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
-			logger.print(Logger.ERROR, Strings.ALLOCATION_EXCEED + " Sending error packet.");
 			BufferPrinter.printPacket(new ErrorPacket(allocationExceeded), Logger.ERROR, RequestType.ERROR);
 			return true;
 		case FILE_EXISTS:
@@ -445,7 +444,6 @@ public class TFTPNetworking {
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
-			logger.print(Logger.ERROR, Strings.ACCESS_VIOLATION + " Sending error packet.");
 			BufferPrinter.printPacket(new ErrorPacket(accessViolation), Logger.ERROR, RequestType.ERROR);
 			return true;
 		case ILLEGAL_OPERATION:
