@@ -61,17 +61,16 @@ public class ErrorChecker {
 	 */
 	public TFTPErrorMessage check(Packet packet, RequestType expectedCommunicationType) {
 		
-		if (packet.getRequestType() == RequestType.ERROR) {
-			// We found an error packet, now print out the message.
-			ErrorPacket errorPacket = new ErrorPacket(packet.getPacket());
-			return new TFTPErrorMessage(errorPacket.getErrorType(), errorPacket.getCustomPackageErrorMessage());
-		}
-
 		// Check if address and port match the expected address and port.
 		if (!mPacketOriginatingAddress.equals(packet.getPacket().getAddress())
 				|| mPacketOriginatingPort != packet.getPacket().getPort())
 			return new TFTPErrorMessage(ErrorType.UNKNOWN_TRANSFER, Strings.UNKNOWN_TRANSFER);
 		
+		if (packet.getRequestType() == RequestType.ERROR) {
+			// We found an error packet, now print out the message.
+			ErrorPacket errorPacket = new ErrorPacket(packet.getPacket());
+			return new TFTPErrorMessage(errorPacket.getErrorType(), errorPacket.getCustomPackageErrorMessage());
+		}
 
 		// Check that the packet format is correct.
 		String formatErrorMessage = formatError(packet, expectedCommunicationType);
