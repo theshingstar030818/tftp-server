@@ -151,16 +151,16 @@ public class TFTPClient {
 					String writeFileNameOrFilePath = Keyboard.getString();
 
 					if (!writeFileNameOrFilePath.contains("/")) { // We were only given a filename.
-						System.out.println("Given only filename.");
+						//System.out.println("Given only filename.");
 						writeFileNameOrFilePath = clientFilePath + writeFileNameOrFilePath;
-						System.out.println(writeFileNameOrFilePath);
+						//System.out.println(writeFileNameOrFilePath);
 					}
 					
 					TFTPErrorMessage result = null;
 					File f = new File(writeFileNameOrFilePath);
 					
 					if (!f.exists() || f.isDirectory()) {
-						logger.print(logger, Strings.FILE_NOT_EXIST);
+						logger.print(Logger.ERROR, Strings.FILE_NOT_EXIST + ": " + writeFileNameOrFilePath);
 						break;
 					}
 					
