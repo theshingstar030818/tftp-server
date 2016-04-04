@@ -125,7 +125,7 @@ public class UIStrings {
 	 						  +"|   Select Transmission Error    |\n"
 	 						  +"--------------------------------\n"
 	 						  +"Options : \n"
-	 						  +"\t 0. Go Back\n"
+	 						  +"\t 0. Go back to main menu\n"
 	 						  +"\t 1. Lose Packet\n"
 	 						  +"\t 2. Delay Packet\n"
 	 						  +"\t 3. Duplicate Packet\n"
