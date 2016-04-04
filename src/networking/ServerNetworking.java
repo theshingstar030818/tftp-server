@@ -29,26 +29,25 @@ import types.RequestType;
  *         functionality.
  */
 public class ServerNetworking extends TFTPNetworking {
-	private InstanceType mInstanceType = InstanceType.SERVER;
 	/**
 	 * See constructor from TFTPNetworking
 	 */
 	public ServerNetworking() {
-		super();
+		super(InstanceType.SERVER);
 	}
 
 	/**
 	 * See constructor from TFTPNetworking
 	 */
 	public ServerNetworking(ReadWritePacket p) {
-		super(p);
+		super(p, InstanceType.SERVER);
 	}
 
 	/**
 	 * See constructor from TFTPNetworking
 	 */
 	public ServerNetworking(ReadWritePacket p, DatagramSocket s) {
-		super(p, s);
+		super(p, s, InstanceType.SERVER);
 	}
 
 	/**
