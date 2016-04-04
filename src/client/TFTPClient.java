@@ -70,7 +70,6 @@ public class TFTPClient {
 		Scanner scan = new Scanner(System.in);
 		ClientNetworking net = null;
 		
-		String clientFilePath = getClientFilePath();
 		
 		try {
 			mode = getSendPort();
@@ -145,6 +144,7 @@ public class TFTPClient {
 					break;
 				case 2:
 					// Write file
+					String clientFilePath = getClientFilePath();
 					net = new ClientNetworking();
 
 					logger.print(logger, Strings.PROMPT_FILE_NAME_PATH);
